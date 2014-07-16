@@ -1,0 +1,113 @@
+@CHARSET "UTF-8";
+
+.gray{     color:#999; }
+
+body { padding-top: 60px;
+        padding-bottom: 40px; }
+/**--------template----------**/
+
+/**	sidebar	**/
+.sidebar{
+	/*color: #f60;*/
+	background: #EEE; padding: 20px; 
+	border-top:1px solid #ccc;
+	border-bottom:1px solid #ccc; 
+	margin:0 -5pt 0 0;
+	z-index: 4;
+}
+
+/** footer **/
+.footer_box {
+	margin:0 0 0 0;
+	padding: 3% 0 3% 0;
+	border-top:1px solid #ccc;
+}
+
+/**------------INDEX-----------**/
+/** logo  **/
+.logo{
+	margin:0 0 5% 0;
+}
+.logo_text { font-family: Arial, Helvetica, "黑体"; margin:4% 1% 1% 4%; font-size:40pt; font-weight:normal; line-height:100%; }
+.logo_text a { }
+.logo_text a:hover { text-decoration:none; }
+.site_description { 
+	font-size:13px; display:block;
+	border-top:1px solid #bbb; font-weight:normal;
+	margin:0 4%; padding:5px 0 0 0; color:#888;
+}
+
+/*
+#logo_image { position:absolute; margin:0; padding:0; line-height:100%; }
+*/
+
+/* posts div */
+.posts_wrap {  
+	z-index:3;
+	position:relative;
+	padding:0 0 0 10pt; clear:right;
+	border-bottom:1px double #ccc;
+} /* float:right; */
+
+/* post of each one */
+.post {
+	border-top:1px double #ccc;
+	margin: 0 0 0 -3%;
+}
+.post h1,.post h2, .post h3, .post h4, .post h5, .post h6 { line-height:160%; margin:0 0 20px 0; }
+
+
+/* post title */
+.post .title { 
+	font-size:24px; font-weight:normal; background:url(../img/title300.png) no-repeat left 45px; display:block; line-height:140%; 
+}
+.post .title a,.post .title span {
+	display:block; margin:0 0 0 0; 
+	padding:20pt 4% 0 4%; text-decoration:none; color:#666;
+}
+.post .title a:hover { text-decoration:underline; }
+/* post content */
+.post_content { 
+	padding:0 0 0 4%;
+	background:#fff;  min-height:50pt; text-indent: 2em;
+}
+.post_readmore { padding:3pt 0 2pt 0; }
+
+
+/* ---------- clearfix hack ---------- */
+.clearfix:after { content: "."; display:block; clear:both; height:0; font-size:0.1em; line-height:0; visibility:hidden; overflow:hidden; }
+.clearfix { display: inline-block; }
+/* exlude MacIE5 \*/
+* html .clearfix { height:1% }
+.clearfix {display:block;}
+/* end MacIE5 */
+
+.post_meta ul { margin:0; display:inline-block; float:left; }
+.post .post_meta li { float:left; line-height:200%; margin:0; padding:0; background:none; }
+.post_meta { background:url(img/meta_bg.gif); margin:0 0 0 0; padding:9px 3% 8px 4%; font-size:12px; }
+.post_meta a { color:#777; padding:4px 7px; text-decoration:none; }
+.post_meta a:hover { text-decoration:underline; }
+.post_meta ul.post-tag { background:url(img/icon_tag2.png) no-repeat left 6px; padding:0 0 0 11px; }
+.post_meta ul.post-category { background:url(img/icon_category2.png) no-repeat left 5px; padding:0 0 0 10px; margin:0 0 0 20px; }
+
+
+
+
+/**-----------Term admin--------------**/
+/*.inline,.hide-if-no-js{visibility:hidden}
+
+.row-actions span.delete a,.row-actions span.spam a,.row-actions span.trash a,.submitbox .submitdelete{color:#a00}
+
+.row-actions{
+	visibility:hidden
+}
+.term_operate{  visibility:hidden; }
+
+.placeholder{ visibility:hidden;}
+*/
+
+
+
+
+
+

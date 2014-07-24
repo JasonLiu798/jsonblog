@@ -15,6 +15,52 @@ body { padding-top: 60px;
 	margin:0 -5pt 0 0;
 	z-index: 4;
 }
+/*** back2top ***/
+/*默认样式，主要是position:fixed实现屏幕绝对定位*/
+#gotoTop{
+	display:none;
+	position:fixed;
+	top:75%;
+	left:45%;
+	cursor:pointer;
+	margin-top:-50px;
+	margin-left:520px;
+	padding:9px 4px;
+	height:50px;
+	width:50px;
+	text-align:center;
+	/**border:1px solid #e0e0e0;**/
+	background:#FFF;}
+/*用CSS表达式(expression)来实现ie6下position:fixed效果*/
+#gotoTop{
+	_position:absolute;
+	_top:expression(documentElement.scrollTop + documentElement.clientHeight * 3/4 + "px")
+}
+/*鼠标进入的反馈效果*/
+#gotoTop.hover{
+	background:#FFF;
+	color:#fff;
+	text-decoration:none;
+}
+
+/*上圆角框通用设置样式，如果要运用多个不同颜色，以下6句不用重新变化--------------------------------*/
+.b1,.b2,.b3,.b4,.b5,.b6,.b7,.b8{height:1px; font-size:1px; overflow:hidden; display:block;}
+.b1,.b8{margin:0 5px;}
+.b2,.b7{margin:0 3px;border-right:2px solid; border-left:2px solid;}
+.b3,.b6{margin:0 2px;border-right:1px solid; border-left:1px solid;}
+.b4,.b5{margin:0 1px;border-right:1px solid; border-left:1px solid; height:2px;}
+.content {border-right:1px solid;border-left:1px solid;overflow:hidden;}
+/*颜色方案一,蓝色边框----------------------------------------*/
+/*下面第一、二句决定边框颜色，第三句决定背景颜色*/
+/*边框色*/
+.color1 .b2,.color1 .b3,.color1 .b4,.color1 .b5,.color1 .b6,.color1 .b7,.color1 .content{border-color:#FFF;}
+.color1 .b1,.color1 .b8{background:#FFF;}
+/*背景色*/
+.color1 .b2,.color1 .b3,.color1 .b4,.color1 .b5,.color1 .b6,.color1 .b7,.color1 .content{background:#EEE;}
+
+
+
+
 
 /** footer **/
 .footer_box {
@@ -51,7 +97,7 @@ body { padding-top: 60px;
 
 /* post of each one */
 .post {
-	border-top:1px double #ccc;
+	border-bottom:1px double #ccc;
 	margin: 0 0 0 -3%;
 }
 .post h1,.post h2, .post h3, .post h4, .post h5, .post h6 { line-height:160%; margin:0 0 20px 0; }
@@ -72,6 +118,15 @@ body { padding-top: 60px;
 	background:#fff;  min-height:50pt; text-indent: 2em;
 }
 .post_readmore { padding:3pt 0 2pt 0; }
+
+/* post comment */
+.comment{
+	border-bottom:1px solid #ccc;
+	padding:2%;
+}
+.addcomment{
+	margin: 0 0 3% 0;
+}
 
 
 /* ---------- clearfix hack ---------- */

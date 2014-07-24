@@ -13,6 +13,7 @@ $(document).ready(function() {
 	});
 });
 
+
 /*
 function showHint(str) {
 	if (str.length == 0) {

@@ -11,40 +11,9 @@
 |
 */
 
-//Route::get('/', 'PostController@index');
-
-// Route::get('/', function()
-// {
-// 	//return 'Heool';//View::make('hello');
-// 	return Redirect::action('PostController@index');
-// 	//return 'Hello World';
-// });
-
-
-
+//Post
 Route::get('/', 'PostController@index');
 Route::get('/post/{post_id}','PostController@single');
+//Comment
+Route::post('/comment/create','CommentController@create');
 
-
-
-/*function($id)
-{
-	return 'User '.$id;
-});
-*/
-/*
-Route::get('/', function()
-{
-	//return View::make('hello');
-	//$results = DB::select('select * from posts');///, array(1))；
-	//var_dump($results->post_title);
-	
-	$url = URL::action('PostController@index');
-	return $url;//$results[0]->post_title;//"HelloWorld!";
-});
-
-
-Route::get('foo/bar', function()
-{
-    return View::make('hello');
-});*/

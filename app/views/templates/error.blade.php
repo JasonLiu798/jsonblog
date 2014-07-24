@@ -35,6 +35,4 @@ function startclock () {
 
 <div id="ttext" value="aa"></div>
 
-<?php
-
-echo $err_msg;
+{{$err_msg}}

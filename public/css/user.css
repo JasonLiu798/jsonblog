@@ -1,0 +1,109 @@
+@CHARSET "UTF-8";
+body {
+  padding-top: 40px;
+  padding-bottom: 40px;
+  background-color: #eee;
+}
+/**标题**/
+.form_head{
+	padding: 5px;
+}
+.form_title{
+	float:left; 
+	width:50%;
+	display:block;
+}
+.change_link{
+	float:left; 
+	text-align:right;
+	width:49%;
+	display:block;
+}
+/*
+.change_link .icon{
+	height: 80%;
+	font-size: 80%;
+	display: block;
+	margin:5% 0;
+}*/
+
+a:link{
+	color: #000000;
+	TEXT-DECORATION: none
+}
+a:visited {
+	COLOR: #000000;
+	TEXT-DECORATION: none
+}
+a:hover {
+	COLOR: #777;
+	text-decoration: none;
+}
+a:active {
+	COLOR: #000000;
+	text-decoration: none;
+}
+
+/**表单**/
+.form-signin {
+  max-width: 330px;
+  padding: 15px;
+  margin: 0 auto;
+}
+.form-signin .form-signin-heading,
+.form-signin .checkbox {
+  margin-bottom: 10px;
+}
+.form-signin .checkbox {
+  font-weight: normal;
+}
+.form-signin .form-control {
+  position: relative;
+  height: auto;
+  -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+          box-sizing: border-box;
+  padding: 10px;
+  font-size: 16px;
+}
+.form-signin .form-control:focus {
+  z-index: 4;
+}
+.form-signin input[type="email"] {
+	margin-bottom: -1px;
+	z-index:1;
+	border-bottom-right-radius: 0;
+	border-bottom-left-radius: 0;
+}
+.form-signin input[type="username"] {
+  	margin: -2px 0;
+	z-index:2;
+  	border-bottom-right-radius: 0;
+  	border-bottom-left-radius: 0;
+	border-top-left-radius: 0;
+	border-top-right-radius: 0;
+}
+.form-signin input[type="password"] {
+	z-index:3;
+	margin-bottom: 10px;
+	border-top-left-radius: 0;
+	border-top-right-radius: 0;
+}
+
+/***表单底部***/
+.form_bottom{
+	margin-bottom:10px;
+	font-size:large;
+}
+.form_bottom .bottom_left{
+	/*padding-left:10px;*/
+	float:left;
+	width:50%;
+}
+.form_bottom .bottom_right{
+	float:left;
+	width:49%;
+	text-align:right;
+}
+
+

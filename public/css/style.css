@@ -58,10 +58,6 @@ body { padding-top: 60px;
 /*背景色*/
 .color1 .b2,.color1 .b3,.color1 .b4,.color1 .b5,.color1 .b6,.color1 .b7,.color1 .content{background:#EEE;}
 
-
-
-
-
 /** footer **/
 .footer_box {
 	margin:0 0 0 0;
@@ -92,7 +88,7 @@ body { padding-top: 60px;
 	z-index:3;
 	position:relative;
 	padding:0 0 0 10pt; clear:right;
-	border-bottom:1px double #ccc;
+	/*border-bottom:1px double #ccc;*/
 } /* float:right; */
 
 /* post of each one */
@@ -121,11 +117,35 @@ body { padding-top: 60px;
 
 /* post comment */
 .comment{
-	border-bottom:1px solid #ccc;
+	border:1px solid #ccc;
 	padding:2%;
+	margin:2% 0;
 }
-.addcomment{
-	margin: 0 0 3% 0;
+.comemnt_meta{	
+}
+.comment_title{
+	float:left;
+	width:70%;
+	/*display:inline;*/
+}
+.comment_replay{
+	float:left;
+	text-align:right;
+	width:29%;
+	padding:10px 10px 0 0;
+	margin:0 0;
+	/*display:inline;
+	/*position: relative;
+	right:100px;
+	/*clear: both;*/
+}
+.comment_content{
+	margin:60px 0 0 0;
+}
+.replay_comment{
+	padding: 2%;
+	border:1px solid #ccc;
+	margin: 2% 0;
 }
 
 

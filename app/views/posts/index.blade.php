@@ -10,7 +10,7 @@
 @foreach ($posts as $posts_item) 
 	<div class="post">
 		
-		<h2 class="blog-post-title"><a href="{{url('post/'.$posts_item->ID)}}">{{$posts_item->post_title}}</a>
+		<h2 class="blog-post-title"><a href="{{url('post/single/'.$posts_item->ID)}}">{{$posts_item->post_title}}</a>
 		</h2>
 		
 		<p class="blog-post-meta">
@@ -49,7 +49,20 @@
 		    @endif
 	    </div><!-- post content -->
    </div><!-- post -->
+   
 @endforeach
+
+{{ $posts->links() }}
+
+<!-- 
+	<ul class="pagination">
+		<li><a href="#">&laquo;</a></li>
+		
+		<li class="active" ><a href="#">1 <span class="sr-only">(current)</span> </a></li>
+		<li><a href="#">2</a></li>
+  		<li><a href="#">&raquo;</a></li>
+	</ul>
+    -->
 </div><!-- container  posts_wrap col-9 -->
 
 @include('templates/sidebar')

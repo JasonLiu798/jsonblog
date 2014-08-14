@@ -7,18 +7,27 @@
 
 <script type="text/javascript">
 $().ready(function(){
-	//do something
-	$("div.replay_comment").hide();
-	//css("visibility","hidden");//hide();
-	$("div.replay").click(function(){
-		$("div.replay_comment").show();
-	});
-	$("div.replay").append();
-	
-// 	$("div.replay").mouseleave(function(){
-// 		$("div.replay_form").("visibility","hidden");
-// 	});
+	$("#cancleReplay").hide();
 });
+
+function moveCommentForm(thisID,isBack){
+	if(isBack){
+		moveDiv( "commentNew","replay_comment");
+		$("#cancleReplay").hide();
+		$("#comment_parent").attr("id","0");
+	}else{
+		var desID = thisID+"Comment";
+		moveDiv( desID,"replay_comment");
+		$("#cancleReplay").show();
+// 		var num = new RegExp("[0-9]+");
+// 		var res = num.exec(thisID);
+ 		//console.log();
+		$("#comment_parent").attr("value",new RegExp("[0-9]+").exec(thisID)[0] );
+	}
+	$("#comment_content").focus().select();
+	var pos = $("#comment_content").offset().top - $("#replay_comment").height();
+	$('html,body').animate({scrollTop:pos },ANI_SPEED_FAST);
+}
 </script>
 
 <div class="container">
@@ -58,32 +67,68 @@ $().ready(function(){
 			下一文章: bb
 			</div>
 		</div><!-- end of blog-post -->
-		
+
+<?php  
+$stack =& Stack::stack_initialize();
+$root = new stdClass();
+$root->parent=-1;
+$root->id=0;
+$node = &$root;
+Tree::get_childs($node,$comments);
+?>
 		@if(count($comments)>0)
 		<div class="comments">
-			<h4>共{{count($comments)}}条评论</h4>
-			@foreach ( $comments as $comment )
-			<div class="comment">
-				<h4>{{$comment->comment_author}}<small>
-				@if( date("d",strtotime($comment->comment_date)) === date("d",time()))
-					{{date ( "今日 H:i", strtotime ( $comment->comment_date ) )}}
-				@else
-					{{date ( "m-d H:i", strtotime ( $comment->comment_date ) )}}
+			<h4>共{{ count($comments) }}条评论</h4>
+			@while ( $node!=null|| Stack::stack_size($stack)!=0 )
+				@while( $node!=null )
+					@if(!is_null($node) && $node->id != 0)
+					<div class="comment">
+						<div class="comemnt_meta">
+							<div class="comment_title">
+								<h4>{{ $node->comment_author }}<br/>
+									<small>
+									@if( date("d",strtotime($node->comment_date)) === date("d",time()))
+										{{ date ( "今日 H:i", strtotime ( $node->comment_date ) )}}
+									@else
+										{{ date ( "m-d H:i", strtotime ( $node->comment_date ) )}}
+									@endif
+									</small>
+								</h4>
+							</div>
+							<div class="comment_replay">
+								<a href="#" id="replay{{$node->comment_ID}}" onclick="moveCommentForm(this.id,false)">回复</a>
+							</div>
+						</div>
+						<div class="comment_content">
+							{{ $node->comment_content }}
+						</div>
+						<div id="replay{{$node->comment_ID}}Comment"></div>
+					@endif <!-- endif id!=0 -->
+					<?php  
+					Stack::stack_push($stack, $node); 
+					$node = Tree::get_onechild($node->childs); 
+					?>
+				@endwhile
+				@if( Stack::stack_size($stack)>0 )
+					<?php  $node = Stack::stack_pop($stack); ?>
+						@if(!is_null($node) && $node->id != 0)
+							</div><!-- end of comment -->
+						@endif
+					@if(!is_null($node->childs))
+						<?php  $node = Tree::get_onechild($node->childs); ?>
+					@else
+						<?php  $node = null; ?>
+					@endif
 				@endif
-				</small>
-				</h4>
-				<p>{{$comment->comment_content}}</p>
-				
-				<p><a href="" id="replay">回复</a></p>
-			</div>	
-			@endforeach
+			@endwhile
 		</div><!-- comments -->
 		@endif
-
-		<div class="addcomment">
-		<h3>评论</h3>
-		<span id="errorlist"></span>
+		
+	<div id="commentNew">
+		<div id="replay_comment" class="replay_comment">
+			<span id="errorlist"></span>
 			{{ Form::open(array('url' => 'comment/create', 'method' => 'post','id'=> 'comment_add_form')) }}
+				<a href="#" id="cancleReplay" onclick="moveCommentForm(this.id,true)">取消回复</a>
 				<input type="hidden" name="post_id" id="post_id" value="{{$post->ID}}" />
 				<input type="hidden" name="comment_parent" id="comment_parent" value="0" />
 				<div class="form-group">
@@ -105,7 +150,9 @@ $().ready(function(){
 			  	{{Form::submit('发表评论',array('class' => 'btn btn-default'))}}
 			  	{{Form::reset('重置',array('class' => 'btn btn-default'))}}
 			{{ Form::close() }}
-		</div><!-- end of addcomment -->
+		</div><!-- end of replay_comment -->
+	</div>
+		<!-- </div><!-- end of addcomment -->
 	
 	
 	</div><!-- col-sm-8 blog-main -->

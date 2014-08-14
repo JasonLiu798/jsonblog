@@ -1,4 +1,6 @@
 
+var ANI_SPEED_FAST = 1;
+
 /**
  * 返回顶部按钮
  * @param min_height
@@ -30,8 +32,32 @@ function gotoTop(min_height){
     });
 };
 
+
+function insertAfter(newEl, targetEl) {
+
+	var parentEl = targetEl.parentNode; 
+	if(parentEl.lastChild == targetEl){ 
+		parentEl.appendChild(newEl); 
+	}else{ 
+		parentEl.insertBefore(newEl,targetEl.nextSibling); 
+	}
+} 
+
+function moveDiv(desID,itemID){
+	//console.log("desID:"+desID+",itemID:"+itemID);
+	var item = document.getElementById(itemID);
+	var itemParent = item.parentNode;
+	var itemClone = item.cloneNode(true);
+	
+	itemParent.removeChild(item);
+	//console.log(item);
+	var des = document.getElementById(desID);
+	//console.log(des);
+	des.appendChild(itemClone);
+}
+
 $().ready(function(){
-	console.log(window.screen.availHeight + "th:" +window.screen.height);
+	//console.log(window.screen.availHeight + "th:" +window.screen.height);
 	gotoTop(window.screen.availHeight);
 	
 });

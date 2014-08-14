@@ -15,8 +15,8 @@ return array(
 	|            "memcached", "redis", "array"
 	|
 	*/
-
-	'driver' => 'file',
+	//'driver' => 'file',
+		'driver' => 'database',
 
 	/*
 	|--------------------------------------------------------------------------

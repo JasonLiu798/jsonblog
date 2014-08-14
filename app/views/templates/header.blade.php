@@ -51,33 +51,29 @@
 				</ul>
 				
 				<ul class="nav navbar-nav navbar-right">
-						{{$user_name = null; // $this->session->userdata ( 'username' );}}
-						{{$is_admin = null; // $this->session->userdata ( 'is_admin' );}}
 						
-						
-					@if (empty ( $user_name )) 
+					@if( empty( $username ) ) 
 					<li><input type="button" class="btn btn-default navbar-btn"
-						onclick="javascript:window.location.href='{{url()}}users/signup';"
+						onclick="javascript:window.location.href='{{url()}}/user/register';"
 						value="注册" /></li>
 					<li>&nbsp;&nbsp;&nbsp;</li>
 					@endif
 						
-					@if ( ! empty ( $user_name ))
+					@if( !empty( $username ) )
 						<li class="dropdown">
 					@else
 						<li>
 					@endif
 					
-					@if (empty ( $user_name )) 
+					@if( empty( $username ) ) 
 						<input type="button" class="btn btn-default navbar-btn" onclick="javascript:window.location.href='{{url()}}users/signin';" value="登录" />
 					@else
-						<a href="#" class="dropdown-toggle" data-toggle="dropdown">{{$user_name}}<b
-						class="caret"></b></a>
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ $username }}<b class="caret"></b></a>
 					<ul class="dropdown-menu">
-						<li><a href="#">主页</a></li>
+						<li><a href="{{url()}}">主页</a></li>
 						<li><a href="#">设置</a></li>
 						<li class="divider"></li>
-						<li><a href="#">退出</a></li>
+						<li><a href="{{url()}}/user/logout">退出</a></li>
 					</ul>
 					@endif
 					</li>

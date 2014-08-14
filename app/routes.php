@@ -11,17 +11,21 @@
 |
 */
 //User
-Route::get('/user/{type}/{param?}','UserController@processor');
-/*
-Route::get('/user/register','UserController@register_pre');
-Route::post('/user/register_','UserController@register');/// www.lblog.com/user/register_?username=sdd&password=123&email=asdfasfd
-*/
-Route::get('/user/login','UserController@login'); // 
-Route::get('/user/chkparameter','UserController@chk_parameter');
-
-
+Route::any('/user/reg/{param}','UserController@register');
+// www.lblog.com/user/reg/action?username=sdddsfe&password=123456&email=asdfasfd@dfdee
+Route::any('/user/login/{param}','UserController@login');
+// www.lblog.com/user/login/action?login_password=123456&login_email=asdfasfd@dfdee
+Route::any('/user/logout','UserController@logout');
+Route::get('/user/chkparameter','UserController@chk_parameter'); 
 // www.lblog.com/user/chkparameter?type=username&username=abc
 // http://www.lblog.com/user/chkparameter?type=email&email=asdfasfd
+//Route::post('/user/register_','UserController@register');/
+
+
+
+
+
+
 
 //Post
 Route::get('/', 'PostController@index');

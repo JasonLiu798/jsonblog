@@ -66,7 +66,7 @@
 					@endif
 					
 					@if( empty( $username ) ) 
-						<input type="button" class="btn btn-default navbar-btn" onclick="javascript:window.location.href='{{url()}}users/signin';" value="登录" />
+						<input type="button" class="btn btn-default navbar-btn" onclick="javascript:window.location.href='{{url()}}/user/login/page';" value="登录" />
 					@else
 						<a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ $username }}<b class="caret"></b></a>
 					<ul class="dropdown-menu">

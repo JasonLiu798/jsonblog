@@ -1,20 +1,11 @@
 <?php
-
+/**
+ * User register,login,logout,forget pass,change info
+ * @author liujianlong
+ *
+ */
 class UserController extends BaseController {
-
 	/*
-	|--------------------------------------------------------------------------
-	| Default Home Controller
-	|--------------------------------------------------------------------------
-	|
-	| You may wish to use controllers instead of, or in addition to, Closure
-	| based routes. That's great! Here is an example controller method to
-	| get you started. To route to this controller, just add the route:
-	|
-	|	Route::get('/', 'HomeController@showWelcome');
-	|
-	*/
-	
 	public function processor($type,$param='page'){
 		Log::info("UserCon,T:".$type.",P:".$param);
 		Log::info(gettype($type));
@@ -33,7 +24,7 @@ class UserController extends BaseController {
 			case 'reg':
 				if($param === 'page'){
 					Log::info('in reg page');
-					UserController::register_pre();
+					return UserController::register_pre();
 				}else if ($param === 'action'){
 					$controller->register();
 				}else{
@@ -44,58 +35,78 @@ class UserController extends BaseController {
 				return Redirect::action('PostController@index');
 		}
 	}
+	*/
 	
-	public static function register_pre(){
-		$view = View::make( 'user/reg_login',
-				array('title'=>Lang::get('user.REGISTER'),
-				'hide_div'=>'login_div' ) );
-		Log::info('view maked');
-		return $view;
-	}
-
-	public function register(){
-		$username =  Input::get('username');
-		$password = Input::get('password');
-		$email =  Input::get('email');
-		$validator = Validator::make(
-			array(
-					'name' => $username,
-					'password' => $password,
-					'email' => $email),
-			array(
-				'name' => 'required|between:6,32|unique:users,user_login|alpha_num',
-				'password' => 'required|between:6,16',
-				'email'=> 'required|between:6,100|unique:users,user_email')
-		);
-		
-		$user = new User;
-		$user->user_login =$username;
-		$user->user_email = $email;
-		$user->user_pass = md5($password);
-		
-		date_default_timezone_set("Asia/Shanghai");
-		$user->user_registered = date('Y-m-d H:i:s',time());
-		$user->is_admin = 'f';
-
-		/**
-		 * retrun to the register page
-		 */
-		if( $validator->fails() ){
-			$view = View::make( 'user/reg_login', 
+	/**
+	 * User register
+	 * @param unknown $param page|action
+	 * @return unknown
+	 */
+	public function register($param){
+		if($param === 'page'){
+			Log::info('Register show page');
+			$view = View::make( 'user/reg_login',
 					array('title'=>Lang::get('user.REGISTER'),
-					'msgs'=>$validator->messages(),
-					'hide_div'=>'login_div' ) );
+							'hide_div'=>'login_div' ) );
 			return $view;
-		}
-		/**
-		 * check pass,reg user save
-		 */
-		if($user->save()>0){
-			Session::put('username', $username );
-			return Redirect::action('PostController@index');
+		}else if($param === 'action'){
+			$username =  Input::get('reg_username');
+			$password = Input::get('reg_password');
+			$email =  Input::get('reg_email');
+			$validator = Validator::make(
+					array(
+							'name' => $username,
+							'password' => $password,
+							'email' => $email),
+					array(
+							'name' => 'required|between:6,32|unique:users,user_login|alpha_num',
+							'password' => 'required|between:6,16',
+							'email'=> 'required|between:6,100|unique:users,user_email')
+			);
+			
+			$user = new User;
+			$user->user_login =$username;
+			$user->user_email = $email;
+			$user->user_pass = md5($password);
+			
+			date_default_timezone_set("Asia/Shanghai");
+			$user->user_registered = date('Y-m-d H:i:s',time());
+			$user->is_admin = 'f';
+			
+			/**
+			 * retrun to the register page
+			 */
+			if( $validator->fails() ){
+				$view = View::make( 'user/reg_login',
+						array('title'=>Lang::get('user.REGISTER'),
+								'msgs'=>$validator->messages(),
+								'reg_email_save'=>$email,
+								'reg_username_save'=>$username,
+								'hide_div'=>'login_div' ) );
+				return $view;
+			}
+			
+			/**
+			 * check pass,reg user save
+			 */
+			if($user->save()>0){
+				$get_last_user_id_sql = "SELECT LAST_INSERT_ID() ID";
+				$uid = DB::select($get_last_user_id_sql);
+Log::info('Uid:'.$uid[0]->ID);
+				$sess_user = new stdClass();
+				$sess_user->uid=$uid[0]->ID;
+				$sess_user->is_admin=$user->is_admin;
+				$sess_user->username=$username;
+				Session::put('user', json_encode($sess_user) );
+// 				Session::put('is_admin',$user->is_admin);
+// 				Session::put('user',$username );
+				return Redirect::action('PostController@index');
+			}else{
+				//user save failed
+				return Redirect::route('/error'.'服务器错误');
+			}
 		}else{
-			//save failed 
-			return Redirect::route('/error'.'服务器错误');
+			App::abort(404);
 		}
 	}
 	
@@ -131,31 +142,95 @@ class UserController extends BaseController {
 		return json_encode($msg);
 	}
 	
-	public function login_pre()
+	/**
+	 * USER LOGIN
+	 * @param unknown $param
+	 * @return unknown
+	 */
+	public function login($param)
 	{
-		$view = View::make( 'user/login', array('title'=>Lang::get('user.LOGIN') ) );
-		return $view;
+		if($param === 'page'){
+			$cookie_user_json = Cookie::get('user');
+			Log::info('LOGIN,Cooke get:'.$cookie_user_json);
+			if(!is_null($cookie_user_json)){
+				
+				$cookie_user = json_decode($cookie_user_json);
+				$email = $cookie_user->email;
+				$pass = $cookie_user-pass;
+			}else{
+				$email = null;
+				$pass = null;
+			}
+			$view = View::make( 'user/reg_login',
+					array('title'=>Lang::get('user.LOGIN') ,
+							'hide_div'=>'reg_div',
+							'login_email_save'=>$email ,
+							'login_pass_save'=>$pass
+				) );
+			
+			return $view;
+		}else if($param ==='action'){
+			$email =  Input::get('login_email');
+			$password = Input::get('login_password');
+			$remeber = Input::get('remember');
+			//Server side param check
+			$validator = Validator::make(
+					array(
+							'password' => $password,
+							'email' => $email),
+					array(
+							'password' => 'required|between:6,16',
+							'email'=> 'required|between:6,100|exists:users,user_email')
+			);
+			if( $validator->fails() ){
+				$view = View::make( 'user/reg_login',
+						array('title'=>Lang::get('user.LOGIN'),
+								'msgs'=>$validator->messages(),
+								'login_email_save'=>$email,
+								'hide_div'=>'reg_div' ) ); 
+				return $view;
+			}
+			if($remeber === 'remember'){
+				//$minutes = 60*24*7;// 7 days
+				$minutes = 10;//测试  10minutes
+				$cookie_user = new stdClass;
+				$cookie_user->email = $email;
+				$cookie_user->pass = $password;
+				$cookie_user_json = json_encode($cookie_user);
+				Cookie::make('user', $cookie_user_json, $minutes);
+Log::info('LOGIN-COOKIE MAKED'.$cookie_user_json);
+			}
+			$users = User::login($email,$password);
+			if(!empty($users) && count($users)==1 ){
+				$user = $users[0];
+				$sess_user = new stdClass();
+				$sess_user->uid=$user->ID;
+				$sess_user->is_admin=$user->is_admin;
+				$sess_user->username=$user->user_login;
+				Session::put('user', json_encode($sess_user) );
+				return Redirect::action('PostController@index');
+			}else{//pass wrong
+				$user_msgs = array();
+				array_push($user_msgs,Lang::get('validation.PASS_WRONG'));
+				$view = View::make( 'user/reg_login',
+						array('title'=>Lang::get('user.LOGIN'),
+								'user_msgs'=>$user_msgs,
+								'login_email_save'=>$email,
+								'hide_div'=>'reg_div' ) );
+				return $view;
+			}
+		}else{
+			App::abort(404);
+		}
 	}
 	
-	public function login()
+	public function logout()
 	{
-		$email =  Input::get('email');
-		$password = Input::get('password');
-		$validator = Validator::make(
-				array(
-						'password' => $password,
-						'email' => $email),
-				array(
-						'password' => 'required|between:6,16',
-						'email'=> 'required|between:6,100|exists:users,user_email')
-		);
-		if( $validator->fails() ){
-			$view = View::make( 'user/login', array('title'=>Lang::get('user.REGISTER'),
-					'msgs'=>$validator->messages() ) );
-			return $view;
-		}
-		User::login();
-		
+		//Log::info('Logout user:'.$uid);
+		Session::forget('user');
+		//$sess_user_json = Session::get($uid);
+		return Redirect::action('PostController@index');
+		//$sess_user_json = json_decode($sess_user);
 	}
 
 }

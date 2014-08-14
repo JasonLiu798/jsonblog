@@ -22,7 +22,15 @@ class PostController extends BaseController {
 			$post->post_tag = !empty($tag)?$tag:null;
 			$post->post_content = Post::get_adjust_post($post->post_content,200);
 		endforeach;
-		$username = Session::get('username');
+		
+		$sess_user_json = Session::get('user');
+		if(! is_null($sess_user_json)){
+			$sess_user = json_decode($sess_user_json);
+			$username = $sess_user->username;
+		}else{
+			$username = null;
+		}
+		
 		$view = View::make('posts/index',array('posts'=>$posts,'terms'=>$terms,'username'=>$username,'title'=>'Async Blog'));
 		return $view;
 	}

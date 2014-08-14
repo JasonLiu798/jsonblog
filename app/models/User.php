@@ -25,12 +25,9 @@ class User extends Eloquent implements UserInterface, RemindableInterface {
 	protected $hidden = array('password', 'remember_token');
 	
 	
-	public static function login(){
-		$username = Input::get('username');
-		$password = md5(Input::get('password'));
-		$user = DB::table('users')->select('user_login','is_admin')
-			->where('user_login',$username)->andWhere('user_pass',md5($password))->get();
-		
+	public static function login($username,$password){
+		$user = DB::table('users')->select('ID','user_login','is_admin')
+			->where('user_email',$username)->where('user_pass',md5($password))->get();
 		return $user;
 	}
 	

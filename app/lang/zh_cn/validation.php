@@ -71,7 +71,8 @@ return array(
 	),
 	"unique"               => ":attribute 已经被使用",
 	"url"                  => "The :attribute format is invalid.",
-
+	
+	
 	/*
 	|--------------------------------------------------------------------------
 	| Custom Validation Language Lines
@@ -101,5 +102,6 @@ return array(
 	*/
 
 	'attributes' => array(),
-
+	
+	'PASS_WRONG'=>'密码错误',
 );

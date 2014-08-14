@@ -89,11 +89,15 @@ a:active {
 	border-top-left-radius: 0;
 	border-top-right-radius: 0;
 }
+/**错误框**/
+.err_box{
+	margin:50px 0 20px 0;
+}
 
 /***表单底部***/
 .form_bottom{
 	margin-bottom:10px;
-	font-size:large;
+	font-size:medium;
 }
 .form_bottom .bottom_left{
 	/*padding-left:10px;*/

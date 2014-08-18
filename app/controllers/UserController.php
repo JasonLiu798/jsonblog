@@ -149,30 +149,47 @@ Log::info('Uid:'.$uid[0]->ID);
 	 */
 	public function login($param)
 	{
+		$sess_user_json = Session::get('user');
+		if(! is_null($sess_user_json)){
+			Redirect::action('PostController@index');
+		}
+		
 		if($param === 'page'){
+			
 			$cookie_user_json = Cookie::get('user');
-			Log::info('LOGIN,Cooke get:'.$cookie_user_json);
+			Log::info('LOGIN PAGE,Cooke get:'.$cookie_user_json);
 			if(!is_null($cookie_user_json)){
 				
 				$cookie_user = json_decode($cookie_user_json);
 				$email = $cookie_user->email;
-				$pass = $cookie_user-pass;
+				$pass = $cookie_user->pass;
+				$checked = Lang::get('tools.YES');
 			}else{
 				$email = null;
 				$pass = null;
+				$checked = Lang::get('tools.NO');
 			}
 			$view = View::make( 'user/reg_login',
 					array('title'=>Lang::get('user.LOGIN') ,
 							'hide_div'=>'reg_div',
+							'checked'=>$checked,
 							'login_email_save'=>$email ,
 							'login_pass_save'=>$pass
 				) );
-			
 			return $view;
 		}else if($param ==='action'){
+			
 			$email =  Input::get('login_email');
 			$password = Input::get('login_password');
 			$remeber = Input::get('remember');
+			
+			$cookie_user_json = Cookie::get('user');
+			Log::info('LOGIN ACTION,Cooke get:'.$cookie_user_json);
+			if(!is_null($cookie_user_json)){
+				$checked = Lang::get('tools.YES');
+			}else{
+				$checked = Lang::get('tools.NO');
+			}
 			//Server side param check
 			$validator = Validator::make(
 					array(
@@ -187,6 +204,7 @@ Log::info('Uid:'.$uid[0]->ID);
 						array('title'=>Lang::get('user.LOGIN'),
 								'msgs'=>$validator->messages(),
 								'login_email_save'=>$email,
+								'checked'=>$checked,
 								'hide_div'=>'reg_div' ) ); 
 				return $view;
 			}
@@ -197,7 +215,7 @@ Log::info('Uid:'.$uid[0]->ID);
 				$cookie_user->email = $email;
 				$cookie_user->pass = $password;
 				$cookie_user_json = json_encode($cookie_user);
-				Cookie::make('user', $cookie_user_json, $minutes);
+				$cookie = Cookie::make('user', $cookie_user_json, $minutes);
 Log::info('LOGIN-COOKIE MAKED'.$cookie_user_json);
 			}
 			$users = User::login($email,$password);
@@ -208,7 +226,8 @@ Log::info('LOGIN-COOKIE MAKED'.$cookie_user_json);
 				$sess_user->is_admin=$user->is_admin;
 				$sess_user->username=$user->user_login;
 				Session::put('user', json_encode($sess_user) );
-				return Redirect::action('PostController@index');
+				$post_controller = new PostController();
+				return Response::make( $post_controller->index() )->withCookie($cookie);
 			}else{//pass wrong
 				$user_msgs = array();
 				array_push($user_msgs,Lang::get('validation.PASS_WRONG'));

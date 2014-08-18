@@ -1,7 +1,6 @@
 <?php
 class Tree{
 	public static function get_childs(&$parent,&$nodes){
-		//$hava_child = false;
 		if(is_null($parent)){
 			return;
 		}
@@ -9,8 +8,6 @@ class Tree{
 		$got=false;
 		foreach ($nodes as $node ) {
 			if($node->parent == $parent->id){
-				//$hava_child=true;
-				//$node->is_view = 'N';
 				$got = true;
 				array_push($tmp_arr, $node);
 			}

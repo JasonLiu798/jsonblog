@@ -4,7 +4,7 @@ class TestController extends BaseController {
 	
 	
 	public function put(){
-		Session::put('key1', 'put a value');
+		//Session::put('key1', 'put a value');
 		
 	}
 	
@@ -12,6 +12,9 @@ class TestController extends BaseController {
 		$value = Session::get('key1');
 		return 'get:'.$value;
 	}
-	
+	public function push(){
+		$view = View::make('test/push',array('title'=>'push'));
+		return $view;
+	}
 	
 }

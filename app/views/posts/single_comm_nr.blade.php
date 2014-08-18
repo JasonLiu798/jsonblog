@@ -75,12 +75,28 @@ $root->parent=-1;
 $root->id=0;
 $node = &$root;
 Tree::get_childs($node,$comments);
+function print_comms($comments){
+	if(!empty($comments)){
+		echo "<h4>COMMS:</h4>";
+		foreach ($comments as $comm) {
+			echo "ID:".$comm->comment_ID.",parent:".$comm->comment_parent."<br>";//[".$comm->content."]<br>";//,isleaf:".$comm->isleaf."<br>";
+		}
+	}else{
+		echo "<h4>COMMS NULL</h4>";
+	}
+}
+
+echo 'comments:'."\n";
+print_comms($comments);
+echo 'childs:'."\n";
+print_comms($node->childs);
 ?>
 		@if(count($comments)>0)
 		<div class="comments">
 			<h4>共{{ count($comments) }}条评论</h4>
 			@while ( $node!=null|| Stack::stack_size($stack)!=0 )
 				@while( $node!=null )
+					<!-- output root's child,not root -->
 					@if(!is_null($node) && $node->id != 0)
 					<div class="comment">
 						<div class="comemnt_meta">
@@ -137,8 +153,8 @@ Tree::get_childs($node,$comments);
 				    <span id="comment_authorTip" class="help-block"></span>
 				</div>
 				<div class="form-group">
-					{{Form::label('comment_email', 'E-Mail')}}
-					{{Form::text('comment_email', '',array('class' => 'form-control','id'=>'comment_email') ) }}
+					{{Form::label('comment_author_email', 'E-Mail')}}
+					{{Form::text('comment_author_email', '',array('class' => 'form-control','id'=>'comment_author_email') ) }}
 					<span id="comment_emailTip" class="help-block"></span>
 				</div>
 

@@ -55,7 +55,11 @@ $().ready(function(){
         <div class="form_bottom">
 	        <div class="bottom_left">
 	          <label>
-	            <input type="checkbox" name="remember" value="remember">&nbsp;记住我
+	            <input type="checkbox" name="remember" value="remember"
+	            @if($checked===Lang::get('tools.YES') )
+	            	checked="checked"
+	            @endif
+	            >&nbsp;记住我
 	          </label>
 	        </div>
 	        <div class="bottom_right"><a href="#">忘记密码？</a></div>

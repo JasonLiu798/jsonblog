@@ -45,17 +45,18 @@ class PostController extends BaseController {
 		$post = Post::getPostById($post_id);
 		Log::info("post title ".$post->post_title);
 		$comments = Comment::getCommentsByPostID($post_id);
-		foreach($comments as $comm){
-			$comm->parent = $comm->comment_parent;
-			$comm->id= $comm->comment_ID;
-		}
-		Tree::init_child($comments);
+		//init parameter,used for tree function
+// 		foreach($comments as $comm){
+// 			$comm->parent = $comm->comment_parent;
+// 			$comm->id= $comm->comment_ID;
+// 		}
+		//Tree::init_child($comments);
 		if(empty($post)){
 			App::abort(404);
 			return ;
 		}
 		
-		$view = View::make('posts/single',array('post'=>$post,'comments'=>$comments,'title'=>$post->post_title));
+		$view = View::make('posts/single_comm_r',array('post'=>$post,'comments'=>$comments,'title'=>$post->post_title));
 		
 		return $view;
 		

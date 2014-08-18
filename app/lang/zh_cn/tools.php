@@ -12,6 +12,7 @@ return array(
 	| you want to customize your views to better match your application.
 	|
 	*/
-	'LOGIN' => '登录',
-	'REGISTER'     => '注册'
+
+	'YES' => 'Y',
+		'NO'=>'N'
 );

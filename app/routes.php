@@ -38,6 +38,9 @@ Route::get('/post/delete','PostController@delete_with_term_comment');// post/del
 //Comment
 Route::post('/comment/create','CommentController@create');
 Route::get('/comment/delete','CommentController@delete');
+Route::get('/term/unreadcmtcnt/{uid}','CommentController@get_unread_comment_cnt');
+// /term/unreadcmtcnt/2
+
 //Term
 Route::get('/term/ajax_create','TermsController@ajax_create');
 Route::get('term/admin','TermsController@admin');
@@ -47,6 +50,7 @@ Route::get('/term/delete','TermsController@delete');//term/delete?tid=
 //测试用
 Route::get('/test/put','TestController@put');
 Route::get('/test/get','TestController@get');
+Route::get('/test/push','TestController@push');
 
 //错误
 Route::get('/error','ErrorController@showerr');

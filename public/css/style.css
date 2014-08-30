@@ -5,6 +5,29 @@
 body { padding-top: 60px;
         padding-bottom: 40px; }
 /**--------template----------**/
+/** nav **/
+#msgs_count{
+	display:block;
+}
+#msgbox_head{
+	position: absolute;
+	z-index:100;
+}
+#msgbox_head_img{
+	width:20px;
+	height:15px;
+}
+#msgbox{
+	position: absolute;
+	padding: 8px;
+	background-color: white;
+	border:1px solid #ddd;
+	width:150px;
+	height:auto;
+	border-radius: 5px;
+	z-index:99;
+}
+
 
 /**	sidebar	**/
 .sidebar{
@@ -82,6 +105,10 @@ body { padding-top: 60px;
 /*
 #logo_image { position:absolute; margin:0; padding:0; line-height:100%; }
 */
+.term_title{
+	margin:5px;
+	border-bottom: 1px solid #bbb;
+}
 
 /* posts div */
 .posts_wrap {  

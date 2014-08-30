@@ -22,14 +22,9 @@ Route::get('/user/chkparameter','UserController@chk_parameter');
 //Route::post('/user/register_','UserController@register');/
 
 
-
-
-
-
-
 //Post
-Route::get('/', 'PostController@index');
-Route::get('/index', 'PostController@index');
+Route::get('/{term_id?}', array('as'=>'index','uses' => 'PostController@index'));
+Route::get('/date/{date}', array('as'=>'dpost','uses' => 'PostController@post_by_date'));
 
 Route::get('/post/single/{post_id}','PostController@single');
 Route::get('/post/create','PostController@create');// post/create?post_title=p1&post_content=c1&term_id=1
@@ -39,7 +34,7 @@ Route::get('/post/delete','PostController@delete_with_term_comment');// post/del
 Route::post('/comment/create','CommentController@create');
 Route::get('/comment/delete','CommentController@delete');
 Route::get('/term/unreadcmtcnt/{uid}','CommentController@get_unread_comment_cnt');
-// /term/unreadcmtcnt/2
+// /term/unreadcmtcnt/1
 
 //Term
 Route::get('/term/ajax_create','TermsController@ajax_create');
@@ -51,6 +46,7 @@ Route::get('/term/delete','TermsController@delete');//term/delete?tid=
 Route::get('/test/put','TestController@put');
 Route::get('/test/get','TestController@get');
 Route::get('/test/push','TestController@push');
+Route::get('/test/mail','TestController@sendmail');
 
 //错误
 Route::get('/error','ErrorController@showerr');

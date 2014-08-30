@@ -22,6 +22,32 @@ class Comment extends Eloquent  {
 	} 
 	
 	//public function 
+	public static function getLatestComments($count){
+		/*
+		  select comment_author,post_title from comments 
+			inner join posts on comments.comment_post_ID= posts.ID
+ 			order by comment_date desc limit 5;
+		 */
+		$comments = DB::table('comments')->select('comment_ID as comment_id','comment_author','post_title','posts.ID as post_id')
+			->join('posts','comments.comment_post_ID','=','posts.ID')
+			->orderBy('comment_date','desc')
+			->take($count)->get();
+		return $comments;
+	}
+	
+	public static function getNewCommentCountByPostAuthorID($post_author_id){
+		/*
+		 select count(*) commcnt from comments
+		 	left join posts on comments.comment_post_ID= posts.ID
+		 where posts.post_author = 27 and comment_read=0;
+		*/
+		$comm_count = DB::table('comments')
+		->leftJoin('posts','comments.comment_post_ID','=','posts.ID')
+		->where('posts.post_author','=',$post_author_id)->where('comment_read','=',Constant::$COMM_UNREAD )
+		->count();
+		return $comm_count;
+	}
+	
 	
 	
 	public static function create_in_post(){

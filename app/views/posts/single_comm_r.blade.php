@@ -75,7 +75,7 @@ $root->comment_ID=0;
 ?>
 <?php function print_comments($node, $comments){?>
 	@if($node->comment_ID!=0 )
-		<div class="comment">
+		<div class="comment" id="comment-{{$node->comment_ID}}">
 			<div class="comemnt_meta">
 				<div class="comment_title">
 					<h4>{{ $node->comment_author }}<br/>
@@ -119,7 +119,8 @@ $root->comment_ID=0;
 			<span id="errorlist"></span>
 			{{ Form::open(array('url' => 'comment/create', 'method' => 'post','id'=> 'comment_add_form')) }}
 				<a href="#" id="cancleReplay" onclick="moveCommentForm(this.id,true)">取消回复</a>
-				<input type="hidden" name="post_id" id="post_id" value="{{$post->ID}}" />
+				<input type="hidden" name="post_id" id="post_id" value="{{ $post->ID}}" />
+				<input type="hidden" name="post_author_id" id="post_author_id" value="{{ $post->post_author_id }}" />
 				<input type="hidden" name="comment_parent" id="comment_parent" value="0" />
 				<div class="form-group">
 				    {{Form::label('comment_author', '姓名')}}

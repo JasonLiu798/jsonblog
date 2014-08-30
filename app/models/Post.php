@@ -16,14 +16,117 @@ class Post extends Eloquent  {
 		return $this->hasMany('Comment');
 	}
 	
-	public static function getPosts($start,$limit){
-		
+	public static function getPosts($pagesize){
+		$posts = null;
+		if($pagesize>0){
+			$posts = DB::table('posts')
+				->join('users','users.ID','=','posts.post_author')
+				->select('posts.ID as post_id', 'post_title','post_content','post_date','users.user_login as post_author')
+				->paginate($pagesize);
+		}
+		return $posts;
 	}
 	
+	/**
+	 * get posts by term_id
+	 * @param unknown $term_id
+	 * @param unknown $pagesize
+	 * @return NULL
+	 */
+	public static function getPostsByTerm($term_id,$pagesize){
+		/**
+			select posts.ID post_id,users.user_login post_author,post_date,post_content,post_title
+			from posts 
+			join term_relationships on posts.ID=term_relationships.object_id
+			join users on users.ID=posts.post_author
+			where term_relationships.term_taxonomy_id=1;
+		 */
+		$posts = null;
+		if($pagesize>0){
+			$posts = DB::table('posts')
+			->select('posts.ID as post_id', 'post_title','post_content','post_date','users.user_login as post_author')
+			->join('users','users.ID','=','posts.post_author')
+			->join('term_relationships','posts.ID','=','term_relationships.object_id')
+			->where('term_relationships.term_taxonomy_id','=',$term_id)
+			->paginate($pagesize);
+			
+		}
+		return $posts;
+	}
+	
+	/**
+	 * get posts by year & month
+	 * @param unknown $year
+	 * @param unknown $month
+	 * @param unknown $pagesize
+	 */
+	public static function getPostByDate($date,$pagesize){
+		/**
+		  select posts.ID post_id,users.user_login post_author,DATE_FORMAT(posts.post_date,'%Y-%m'),
+		  post_content,post_title
+		  from posts 
+		  join users on users.ID = posts.post_author 
+		  where DATE_FORMAT(posts.post_date,'%Y-%m') = '2014-06';
+		 */
+		//$search_date = $year.'-'.$month;
+		$posts = DB::table('posts')
+			->select('posts.ID as post_id','users.user_login as post_author','post_date',
+					'post_content','post_title')
+			->leftJoin('users','users.ID','=','posts.post_author')
+			//->where("DATE_FORMAT( posts.post_date,'%Y-%m')",'=',$date)
+			->whereRaw("DATE_FORMAT( posts.post_date,'%Y-%m')='".$date."'")
+			->paginate($pagesize);
+		return $posts;
+	}
+	
+	public static function postAddTerm($posts){
+		foreach($posts as $post):
+			$terms = Term::getTermsByPostID($post->post_id);
+
+			$cat = Term::getCategory($terms);
+Log::info('post'.$post->post_id.' cat:'.$cat[0]->term_id);			
+			$tag = Term::getTag($terms);
+			$post->category = !empty($cat)?$cat:null;
+			$post->post_tag = !empty($tag)?$tag:null;
+			$post->post_content = Post::get_adjust_post($post->post_content,200);
+		endforeach;
+		return $posts;
+	} 
+	
+	
+	/**
+	 * get latest count posts
+	 * @param unknown $count
+	 * @return unknown
+	 */
+	public static function getNewstPost($count){
+		//select ID,post_title from posts order by post_date limit 5;
+		$posts = DB::table('posts')->select('ID','post_title')->orderBy('post_date')->take($count)->get();
+		return $posts;
+	}
+	
+	
+	public static function getPostsStat(){
+		/*
+		  select DATE_FORMAT(post_date,'%Y年%m月') post_date,DATE_FORMAT(post_date,'%Y-%m') post_date_url,count(*) post_count 
+		  from posts group by post_date order by post_date desc;
+		 */
+		
+		$post_stats = DB::table('posts')
+			->select(DB::raw("DATE_FORMAT(post_date,'%Y年%m月') post_date,DATE_FORMAT(post_date,'%Y-%m') post_date_url,count(*) post_count"))
+			->groupBy('post_date_url')->orderBy('post_date','desc')->get();
+		return $post_stats;
+	}
+	
+	/**
+	 * get one post by post ID
+	 * @param unknown $post_id
+	 * @return NULL|unknown
+	 */
 	public static function getPostById($post_id){
 		$post = DB::table('posts')
+			->select('posts.ID as ID', 'post_title','post_content','post_date','users.user_login as post_author','posts.post_author as post_author_id')
 			->join('users','users.ID','=','posts.post_author')
-			->select('posts.ID as ID', 'post_title','post_content','post_date','users.user_login as post_author')
 			->where('posts.ID', '=', $post_id)
 			->get();
 		if(count($post)<=0){

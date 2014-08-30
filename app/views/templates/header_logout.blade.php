@@ -12,7 +12,6 @@
 	{{ HTML::script('js/tool.js') }}
 	{{ HTML::style('bootstrap/css/bootstrap.css') }}
     {{ HTML::style('css/style.css') }}
-    
 	@if (! empty ( $next_url ))
 		<META HTTP-EQUIV="REFRESH" CONTENT="100;URL={{$next_url}}?>" />
 	@endif
@@ -37,13 +36,11 @@
 				<a class="navbar-brand" href="{{url()}}">Async Blog</a>
 			</div>
 			<!-- end of navbar-header -->
-
-
 			<div class="navbar-collapse collapse">
 				<ul class="nav navbar-nav">
 					<li class="active"><a href="{{url()}}">主页</a></li>
-					<li><a href="#">目录</a></li>
 					<li><a href="#">关于</a></li>
+					
 					<li><form class="navbar-form">
 					<input class="span2" type="text" placeholder="搜一下">
 					<button type="submit" class="btn">搜索</button>
@@ -51,40 +48,14 @@
 				</ul>
 				
 				<ul class="nav navbar-nav navbar-right">
-						
-					@if( empty( $username ) ) 
 					<li><input type="button" class="btn btn-default navbar-btn"
 						onclick="javascript:window.location.href='{{url()}}/user/register';"
 						value="注册" /></li>
 					<li>&nbsp;&nbsp;&nbsp;</li>
-					@endif
-						
-					@if( !empty( $username ) )
-						<li class="dropdown">
-					@else
-						<li>
-					@endif
-					
-					@if( empty( $username ) ) 
+					<li>
 						<input type="button" class="btn btn-default navbar-btn" onclick="javascript:window.location.href='{{url()}}/user/login/page';" value="登录" />
-					@else
-						<a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ $username }}<b class="caret"></b></a>
-					<ul class="dropdown-menu">
-						<li><a href="{{url()}}">主页</a></li>
-						<li><a href="#">设置</a></li>
-						<li class="divider"></li>
-						<li><a href="{{url()}}/user/logout">退出</a></li>
-					</ul>
-					@endif
 					</li>
-					<!-- <li>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</li> -->
 				</ul>
-
-			</div>
-			<!-- collapse -->
-
-		</div>
-		<!-- container -->
-
-	</div>
-	<!-- navbar -->
+			</div><!-- collapse -->
+		</div><!-- container -->
+	</div><!-- navbar -->

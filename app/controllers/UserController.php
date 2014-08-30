@@ -227,7 +227,8 @@ Log::info('LOGIN-COOKIE MAKED'.$cookie_user_json);
 				$sess_user->username=$user->user_login;
 				Session::put('user', json_encode($sess_user) );
 				$post_controller = new PostController();
-				return Response::make( $post_controller->index() )->withCookie($cookie);
+				return Redirect::route('index')->withCookie($cookie);
+				
 			}else{//pass wrong
 				$user_msgs = array();
 				array_push($user_msgs,Lang::get('validation.PASS_WRONG'));

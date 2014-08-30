@@ -108,17 +108,16 @@ return array(
 	| such as APC or Memcached. Laravel makes it easy to dig right in.
 	|
 	*/
-
+		
 	'redis' => array(
-
-		'cluster' => false,
-
-		'default' => array(
-			'host'     => '127.0.0.1',
-			'port'     => 6379,
-			'database' => 0,
-		),
-
+			'cluster' => false, //publish won't work when set to true
+			
+			'default' => array(
+					'host'     => '127.0.0.1',
+					'port'     => 6379,
+					'database' => 0,
+			),
+		
 	),
 
 );

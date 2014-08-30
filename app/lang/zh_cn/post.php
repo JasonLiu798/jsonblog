@@ -13,9 +13,12 @@ return array(
 	|
 	*/
 
-	'YES' => 'Y',
-		'NO'=>'N',
-		'YEAR'=>'年',
-		'MONTH'=>'月',
-		'DAY'=>'日',
+	'TITLE' => '标题',
+	'NEW_POST'=>'撰写新文章',
+	'PUBLISH'=>'发布',
+		'RESET'=>'重置',
+		'CATEGORY'=>'分类',
+		'POST_TAG'=>'标签',
+		'INFO_COMMA'=>'不同标签请用逗号或空格分隔',
+		
 );

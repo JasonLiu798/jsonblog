@@ -1,24 +1,52 @@
-
-
-<div class="col-sm-3 blog-sidebar">
+<div class="col-sm-3 col-sm-offset-1 blog-sidebar">
 	<div class="sidebar-module">
-		<h5>近期文章</h5>
+		<h4>近期文章</h4>
+		@if( is_array($sidebar->latest_posts) && count($sidebar->latest_posts )>0 )
 		<ol class="list-unstyled">
-		<li>aa
-		</li>
+		@foreach($sidebar->latest_posts  as $latest_post)
+			<li>
+				<a href="{{ url()}}/post/single/{{ $latest_post->ID }}">{{$latest_post->post_title}}</a>
+			</li>
+		@endforeach
+		</ol>
+		@endif
 	</div>
 	
 	<div class="sidebar-module">
-	<h5>近期评论</h5>
+	<h4>近期评论</h4>
+	@if( is_array($sidebar->latest_comments) && count($sidebar->latest_comments )>0 )
+		<ol class="list-unstyled">
+		@foreach($sidebar->latest_comments as $latest_comment)
+			<li>
+			{{ $latest_comment->comment_author }}评论了
+				<a href="{{ url()}}/post/single/{{ $latest_comment->post_id }}#comment-{{ $latest_comment->comment_id }}">{{$latest_comment->post_title}}</a>
+			</li>
+		@endforeach
+		</ol>
+	@endif
 	</div>
 	
 	<div class="sidebar-module">
-	<h5>分类目录</h5>
+	<h4>分类目录</h4>
+	@if( is_array($sidebar->term_stats ) && count($sidebar->term_stats )>0 )
+	<ol class="list-unstyled">
+		@foreach($sidebar->term_stats as $term_stat)
+			<li><a href="{{url()}}/{{ is_null($term_stat->term_id)?0:$term_stat->term_id }}">{{ is_null($term_stat->term_name)?'未分类':$term_stat->term_name }}</a>({{ $term_stat->term_count }})</li>
+		@endforeach
+	</ol>
+	@endif
 	</div>
 	
 	<div class="sidebar-module">
-	<h5>文章归档</h5>
+	<h4>文章归档</h4>
+	@if( is_array($sidebar->post_stats )&& count( $sidebar->post_stats  )>0 )
+	<ol class="list-unstyled">
+	@foreach($sidebar->post_stats  as $post_stat)
+		<li><a href="{{url()}}/date/{{ $post_stat->post_date_url }}">{{ $post_stat->post_date }}</a>({{ $post_stat->post_count }})</li>
+	@endforeach
+	</ol>
+	@endif
 	</div>
 	
 	<div id="backtotop"></div>
-</div>
+</div><!-- end of col-sm-3 col-sm-offset-1 blog-sidebar -->

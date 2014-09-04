@@ -15,7 +15,8 @@ class Term extends Eloquent  {
 			SELECT name,terms.term_id term_id,taxonomy 
 			FROM terms join term_taxonomy on terms.term_id=term_taxonomy.term_id
 		 */
-		$term = DB::table('terms')->select('terms.name as name','terms.term_id as term_id','taxonomy')
+		$term = DB::table('terms')
+			->select('terms.name as name','terms.term_id as term_id','taxonomy')
 			->join('term_taxonomy','term_taxonomy.term_id','=','terms.term_id')
 			->where('terms.term_id','=',$term_id)->get();
 		return $term;
@@ -44,12 +45,30 @@ class Term extends Eloquent  {
 		return $terms;
 	}
 	
+	/**
+	 * get posts by user id
+	 * @param unknown $uid
+	 */
+	public static function getTermsByUserID($uid){
+		/*
+		 select terms.name as name,term_taxonomy.taxonomy as taxonomy,terms.term_id as term_id
+			from term_taxonomy
+			inner join terms on terms.term_id=term_taxonomy.term_id
+		where terms.uid=1;
+		 */
+		$terms = DB::table('term_taxonomy')
+		->select('terms.name as name','term_taxonomy.taxonomy as taxonomy','terms.term_id as term_id')
+		->join('terms','terms.term_id','=','term_taxonomy.term_id')
+		->where('terms.uid','=',$uid)
+		->get();
+	}
+	
 	public static function getCategory($terms){
-		return array_filter($terms,function($v){ return $v->taxonomy==='category'; });
+		return is_null($terms)?null:array_filter($terms,function($v){ return $v->taxonomy==='category'; });
 	}
 	
 	public static function getTag($terms){
-		return array_filter($terms,function($v){ return $v->taxonomy==='post_tag'; });
+		return is_null($terms)?null:array_filter($terms,function($v){ return $v->taxonomy==='post_tag'; });
 	}
 	
 	/**

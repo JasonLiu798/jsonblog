@@ -18,4 +18,5 @@ return array(
 		'YEAR'=>'年',
 		'MONTH'=>'月',
 		'DAY'=>'日',
+		'TITLE'=>'Async Blog',
 );

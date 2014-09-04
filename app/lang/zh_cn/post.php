@@ -13,7 +13,8 @@ return array(
 	|
 	*/
 
-	'TITLE' => '标题',
+	'TITLE' => '新建博文',
+	'POST_TITLE'=>'标题',
 	'NEW_POST'=>'撰写新文章',
 	'PUBLISH'=>'发布',
 		'RESET'=>'重置',

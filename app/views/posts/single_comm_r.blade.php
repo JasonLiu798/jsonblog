@@ -1,4 +1,8 @@
-@include('templates/header')
+@if( is_null( Session::get('user')) )
+	@include('templates/header_logout')
+@else
+	@include('templates/header_login')
+@endif
 
 {{ HTML::script('js/validate/formValidator-4.0.1.min.js') }}
 {{ HTML::script('js/validate/formValidatorRegex.js') }}
@@ -39,7 +43,7 @@ function moveCommentForm(thisID,isBack){
 			
 			</p>
             <h2 class="blog-post-title">{{$post->post_title }}</h2>
-            <p class="blog-post-meta">{{date ( "Y-m-d", strtotime ( $post->post_date ) )}} by <a href="#">{{$post->post_author }}</a>
+            <p class="blog-post-meta"><a href="{{url()}}/single/{{$post->post_id}}">{{date ( "Y-m-d", strtotime ( $post->post_date ) )}}</a> by <a href="{{url()}}">{{$post->post_author }}</a>
             @if(!empty($post->category))
     			@foreach ($post->category as $cat)
     				{{ $cat->name }}
@@ -63,8 +67,13 @@ function moveCommentForm(thisID,isBack){
    			@endif
 			</div>
 			<div class="netpr_post">
-			上一文章: aa
-			下一文章: bb
+			@if(!is_null($pre_next_post['pre_post'][0]))
+			上一文章: <a href="{{url()}}/single/{{$pre_next_post['pre_post'][0]->post_id}}">{{ $pre_next_post['pre_post'][0]->post_title }}</a>
+			@endif
+			
+			@if(!is_null($pre_next_post['next_post'][0]))
+			下一文章: <a href="{{url()}}/single/{{$pre_next_post['next_post'][0]->post_id}}">{{ $pre_next_post['next_post'][0]->post_title }}</a>
+			@endif
 			</div>
 		</div><!-- end of blog-post -->
 
@@ -119,7 +128,7 @@ $root->comment_ID=0;
 			<span id="errorlist"></span>
 			{{ Form::open(array('url' => 'comment/create', 'method' => 'post','id'=> 'comment_add_form')) }}
 				<a href="#" id="cancleReplay" onclick="moveCommentForm(this.id,true)">取消回复</a>
-				<input type="hidden" name="post_id" id="post_id" value="{{ $post->ID}}" />
+				<input type="hidden" name="post_id" id="post_id" value="{{ $post->post_id}}" />
 				<input type="hidden" name="post_author_id" id="post_author_id" value="{{ $post->post_author_id }}" />
 				<input type="hidden" name="comment_parent" id="comment_parent" value="0" />
 				<div class="form-group">

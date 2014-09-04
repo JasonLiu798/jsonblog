@@ -79,6 +79,71 @@ class Post extends Eloquent  {
 		return $posts;
 	}
 	
+	/**
+	 * get posts by user id
+	 * @param unknown $pagesize
+	 */
+	public static function getPostByUser($user_id,$pagesize){
+		/**
+		 select posts.ID post_id,users.user_login post_author,posts.post_date,
+		 post_content,post_title
+		 from posts
+		 join users on users.ID = posts.post_author
+		 where post_author=1;
+		 */
+		$posts = DB::table('posts')
+			->select('posts.ID as post_id','users.user_login as post_author','post_date',
+				'post_content','post_title')
+			->join('users','users.ID','=','posts.post_author')
+			->where('post_author',$user_id)
+			->paginate($pagesize);
+		return $posts;
+	}
+	
+	//public static function getNextPost($post_id)
+	
+	public static function getPreNextPost($post_id){
+		/*
+		Pre:(include equale)
+		select ID post_id,post_title from posts where post_date <= 
+		(select post_date from posts where ID=5)  and ID !=5 
+		order by post_date desc limit 1;
+		Next:
+		select ID post_id,post_title from posts where post_date >
+		(select post_date from posts where ID=5)  and ID !=5 
+		order by post_date limit 1; 
+		*/
+		$res = array();
+		$pre_post = DB::table('posts')
+			->select('ID as post_id','post_title')
+			->where('post_date','<=',
+				function($query) use ( $post_id ) {
+	                $query->select('post_date')
+	                      ->from('posts')
+	                      ->where('ID','=',$post_id);
+	            })
+			->orderBy('post_date','desc')
+	        ->take(1)->get();
+	    $res['pre_post']=	$pre_post;
+	    
+$queries = DB::getQueryLog();
+$last_query = end($queries);
+Log::info('PRE POST SQL:'.$last_query['query']);
+
+	    $next_post = DB::table('posts')
+	    	->select('ID as post_id','post_title')
+	    	->where('post_date','>',
+	    		function($query) use ( $post_id )  {
+	    			$query->select('post_date')
+	    			->from('posts')
+	    			->where('ID','=',$post_id);
+	    		})
+	    	->orderBy('post_date')
+	    	->take(1)->get();
+		$res['next_post']=	$next_post;
+		return $res;
+	}
+	
 	public static function postAddTerm($posts){
 		foreach($posts as $post):
 			$terms = Term::getTermsByPostID($post->post_id);
@@ -124,9 +189,16 @@ Log::info('post'.$post->post_id.' cat:'.$cat[0]->term_id);
 	 * @return NULL|unknown
 	 */
 	public static function getPostById($post_id){
+		/*
+select posts.ID as ID,post_title,post_content,post_date,users.user_login as post_author,
+posts.post_author as post_author_id 
+from posts 
+left join users on users.ID= posts.post_author 
+where posts.ID=17;
+		 */
 		$post = DB::table('posts')
-			->select('posts.ID as ID', 'post_title','post_content','post_date','users.user_login as post_author','posts.post_author as post_author_id')
-			->join('users','users.ID','=','posts.post_author')
+			->select('posts.ID as post_id', 'post_title','post_content','post_date','users.user_login as post_author','posts.post_author as post_author_id')
+			->leftJoin('users','users.ID','=','posts.post_author')
 			->where('posts.ID', '=', $post_id)
 			->get();
 		if(count($post)<=0){

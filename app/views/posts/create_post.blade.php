@@ -1,6 +1,7 @@
 @include('templates/header_login')
 
 {{ HTML::script('js/tinymce/tinymce.min.js') }}
+
 <script type="text/javascript">
 tinymce.init({
 	//toolbar: "undo redo | styleselect | bold italic | alignleft aligncenter alignright | image link | code | preview",
@@ -24,26 +25,19 @@ tinymce.init({
 <div class="row">
 <div class="col-sm-8">
 	<h2>{{Lang::get('post.NEW_POST') }}</h2>
-	{{ Form::open(array('url' => 'posts/create_','accept-charset'=>'utf-8','role'=>'form','method'=>'post', )) }}  
+	{{ Form::open(array('url' => 'posts/create/do','accept-charset'=>'utf-8','role'=>'form','method'=>'post', )) }}  
 	<div class="form-group">
-		{{ Form::label('post_title', Lang::get('post.TITLE')) }}
-		{{ Form::text('post_title', array('class' => 'form-control')) }}  
+		{{ Form::label('post_title', Lang::get('post.POST_TITLE')) }}
+		{{ Form::text('post_title', '', array('class' => 'form-control')) }}
 	</div>
 	
 	<div class="form-group">
-		{{ Form::label('post_content') }}
 		{{Form::textarea('post_content','', array('class' => 'form-control','rows'=>15,'id'=>'post_content') ) }}
-	</div>
-	
-	<div class="form-group col-sm-offset-5 col-sm-12">
-		{{Form::submit({{Lang::get('post.PUBLISH')}},array('class' => 'btn btn-default'))}}
-		&nbsp;&nbsp;&nbsp;
-		<input type="button" name="save_draft" class="btn btn-default"  value="保存草稿" />
 	</div>
 	
 	<div class="form-group">
 		<label for="category"></label>
-		{{ Form::label('category', Lang::get('CATEGORY') ) }}
+		{{ Form::label('category', Lang::get('post.CATEGORY') ) }}
 		<select class="form-control" name="category" id="category">
 		  <option>1</option>
 		  <option>2</option>
@@ -52,9 +46,16 @@ tinymce.init({
 	</div>
 	<div class="form-group">
 		{{ Form::label('post_tag',Lang::get('post.POST_TAG')) }}
-		{{ Form::text('post_tag', array('class' => 'form-control')) }} 
-		{{Lang::get('post.INFO_COMMA')}}
+		{{ Form::text('post_tag', '',array('class' => 'form-control')) }} 
+		{{ Lang::get('post.INFO_COMMA')}}
 	</div>
+	
+	<div class="form-group col-sm-offset-5 col-sm-12">
+		{{Form::submit( Lang::get('post.PUBLISH') ,array('class' => 'btn btn-default') ) }}
+		&nbsp;&nbsp;&nbsp;
+		<input type="button" name="save_draft" class="btn btn-default"  value="保存草稿" />
+	</div>
+	
 {{ Form::close() }}
 </div><!-- end of col-sm-8 -->
 @include('templates/sidebar')

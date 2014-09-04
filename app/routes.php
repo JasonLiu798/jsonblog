@@ -24,10 +24,12 @@ Route::get('/user/chkparameter','UserController@chk_parameter');
 
 //Post
 Route::get('/{term_id?}', array('as'=>'index','uses' => 'PostController@index'));
-Route::get('/date/{date}', array('as'=>'dpost','uses' => 'PostController@post_by_date'));
+Route::get('/date/{date}', array('as'=>'dpost','uses' => 'PostController@posts_by_date'));
 
-Route::get('/post/single/{post_id}','PostController@single');
-Route::get('/post/create','PostController@create');// post/create?post_title=p1&post_content=c1&term_id=1
+Route::any('/post/single/{post_id}','PostController@single'); // /{term_id}/{post_date?}',
+Route::any('/post/create/{param}','PostController@create');
+// default:show page post/create/page
+// add post  posts/create/do?post_title=p1&post_content=c1&term_id=1
 Route::get('/post/delete','PostController@delete_with_term_comment');// post/delete?post_id=
 
 //Comment

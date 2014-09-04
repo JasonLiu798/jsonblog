@@ -84,24 +84,5 @@
 
 </div><!-- row -->
 </div><!-- container  -->
-<!-- 
-<script type="text/javascript">
-	/** 
-	 *调整边栏高度与所有 
-	 *
-	 */
-	$().ready(function(){
-		var sh = $("#sidebar").height();
-		//var pwh = document.getElementById("posts_wrap").offsetHeight;
-		var pwh = $("#posts_wrap").get(0).offsetHeight;
-		
-		$("#sidebar").css("height", Math.max(pwh,sh)+"px");
-	
-	//var sidebarHeight = document.getElementById("sidebar").style.height;
-	//var postsHeight = document.getElementById("posts_wrap").offsetHeight;//offsetHeight;
-	//document.getElementById("sidebar").style.height = Math.max(sidebarHeight,postsHeight) + "px";
-	//alert(sidebarHeight+","+ postsHeight);
-	//document.getElementById("posts").offsetHeight + "pt"; 
-</script> -->
 
 @include('templates/footer')

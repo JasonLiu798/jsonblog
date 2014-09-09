@@ -25,6 +25,7 @@ Route::get('/user/chkparameter','UserController@chk_parameter');
 //Post
 Route::get('/{term_id?}', array('as'=>'index','uses' => 'PostController@index'));
 Route::get('/date/{date}', array('as'=>'dpost','uses' => 'PostController@posts_by_date'));
+Route::any('/author/{user_id}', array('as'=>'author','uses'=>'PostController@posts_by_author'));
 
 Route::any('/post/single/{post_id}','PostController@single'); // /{term_id}/{post_date?}',
 Route::any('/post/create/{param}','PostController@create');

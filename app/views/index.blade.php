@@ -25,6 +25,12 @@
 	</div>
 @endif
 
+@if(!is_null($user4title))
+	<div class = "post term_title">
+		<h3>作者‘<a href="{{url()}}/author/{{$user4title->ID}}">{{ $user4title->user_login }}</a>’归档</h3>
+	</div>
+@endif
+
 @foreach ($posts as $posts_item) 
 	<div class="post">
 
@@ -33,7 +39,7 @@
 		
 		<p class="blog-post-meta">
 			作者：<a href="#">{{$posts_item->post_author }}</a>/
-    		日期：{{date ( "Y年m月d日", strtotime ( $posts_item->post_date ) ) }}/
+    		日期：<a href="{{url('post/single/'.$posts_item->post_id)}}">{{date ( "Y年m月d日", strtotime ( $posts_item->post_date ) ) }}</a>/
     		分类：
     		@if(!empty($posts_item->category))
     			@foreach ($posts_item->category as $cat)
@@ -41,7 +47,11 @@
     			@endforeach
     		@endif
 			</a>/
-			<a href="#">暂无评论</a>
+			@if( $posts_item->comment_count >0)
+				<a href="{{url('post/single/'.$posts_item->post_id)}}">评论{{$posts_item->comment_count}}条</a>
+			@else
+				<a href="{{url('post/single/'.$posts_item->post_id)}}">添加评论</a>
+			@endif
     	</p>
     	<!-- 标签 -->
     	

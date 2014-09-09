@@ -21,7 +21,10 @@ class Post extends Eloquent  {
 		if($pagesize>0){
 			$posts = DB::table('posts')
 				->join('users','users.ID','=','posts.post_author')
-				->select('posts.ID as post_id', 'post_title','post_content','post_date','users.user_login as post_author')
+				->select('posts.ID as post_id', 'post_title','post_content','post_date','users.user_login as post_author'
+						,DB::raw('count(comments.comment_ID) as comment_count'))
+				->leftJoin('comments','comments.comment_post_ID','=','posts.ID')
+				->groupBy('posts.ID')
 				->paginate($pagesize);
 		}
 		return $posts;
@@ -35,19 +38,24 @@ class Post extends Eloquent  {
 	 */
 	public static function getPostsByTerm($term_id,$pagesize){
 		/**
-			select posts.ID post_id,users.user_login post_author,post_date,post_content,post_title
+			select posts.ID post_id,users.user_login post_author,post_date,post_content,users.ID as post_author_id,
+			post_title,count(comments.comment_ID) comment_count
 			from posts 
 			join term_relationships on posts.ID=term_relationships.object_id
 			join users on users.ID=posts.post_author
-			where term_relationships.term_taxonomy_id=1;
+			left join comments on comments.comment_post_ID=posts.ID
+			where term_relationships.term_taxonomy_id=1 group by posts.ID;
 		 */
 		$posts = null;
 		if($pagesize>0){
 			$posts = DB::table('posts')
-			->select('posts.ID as post_id', 'post_title','post_content','post_date','users.user_login as post_author')
+			->select('posts.ID as post_id', 'post_title','post_content','post_date','users.user_login as post_author'
+					,DB::raw('count(comments.comment_ID) as comment_count'))
 			->join('users','users.ID','=','posts.post_author')
 			->join('term_relationships','posts.ID','=','term_relationships.object_id')
+			->leftJoin('comments','comments.comment_post_ID','=','posts.ID')
 			->where('term_relationships.term_taxonomy_id','=',$term_id)
+			->groupBy('posts.ID')
 			->paginate($pagesize);
 			
 		}
@@ -62,19 +70,22 @@ class Post extends Eloquent  {
 	 */
 	public static function getPostByDate($date,$pagesize){
 		/**
-		  select posts.ID post_id,users.user_login post_author,DATE_FORMAT(posts.post_date,'%Y-%m'),
-		  post_content,post_title
+		  select posts.ID post_id,users.user_login post_author,users.ID as post_author_id,DATE_FORMAT(posts.post_date,'%Y-%m'),
+		  post_content,post_title,count(comments.comment_ID) comment_count
 		  from posts 
 		  join users on users.ID = posts.post_author 
-		  where DATE_FORMAT(posts.post_date,'%Y-%m') = '2014-06';
+		  left join comments on comments.comment_post_ID=posts.ID
+		  where DATE_FORMAT(posts.post_date,'%Y-%m') = '2014-06' group by posts.ID;
 		 */
 		//$search_date = $year.'-'.$month;
 		$posts = DB::table('posts')
-			->select('posts.ID as post_id','users.user_login as post_author','post_date',
-					'post_content','post_title')
+			->select('posts.ID as post_id','users.user_login as post_author','users.ID as post_author_id','post_date',
+					'post_content','post_title',DB::raw('count(comments.comment_ID) as comment_count'))
 			->leftJoin('users','users.ID','=','posts.post_author')
+			->leftJoin('comments','comments.comment_post_ID','=','posts.ID')
 			//->where("DATE_FORMAT( posts.post_date,'%Y-%m')",'=',$date)
 			->whereRaw("DATE_FORMAT( posts.post_date,'%Y-%m')='".$date."'")
+			->groupBy('posts.ID')
 			->paginate($pagesize);
 		return $posts;
 	}
@@ -86,18 +97,29 @@ class Post extends Eloquent  {
 	public static function getPostByUser($user_id,$pagesize){
 		/**
 		 select posts.ID post_id,users.user_login post_author,posts.post_date,
-		 post_content,post_title
-		 from posts
+		 post_content,post_title,users.ID post_author_id,count(comments.comment_ID) comment_count
+		 from posts 
 		 join users on users.ID = posts.post_author
-		 where post_author=1;
+		 left join comments on comments.comment_post_ID=posts.ID
+		 where post_author=1 group by posts.ID;
 		 */
 		$posts = DB::table('posts')
-			->select('posts.ID as post_id','users.user_login as post_author','post_date',
-				'post_content','post_title')
+			->select('posts.ID as post_id','users.user_login as post_author','users.ID as post_author_id','post_date',
+				'post_content','post_title',DB::raw('count(comments.comment_ID) as comment_count'))
 			->join('users','users.ID','=','posts.post_author')
+			->leftJoin('comments','comments.comment_post_ID','=','posts.ID')
 			->where('post_author',$user_id)
+			->groupBy('posts.ID')
 			->paginate($pagesize);
 		return $posts;
+	}
+	
+	public static function getPostCommentStat($post_id){
+		$comm_stat = DB::table('posts')
+			->join('comments','posts.ID','=','comments.comment_post_ID')
+			->where('posts.ID','=',$post_id)
+			->count();
+		return $comm_stat;
 	}
 	
 	//public static function getNextPost($post_id)
@@ -144,7 +166,7 @@ Log::info('PRE POST SQL:'.$last_query['query']);
 		return $res;
 	}
 	
-	public static function postAddTerm($posts){
+	public static function postAddMeta($posts){
 		foreach($posts as $post):
 			$terms = Term::getTermsByPostID($post->post_id);
 

@@ -47,12 +47,12 @@ Log::info('post date:'.$last_query['query']);
 		}else{
 			$posts = Post::getPosts(Constant::$PAGESIZE);
 		}
-		$posts = Post::postAddTerm($posts);
+		$posts = Post::postAddMeta($posts);
 		$sidebar = PostController::get_sidebar();
 		$username = User::getNameFromSession( Session::get('user') );
 		$view = View::make('index',
 			array('title'=>$term_id==0?'Async Blog':$term4title[0]->name.'|Async Blog','username'=>$username,
-				'term4title'=>$term_id==0?null:$term4title,'date4title'=>null,
+				'term4title'=>$term_id==0?null:$term4title,'date4title'=>null,'user4title'=>null,
 				'posts'=>$posts,
 				'sidebar'=>$sidebar));
 		return $view;
@@ -77,7 +77,7 @@ $queries = DB::getQueryLog();
 $last_query = end($queries);
 Log::info('post date:'.$last_query['query']);
 		
-		$posts = Post::postAddTerm($posts);
+		$posts = Post::postAddMeta($posts);
 		$sidebar = PostController::get_sidebar();
 		$username = User::getNameFromSession( Session::get('user') );
 		
@@ -85,28 +85,34 @@ Log::info('post date:'.$last_query['query']);
 				array('title'=>$date.'|Async Blog','username'=>$username,
 						'date4title'=>$date4title,
 						'term4title'=>null,
+						'user4title'=>null,
 						'posts'=>$posts,
 						'sidebar'=>$sidebar));
-		//'term_stats'=>$term_stats,'post_stats'=>$post_stats,'latest_posts'=>$latest_posts));
 		return $view;
 	}
 	
+	/**
+	 * get post by user_id
+	 * @param unknown $user_id
+	 * @return unknown
+	 */
 	public function posts_by_author($user_id){
 		if(!preg_match('/[0-9]+/',$user_id)){
 			$err_msg = '参数格式错误';
 			App::abort(404);
 		}
-		$posts = Post::getPostByUser($date,Constant::$PAGESIZE);
+		$posts = Post::getPostByUser($user_id,Constant::$PAGESIZE);
+		$posts = Post::postAddMeta($posts);
 		$sidebar = PostController::get_sidebar();
+		$user4title = User::find($user_id);
 		$username = User::getNameFromSession( Session::get('user') );
 		$view = View::make('index',
-				array('title'=>$date.'|Async Blog','username'=>$username,
+				array('title'=>$user4title->user_login.'|Async Blog','username'=>$username,
 						'date4title'=>null,
 						'term4title'=>null,
-						'user4title'=>
+						'user4title'=>$user4title,
 						'posts'=>$posts,
 						'sidebar'=>$sidebar));
-		//'term_stats'=>$term_stats,'post_stats'=>$post_stats,'latest_posts'=>$latest_posts));
 		return $view;
 	}
 	

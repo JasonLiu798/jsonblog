@@ -43,7 +43,7 @@ function moveCommentForm(thisID,isBack){
 			
 			</p>
             <h2 class="blog-post-title">{{$post->post_title }}</h2>
-            <p class="blog-post-meta"><a href="{{url()}}/single/{{$post->post_id}}">{{date ( "Y-m-d", strtotime ( $post->post_date ) )}}</a> by <a href="{{url()}}">{{$post->post_author }}</a>
+            <p class="blog-post-meta"><a href="{{url()}}/post/single/{{$post->post_id}}">{{date ( "Y-m-d", strtotime ( $post->post_date ) )}}</a> by <a href="{{url()}}/author/{{$post->post_author_id}}">{{$post->post_author }}</a>
             @if(!empty($post->category))
     			@foreach ($post->category as $cat)
     				{{ $cat->name }}
@@ -116,12 +116,18 @@ $root->comment_ID=0;
 	@endif
 <?php }?>
 
-	@if(count($comments)>0)
+	
 	<div class="comments">
+	@if(count($comments)>0)
 		<h4>共{{ count($comments) }}条评论</h4>
 		<?php print_comments($root,$comments);?>
-	</div><!-- comments -->	
+	@else
+		<h4>还没有评论~~</h4>
 	@endif
+	</div><!-- comments -->	
+	
+	
+	
 
 	<div id="commentNew">
 		<div id="replay_comment" class="replay_comment">

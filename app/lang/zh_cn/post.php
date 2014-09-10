@@ -20,6 +20,7 @@ return array(
 		'RESET'=>'重置',
 		'CATEGORY'=>'分类',
 		'POST_TAG'=>'标签',
-		'INFO_COMMA'=>'不同标签请用逗号或空格分隔',
-		
+		'INFO_COMMA'=>'多个标签请用英文逗号（,）分开',
+		'POST_TAG_ADD_INFO'=>'回车添加标签',
+		'USED_TAG'=>'常用标签',
 );

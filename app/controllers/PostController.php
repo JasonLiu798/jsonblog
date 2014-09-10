@@ -70,7 +70,8 @@ Log::info('post date:'.$last_query['query']);
 			App::abort(404);
 		}
 		$date_arr = explode("-",$date);
-		$date4title = $date_arr[0].'年'.$date_arr[1].'月';
+		$date4title['title'] = $date_arr[0].'年'.$date_arr[1].'月';
+		$date4title['link'] = $date;
 		$posts = Post::getPostByDate($date,Constant::$PAGESIZE);
 		
 $queries = DB::getQueryLog();
@@ -146,12 +147,14 @@ Log::info('post date:'.$last_query['query']);
 	}
 	
 	public function create($param='page'){
-		$sess_user_json = Session::get('user');
+		$sess_user_json = Session::get('user','default');
 		//login can create post
-		if( is_null($sess_user_json)){
-			// to error page 
-			Redirect::action('PostController@index');
+		if( strcmp($sess_user_json, 'default') == 0 ){
+			// to error page
+			return Redirect::action('PostController@index');;
 		}
+		//Log::info('CREATE POST:'.strcmp($sess_user_json, 'default') );
+		
 		$user = json_decode($sess_user_json);
 		$sidebar = PostController::get_sidebar();
 		if($param === 'page'){
@@ -160,7 +163,7 @@ Log::info('post date:'.$last_query['query']);
 			$category = Term::getCategory($terms);
 			$post_tag = Term::getTag($terms);
 			$view = View::make('posts/create_post',array(
-					'title'=>Lang::get('posts.TITLE'),'username'=>$user->username,
+					'title'=>Lang::get('post.TITLE'),'username'=>$user->username,
 					'category'=>$category,
 					'post_tag'=>$post_tag,
 					'sidebar'=>$sidebar));

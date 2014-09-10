@@ -29,7 +29,7 @@ function moveCommentForm(thisID,isBack){
 		$("#comment_parent").attr("value",new RegExp("[0-9]+").exec(thisID)[0] );
 	}
 	$("#comment_content").focus().select();
-	var pos = $("#comment_content").offset().top - $("#replay_comment").height();
+	var pos = $("#comment_content").offset().top - $("#replay_comment").height() - 44;
 	$('html,body').animate({scrollTop:pos },ANI_SPEED_FAST);
 }
 </script>
@@ -67,12 +67,12 @@ function moveCommentForm(thisID,isBack){
    			@endif
 			</div>
 			<div class="netpr_post">
-			@if(!is_null($pre_next_post['pre_post'][0]))
-			上一文章: <a href="{{url()}}/single/{{$pre_next_post['pre_post'][0]->post_id}}">{{ $pre_next_post['pre_post'][0]->post_title }}</a>
+			@if(count($pre_next_post['pre_post'])>0)
+			上一文章: <a href="{{url()}}/post/single/{{$pre_next_post['pre_post'][0]->post_id}}">{{ $pre_next_post['pre_post'][0]->post_title }}</a>
 			@endif
 			
-			@if(!is_null($pre_next_post['next_post'][0]))
-			下一文章: <a href="{{url()}}/single/{{$pre_next_post['next_post'][0]->post_id}}">{{ $pre_next_post['next_post'][0]->post_title }}</a>
+			@if(count($pre_next_post['next_post'])>0)
+			下一文章: <a href="{{url()}}/post/single/{{$pre_next_post['next_post'][0]->post_id}}">{{ $pre_next_post['next_post'][0]->post_title }}</a>
 			@endif
 			</div>
 		</div><!-- end of blog-post -->
@@ -116,8 +116,9 @@ $root->comment_ID=0;
 	@endif
 <?php }?>
 
+	<div id="commanchor"></div>
 	
-	<div class="comments">
+	<div class="comments" id="comments">
 	@if(count($comments)>0)
 		<h4>共{{ count($comments) }}条评论</h4>
 		<?php print_comments($root,$comments);?>

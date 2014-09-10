@@ -143,6 +143,14 @@ body { padding-top: 60px;
 .post_readmore { padding:3pt 0 2pt 0; }
 
 /* post comment */
+#commanchor {
+    position: relative;
+    top: -44px; // 偏移值
+    display: block;
+    height: 0;
+    overflow: hidden;
+}
+
 .comment{
 	border:1px solid #ccc;
 	padding:2%;

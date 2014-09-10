@@ -21,7 +21,7 @@
 
 @if(!is_null($date4title))
 	<div class = "post term_title">
-		<h3>‘<a href="{{url()}}/date/{{$date4title}}">{{ $date4title }}</a>’归档 </h3>
+		<h3>‘<a href="{{url()}}/date/{{$date4title['link'] }}">{{ $date4title['title'] }}</a>’归档 </h3>
 	</div>
 @endif
 
@@ -48,9 +48,9 @@
     		@endif
 			</a>/
 			@if( $posts_item->comment_count >0)
-				<a href="{{url('post/single/'.$posts_item->post_id)}}">评论{{$posts_item->comment_count}}条</a>
+				<a href="{{url('post/single/'.$posts_item->post_id)}}/#commanchor">评论{{$posts_item->comment_count}}条</a>
 			@else
-				<a href="{{url('post/single/'.$posts_item->post_id)}}">添加评论</a>
+				<a href="{{url('post/single/'.$posts_item->post_id)}}/#commanchor">添加评论</a>
 			@endif
     	</p>
     	<!-- 标签 -->

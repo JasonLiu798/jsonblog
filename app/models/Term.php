@@ -61,6 +61,7 @@ class Term extends Eloquent  {
 		->join('terms','terms.term_id','=','term_taxonomy.term_id')
 		->where('terms.uid','=',$uid)
 		->get();
+		return $terms;
 	}
 	
 	public static function getCategory($terms){

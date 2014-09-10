@@ -126,32 +126,47 @@ class Post extends Eloquent  {
 	
 	public static function getPreNextPost($post_id){
 		/*
-		Pre:(include equale)
-		select ID post_id,post_title from posts where post_date <= 
-		(select post_date from posts where ID=5)  and ID !=5 
-		order by post_date desc limit 1;
+		Pre:
+		[use date]
+			select ID post_id,post_title from posts where post_date <=
+			(select post_date from posts where ID=6)  and ID !=6 
+			order by post_date desc,ID  limit 1;
+		[use ID,ID auto increasement]
+			select ID post_id,post_title from posts where ID <6 
+			order by ID desc limit 1;
 		Next:
-		select ID post_id,post_title from posts where post_date >
-		(select post_date from posts where ID=5)  and ID !=5 
-		order by post_date limit 1; 
+		[use date]
+			select ID post_id,post_title from posts where post_date >
+			(select post_date from posts where ID=5)  and ID !=5 
+			order by post_date limit 1;
+		[use ID,ID auto increasement]
+			select ID post_id,post_title from posts where ID >6 
+			order by ID  limit 1;
 		*/
 		$res = array();
-		$pre_post = DB::table('posts')
+/*		$pre_post = DB::table('posts')
 			->select('ID as post_id','post_title')
-			->where('post_date','<=',
+			->where('post_date','<',
 				function($query) use ( $post_id ) {
 	                $query->select('post_date')
 	                      ->from('posts')
 	                      ->where('ID','=',$post_id);
 	            })
+	        ->where('ID','!=',$post_id)    
 			->orderBy('post_date','desc')
 	        ->take(1)->get();
+*/
+		$pre_post = DB::table('posts')
+			->select('ID as post_id','post_title')
+			->where('ID','<',$post_id)
+			->orderBy('ID','desc')
+			->take(1)->get();
 	    $res['pre_post']=	$pre_post;
 	    
 $queries = DB::getQueryLog();
 $last_query = end($queries);
 Log::info('PRE POST SQL:'.$last_query['query']);
-
+/*
 	    $next_post = DB::table('posts')
 	    	->select('ID as post_id','post_title')
 	    	->where('post_date','>',
@@ -160,9 +175,19 @@ Log::info('PRE POST SQL:'.$last_query['query']);
 	    			->from('posts')
 	    			->where('ID','=',$post_id);
 	    		})
+	    	->where('ID','!=',$post_id)
 	    	->orderBy('post_date')
 	    	->take(1)->get();
+	    	*/
+		$next_post = DB::table('posts')
+			->select('ID as post_id','post_title')
+			->where('ID','>',$post_id)
+			->orderBy('ID')
+			->take(1)->get();
 		$res['next_post']=	$next_post;
+$queries = DB::getQueryLog();
+$last_query = end($queries);
+Log::info('NXT POST SQL:'.$last_query['query']);
 		return $res;
 	}
 	
@@ -256,6 +281,8 @@ where posts.ID=17;
 					'post_date_gmt'=>$post_date_gmt
 				)
 			);
+			$catid = Input::get('category');
+			$post_tag = Input::get('post_tag');
 			
 			$term_id =Input::get('term_id'); 
 			if(!is_null($term_id)){

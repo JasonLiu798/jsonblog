@@ -1,17 +1,47 @@
+
 $(document).ready(function(){
     $('.tagbox').click(function(){
         $("input[name='post_tag']").focus();
     });
     
-    $(document).on("click","#tags span",function(){
+    /**
+     * remove a tag
+     */
+    $(document).on("click","#newtags span",function(){
+    	var remove_tag = $(this).attr('name');
+    	var idx = $('#post_tag_id').val().indexOf( remove_tag );
+    	var remove_tag_len = remove_tag.length;
+    	var tag_str = $('#post_tag_id').val();
+    	var tag_str_len = tag_str.length; 
+    	console.log('Remove tag:'+remove_tag +',idx '+idx);
+    	console.log(idx);
+    	
+//		123,56,8
+//		first idx=0    	
+//		mid [5,6] idx=4,len=8,
+//		last [8] idx=7,len=8-1=7,idx-1=6
+    	if(idx==0){//first tag
+    		$('#post_tag_id').val( $('#post_tag_id').val().substring(remove_tag_len+1	) );
+    	}else if( idx>0 && idx == tag_str_len -remove_tag_len ){//last tag
+    		$('#post_tag_id').val( tag_str.substring(0, idx - 1 ) );
+    	}else if( idx>0 && idx< tag_str_len - remove_tag_len ){//in the middle    		
+    		$('#post_tag_id').val( tag_str.substring(0, idx  - 1 )+ tag_str.substring(idx+remove_tag_len));
+    	}else{
+    		console.log('remove idx error!');
+    	}
         $(this).remove();
+    	
+    	console.log( 'after remove tagstr:' + $('#post_tag_id').val() );
     });
     
+    /**
+     * add a old tag
+     */
     $('.old span').click(function(){
         var ids=new Array();
         var txt=$(this).attr('name');
         var id=$(this).attr('id');
-        $('#tags .label').each(function(){
+        $('#newtags .tag').each(function(){
             ids+=$(this).attr('id')+','
         });
         if(ids==''){
@@ -25,29 +55,38 @@ $(document).ready(function(){
         };
         var exist=$.inArray(id,ids);
         if(exist<0){
-            $('#tags').append('<span id='+id+' name='+txt+' class="label label-info">'+txt+'</span>&nbsp;')
+            $('#newtags').append('<span id='+id+' name='+txt+' class="tag tag_new">'+txt+'&nbsp;X</span>');
+            if( $('#post_tag_id').val().length ==0 ){
+            	$('#post_tag_id').val( txt);
+            }else{
+            	$('#post_tag_id').val( $('#post_tag_id').val()+','+txt);
+            }
+            
+            console.log( "POST_TAG_IDS:"+ $('#post_tag_id').val() );
         }
     });
     
     /**
-     * input text enter add a post tag
+     * add a post tag by input text 
      */
     $('#post_tag').bind('keyup',function(event){
-    	if(event.keyCode==188){
+    	if( event.keyCode == 188 ){
     		$('#post_tag_alert').text('标签不能包含英文逗号！');
             return false;
     	}
-    	if(event.keyCode == 32){
-    		$('#post_tag_alert').text('标签不能包含空格！');
-            return false;
-    	}
-        if(event.keyCode==13 ){//|| event.keyCode==32){//回车
+//    	Chinese input method space  
+//    	if( event.keyCode == 32 ){
+//    		$('#post_tag_alert').text('标签不能包含空格！');
+//            return false;
+//    	}
+        if( event.keyCode == 13 ){//|| event.keyCode==32){//回车
             var txt=$(this).val();
             if(txt!=''){
             	if(txt.indexOf(',')>=0 ){
             		$('#post_tag_alert').text('标签不能包含英文逗号，请删除逗号后提交！');
             		return false;
             	}
+console.log('space index'+txt.indexOf(' '));
             	if( txt.indexOf(' ')>=0 ){
             		$('#post_tag_alert').text('标签不能包含空格，请删除空格后提交！');
             		return false;
@@ -58,7 +97,7 @@ $(document).ready(function(){
             	}
             	//TAG EXSISTS
                 var txts=new Array();
-                $('#tags .label').each(function(){
+                $('#newtags .tag').each(function(){
                     txts+=$(this).attr('name')+','
                 });
                 if(txts==''){
@@ -72,10 +111,18 @@ $(document).ready(function(){
                 };
                 var exist=$.inArray(txt,txts);
                 if(exist<0){//NOT EXIST
-                    $('#tags').append('<span name='+txt+' class="label label-info">'+txt+'</span>&nbsp;');
-                    $(this).val(+txt+',');
-                    //ACTUALLY SUBMIT FORM TEXT 
-                    $('').val('');
+                	
+                    $('#newtags').append('<span name='+txt+' class="tag tag_new">'+txt+'&nbsp;X</span>');
+                    //$(this).val(+txt+',');
+                    //ACTUALLY SUBMIT FORM TEXT
+                    
+                    if( $('#post_tag_id').val().length ==0 ){
+                    	$('#post_tag_id').val( txt);
+                    }else{
+                    	$('#post_tag_id').val( $('#post_tag_id').val()+','+txt);
+                    }
+                    console.log( "POST_TAG_IDS:"+ $('#post_tag_id').val() );
+                    $(this).val('');
                 }else{//TAG EXIST
                     $(this).val('');
                 }
@@ -83,21 +130,21 @@ $(document).ready(function(){
             return false;
         }
     });
-    //enter not submit form
+    
+    /**
+     * enter not submit form
+     */
     $('#post_tag').bind('keydown',function(event){
     	var e = e || event;
 		var keyNum = e.which || e.keyCode;
 		return keyNum==13 ? false : true;
     });
+    
+    $('#save_new_category').click(function(){
+    	var new_category_name = $('#new_catebory_name').val();
+    	var new_category_parent = $('new_category_parent').val();
+    	
+    	console.log('new category:'+new_category_name+','+new_category_name );
+    	$('#create_category_diag').modal('hide');
+    });
 });
-
-
-
-
-//$(document).ready(function(){
-//	$('#create_post_form').onkeydown = function(e){
-//		var e = e || event;
-//		var keyNum = e.which || e.keyCode;
-//		return keyNum==13 ? false : true;
-//	};
-//});

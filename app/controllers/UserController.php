@@ -45,9 +45,10 @@ class UserController extends BaseController {
 	public function register($param){
 		if($param === 'page'){
 			Log::info('Register show page');
+			$checked = Lang::get('tools.NO');
 			$view = View::make( 'user/reg_login',
 					array('title'=>Lang::get('user.REGISTER'),
-							'hide_div'=>'login_div' ) );
+							'hide_div'=>'login_div','checked'=>$checked ) );
 			return $view;
 		}else if($param === 'action'){
 			$username =  Input::get('reg_username');
@@ -55,13 +56,13 @@ class UserController extends BaseController {
 			$email =  Input::get('reg_email');
 			$validator = Validator::make(
 					array(
-							'name' => $username,
-							'password' => $password,
-							'email' => $email),
+							'姓名' => $username,
+							'密码' => $password,
+							'Email' => $email),
 					array(
-							'name' => 'required|between:6,32|unique:users,user_login|alpha_num',
-							'password' => 'required|between:6,16',
-							'email'=> 'required|between:6,100|unique:users,user_email')
+							'姓名' => 'required|between:6,32|unique:users,user_login|alpha_num',
+							'密码' => 'required|between:6,16',
+							'Email'=> 'required|between:6,100|unique:users,user_email')
 			);
 			
 			$user = new User;
@@ -73,6 +74,7 @@ class UserController extends BaseController {
 			$user->user_registered = date('Y-m-d H:i:s',time());
 			$user->is_admin = 'f';
 			
+			$checked = Lang::get('tools.NO');
 			/**
 			 * retrun to the register page
 			 */
@@ -82,7 +84,8 @@ class UserController extends BaseController {
 								'msgs'=>$validator->messages(),
 								'reg_email_save'=>$email,
 								'reg_username_save'=>$username,
-								'hide_div'=>'login_div' ) );
+								'hide_div'=>'login_div',
+								'checked'=>$checked ) );
 				return $view;
 			}
 			
@@ -193,11 +196,11 @@ Log::info('Uid:'.$uid[0]->ID);
 			//Server side param check
 			$validator = Validator::make(
 					array(
-							'password' => $password,
-							'email' => $email),
+							'密码' => $password,
+							'Email' => $email),
 					array(
-							'password' => 'required|between:6,16',
-							'email'=> 'required|between:6,100|exists:users,user_email')
+							'密码' => 'required|between:6,16',
+							'Email'=> 'required|between:6,100|exists:users,user_email')
 			);
 			if( $validator->fails() ){
 				$view = View::make( 'user/reg_login',
@@ -217,6 +220,8 @@ Log::info('Uid:'.$uid[0]->ID);
 				$cookie_user_json = json_encode($cookie_user);
 				$cookie = Cookie::make('user', $cookie_user_json, $minutes);
 Log::info('LOGIN-COOKIE MAKED'.$cookie_user_json);
+			}else{
+				$cookie = null;
 			}
 			$users = User::login($email,$password);
 			if(!empty($users) && count($users)==1 ){
@@ -227,6 +232,9 @@ Log::info('LOGIN-COOKIE MAKED'.$cookie_user_json);
 				$sess_user->username=$user->user_login;
 				Session::put('user', json_encode($sess_user) );
 				$post_controller = new PostController();
+				if(is_null($cookie)){
+					return Redirect::route('index');//->withCookie($cookie);
+				}
 				return Redirect::route('index')->withCookie($cookie);
 				
 			}else{//pass wrong

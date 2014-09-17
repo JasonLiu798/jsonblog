@@ -49,7 +49,7 @@
 				
 				<ul class="nav navbar-nav navbar-right">
 					<li><input type="button" class="btn btn-default navbar-btn"
-						onclick="javascript:window.location.href='{{url()}}/user/register';"
+						onclick="javascript:window.location.href='{{url()}}/user/reg/page';"
 						value="注册" /></li>
 					<li>&nbsp;&nbsp;&nbsp;</li>
 					<li>

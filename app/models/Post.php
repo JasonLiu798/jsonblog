@@ -282,19 +282,22 @@ where posts.ID=17;
 				)
 			);
 			$catid = Input::get('category');
-			$post_tag = Input::get('post_tag');
+			$post_tags = Input::get('post_tag_id');
+			Log::info("post tags:".$post_tags);
 			
+			
+			/*
 			$term_id =Input::get('term_id'); 
 			if(!is_null($term_id)){
 				$get_last_post_id_sql = "SELECT LAST_INSERT_ID() ID";
 				$post_id = DB::select($get_last_post_id_sql);
 				DB::table('term_relationships')
-				->insert(array(
-				'object_id'=>$post_id[0]->ID,
-				'term_taxonomy_id'=>$term_id
+					->insert(array(
+					'object_id'=>$post_id[0]->ID,
+					'term_taxonomy_id'=>$term_id
 				));
 			}
-			
+			*/
 		});
 	}
 	

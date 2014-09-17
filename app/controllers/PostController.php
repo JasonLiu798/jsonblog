@@ -159,13 +159,18 @@ Log::info('post date:'.$last_query['query']);
 		$sidebar = PostController::get_sidebar();
 		if($param === 'page'){
 			
-			$terms = Term::getTermsByUserID($user->uid);
-			$category = Term::getCategory($terms);
-			$post_tag = Term::getTag($terms);
+			//$terms = Term::getTermsByUserID($user->uid);
+			$category = Term::get_category_by_userid($user->uid);
+			//Term::format_category2tree($category);
+			$term = new Term();
+			$category_tree = $term->format_category2tree($category);
+			//$category = Term::getCategory($terms);
+			//$post_tag = Term::getTag($terms);
+			$top5post_tag = Term::get_top5_post_tag();
 			$view = View::make('posts/create_post',array(
 					'title'=>Lang::get('post.TITLE'),'username'=>$user->username,
-					'category'=>$category,
-					'post_tag'=>$post_tag,
+					'category'=>$category_tree,
+					'post_tag'=>$top5post_tag,
 					'sidebar'=>$sidebar));
 			return $view;
 		}else if($param==='draft_page'){

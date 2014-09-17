@@ -21,13 +21,6 @@ tinymce.init({
     save_onsavecallback: function() {console.log("Save");}	    
  });
 
-$(document).ready(function(){
-	$('#post_tag').blur(function(){
-		var post_text = 1;
-		$('#post_tag_id').val();
-	});
-});
-
 
 </script>
 
@@ -48,8 +41,8 @@ $(document).ready(function(){
 	</div>
 	
 	<div class="form-group">
-		<label for="category"></label>
-		{{ Form::label('category', Lang::get('post.CATEGORY') ) }}
+		<h5>{{Lang::get('post.CATEGORY')}}</h5>
+		
 		<select class="form-control" name="category" id="category">
 			@foreach($category as $cat)
 			  <option value="{{$cat->term_id }}">{{ $cat->name }}</option>
@@ -57,22 +50,55 @@ $(document).ready(function(){
 		</select>
 	</div>
 	
+	<div class="form-group">
+		<!-- Large modal -->
+		<input type="button" class="btn btn-default" data-toggle="modal" data-target="#create_category_diag" value="创建分类"/>
+		
+		<div  id="create_category_diag" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true" >
+		  <div class="modal-dialog">
+		    <div class="modal-content">
+		    	<div class="modal-header">
+			        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+			        <h4 class="modal-title" id="myModalLabel">创建分类</h4>
+			    </div>
+			    <div class="modal-body">
+			        <h5>{{Lang::get('term.CATEGORY_NAME')}}</h5>
+			        <input type="text"  class="form-control" id="new_catagory_name" name="new_catagory_name"/>
+			         
+			        <h5>{{Lang::get('post.NEW_CATEGORY_PARENT')}}</h5>
+		
+					<select class="form-control" name="new_category_parent" id="new_category_parent">
+						<option value="0">{{ Lang::get('term.NO_PARENT') }}</option>
+						@foreach($category as $cat)
+							<option value="{{$cat->term_id }}">{{ $cat->name }}</option>
+						@endforeach
+					</select>
+			    </div>
+			    <div class="modal-footer">
+			        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+			        <button type="button" class="btn btn-primary" id="save_new_category">保存</button>
+			    </div>
+		    </div>
+		  </div>
+		</div>
+	</div><!-- end of from group -->
 	
 	<div class="tagbox">
-		<h5>{{Lang::get('post.POST_TAG')}}<small>{{ Lang::get('post.POST_TAG_ADD_INFO')}}</small></h5>
+		<h5>{{Lang::get('post.POST_TAG')}}&nbsp;<small>{{ Lang::get('post.POST_TAG_ADD_INFO')}}</small></h5>
 		<div class="clearfix"></div>
-        <div id="tags"></div>
+		<!-- added tags -->
+        <div id="newtags"></div>
         <div class="clearfix"></div>
-        <!-- <input type="text" value="" name="tag" style="border:none;outline:none"/> -->
-        
+        <!-- input new tag -->
 		<input type="text"  name="post_tag" id="post_tag" value="" class="form-control"/>
 		<span class="help-block" id="post_tag_alert"></span>
+		<!-- exist tags  -->
         <div class="old">
             <h5>{{Lang::get('post.USED_TAG')}}</h5>
             <div class="clearfix"></div>
-            <span class="label label-primary" id="234" name="标签">标签</span>
-            <span class="label label-primary" id="34" name="风景">风景</span>
-            <span class="label label-primary" id="21" name="音乐">音乐</span>
+            @foreach($post_tag as $tag)
+            	<span class="tag tag_old" id="tag{{$tag->term_id}}" name="{{$tag->name}}">{{$tag->name}}</span>
+            @endforeach
         </div>
     </div>
     

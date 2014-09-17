@@ -50,8 +50,8 @@ $().ready(function(){
 			<div class ="form_title"><h3>登录</h3></div>
 			<div class ="change_link"><h3><a href="#register" id="reg_form_show">注册</a></h3></div>
 		</div>
-        <input type="email"    name="login_email" id="login_email" class="form-control" value="{{isset($login_email_save)?$login_email_save:''}}" placeholder="邮箱" required autofocus>
-        <input type="password" name="login_password" id="login_password" class="form-control" value="{{isset($login_pass_save)?$login_pass_save:''}}" placeholder="密码" required>
+        <input type="email"     name="login_email" id="login_email" class="form-control" value="{{isset($login_email_save)?$login_email_save:''}}" placeholder="邮箱" required autofocus>
+        <input type="password"  name="login_password" id="login_password" class="form-control" value="{{isset($login_pass_save)?$login_pass_save:''}}" placeholder="密码" required>
         <div class="form_bottom">
 	        <div class="bottom_left">
 	          <label>

@@ -1,38 +1,29 @@
 @CHARSET "UTF-8";
 
+.tag{
+	color:white;
+	padding: 5px;
+	font-size:10px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+}
+
+.tag_old{
+	background: #0066CC; 
+}
+
+.tag_new{
+	background: #009966;
+	margin:0 2px;
+	
+}
 
 .clearfix {
 	clear: both;
 }
 
-.tagbox {
-	/*border: 1px solid #ccc;
-	width: 200px;
-	height: 200px;
-	padding: 10px;
-	position: relative;
-	*/
-}
-
-.tag {
-	/*background: lightblue;
-	color: #fff;
-	padding: 2px 5px;
-	display: block;
-	float: left;
-	margin: 5px 5px 5px 0;*/
-}
-
-#tags {
-	/*margin-bottom: 10px;*/
+#newtags {
 	margin-bottom: 10px;
-	/*overflow-y: auto;*/
-}
-
-.old {
-	/*position: absolute;
-	bottom: 5px;
-	left: 5px;*/
 }
 
 .tagbox span {

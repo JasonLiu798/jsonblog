@@ -40,7 +40,8 @@ Route::get('/term/unreadcmtcnt/{uid}','CommentController@get_unread_comment_cnt'
 // /term/unreadcmtcnt/1
 
 //Term
-Route::get('/term/ajax_create','TermsController@ajax_create');
+Route::any('/category/create/{param}','TermsController@create');
+// category/create/asyncadd?new_catagory_name=cat&new_category_parent=23
 Route::get('term/admin','TermsController@admin');
 Route::get('/term/delete','TermsController@delete');//term/delete?tid=
 

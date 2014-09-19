@@ -10,8 +10,10 @@ class DatabaseSeeder extends Seeder {
 	public function run()
 	{
 		Eloquent::unguard();
-
+		$this->call('CommentsTableSeeder');
+		$this->command->info('Comment table seeded.');
 		// $this->call('UserTableSeeder');
 	}
+	//  php artisan db:seed
 
 }

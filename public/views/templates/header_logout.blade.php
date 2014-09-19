@@ -10,6 +10,7 @@
 	{{ HTML::script('js/jquery-plugin.js') }}
 	{{ HTML::script('bootstrap/js/bootstrap.js') }}
 	{{ HTML::script('js/tool.js') }}
+	{{ HTML::script('js/angular/angular.1.2.19.js') }}
 	{{ HTML::style('bootstrap/css/bootstrap.css') }}
     {{ HTML::style('css/style.css') }}
 	@if (! empty ( $next_url ))

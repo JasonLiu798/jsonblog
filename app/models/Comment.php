@@ -70,6 +70,9 @@ class Comment extends Eloquent  {
 	}
 	
 	
+	
+	
+	
 // 	public static function delete_by_cid($cid){
 			
 // 	}

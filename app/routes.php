@@ -33,7 +33,16 @@ Route::any('/post/create/{param}','PostController@create');
 // add post  posts/create/do?post_title=p1&post_content=c1&term_id=1
 Route::get('/post/delete','PostController@delete_with_term_comment');// post/delete?post_id=
 
-//Comment
+//Comment index
+Route::any('/comment/index',function(){
+	return View::make('comments/comment',array('title'=>'评论管理'));
+});
+//Comment CRUD
+Route::group(array('prefix' => 'api'), function() {
+	Route::resource('comments', 'CommentController',
+	array('only' => array('index', 'store', 'destroy')));
+});
+
 Route::post('/comment/create','CommentController@create');
 Route::get('/comment/delete','CommentController@delete');
 Route::get('/term/unreadcmtcnt/{uid}','CommentController@get_unread_comment_cnt');
@@ -55,5 +64,11 @@ Route::get('/test/mail','TestController@sendmail');
 //错误
 Route::get('/error','ErrorController@showerr');
 
+
+//URL not exist
+App::missing(function($exception)
+{
+	return Redirect::route('index');
+});
 
 

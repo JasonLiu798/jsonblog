@@ -10,6 +10,7 @@
 	{{ HTML::script('js/jquery-plugin.js') }}
 	{{ HTML::script('bootstrap/js/bootstrap.js') }}
 	{{ HTML::script('js/tool.js') }}
+	{{ HTML::script('js/angular/angular.1.2.19.js') }}
 	{{ HTML::style('bootstrap/css/bootstrap.css') }}
     {{ HTML::style('css/style.css') }}
     <script src="http://localhost:3000/socket.io/socket.io.js"></script>
@@ -161,7 +162,6 @@ console.log('user:'+{{Session::get('user')}});
 							<li class="divider"></li>
 							<li><a href="{{url()}}/user/logout">退出</a></li>
 						</ul>
-					
 					@endif
 						</li>
 					

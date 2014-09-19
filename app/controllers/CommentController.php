@@ -2,6 +2,26 @@
 
 class CommentController extends BaseController {
 	
+	public function index(){
+		return Response::json(Comment::get());
+	}
+	
+	public function store(){
+		Comment::create(array(
+			'comment_author' => Input::get('comment_author'),//1,//
+			'comment_content' => Input::get('comment_content')
+		));
+		return Response::json(array('success' => true));
+	}
+	
+	public function destroy($cid){
+		Comment::destroy($cid);
+		return Response::json(array('success' => true));
+	}
+	
+	//public function 
+	
+	
 	public function create(){
 		$post_id = Input::get('post_id');
 		Comment::create_in_post();

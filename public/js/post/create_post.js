@@ -1,5 +1,8 @@
 
 $(document).ready(function(){
+	/**
+	 * post tag associate
+	 */
     $('.tagbox').click(function(){
         $("input[name='post_tag']").focus();
     });
@@ -141,10 +144,58 @@ console.log('space index'+txt.indexOf(' '));
     });
     
     $('#save_new_category').click(function(){
-    	var new_category_name = $('#new_catebory_name').val();
-    	var new_category_parent = $('new_category_parent').val();
+    	var new_category_name = $('#new_category_name').val();
+    	var new_category_parent = $('#new_category_parent').val();
     	
     	console.log('new category:'+new_category_name+','+new_category_name );
     	$('#create_category_diag').modal('hide');
+//    	$.get("term/",function(data,status){
+//    	    alert("Data: " + data + "\nStatus: " + status);
+//    	  });
+//  	
+    	$.post("http://"+window.location.host+"/category/api/create",
+    		{
+    			category_name:new_category_name,
+    			category_parent:new_category_parent
+    		},
+			function(data,status){
+    			//alert("Data: " + data + "\nStatus: " + status);
+			});
+    	//update #new_category_parent and #category
+    	// append <option value="1">未分类</option>
+    	var new_category_id = -1;
+    	var parent;
+    	if(new_category_parent =='0'){//无父标签
+    		parent = $('#category').find('>option:last');
+    	}else{//父标签为已有节点
+    		parent = $('#category'+new_category_parent);
+    		var space = '&nbsp;&nbsp;';
+        	var space_count = countSubstr( parent.html() , space ) + 1;
+        	for(i=0;i<space_count;i++){
+        		new_category_name=space+new_category_name;
+        	}
+    	}
+    	console.log('parent:'+parent.html()+',text:'+new_category_name);
+    	parent.after('<option id="category'+new_category_id+'" value="'+new_category_id+'">'+new_category_name+'</option>');
+    	
     });
+    
+    
+    function countSubstr(mainStr, subStr)
+    {
+        var count = 0;
+        var offset = 0;
+        do
+        {
+            offset = mainStr.indexOf(subStr, offset);
+            console.log('offset:'+offset);
+            if(offset != -1)
+            {
+                count++;
+                offset += subStr.length;
+            }
+        }while(offset != -1)
+        return count;
+    }
+    
 });

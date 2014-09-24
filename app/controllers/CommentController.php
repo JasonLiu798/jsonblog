@@ -2,8 +2,24 @@
 
 class CommentController extends BaseController {
 	
-	public function index(){
-		return Response::json(Comment::get());
+	public function admin(){
+		$sess_user = Session::get('user');
+		$username = User::getNameFromSession( $sess_user);
+		$user_id = User::getUserIDFromSession( $sess_user );
+		$title = '评论管理';
+		$comments = Comment::getCommentsByUserID($user_id, Constant::$ADMIN_PAGESIZE);
+		$view = View::make('comments/comment',
+				array('title'=>$title,'username'=>$username, 'comments'=>$comments,
+						));
+		return $view;
+	}
+	
+	public function delete($cid){
+		$comm = Comment::find($cid);
+		$comm->delete();
+		//Comment::destroy($cid)
+		return Redirect::action('CommentController@admin');
+		// Response::json(array('success' => true));
 	}
 	
 	public function store(){
@@ -14,10 +30,7 @@ class CommentController extends BaseController {
 		return Response::json(array('success' => true));
 	}
 	
-	public function destroy($cid){
-		Comment::destroy($cid);
-		return Response::json(array('success' => true));
-	}
+	
 	
 	//public function 
 	
@@ -36,11 +49,11 @@ Log::info('NEW COMM URL:'.$url);
 	/**
 	 * T:/comment/delete?cid=48
 	 */
-	public function delete(){
-		$cid = Input::get('cid');
-		$comm = Comment::find($cid);
-		$comm->delete();
-	}
+// 	public function delete(){
+// 		$cid = Input::get('cid');
+// 		$comm = Comment::find($cid);
+// 		$comm->delete();
+// 	}
 	
 	
 	public function get_unread_comment_cnt($uid){

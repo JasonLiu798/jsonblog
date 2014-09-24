@@ -116,31 +116,33 @@ class Term extends Eloquent  {
 	}
 	
 	/**
-	 * 
+	 * create category async
+	 * used in the post create
 	 */
-	public static function ajax_create(){
-		
-		DB::transaction(function()
+	public static function create_category_api($category_name,$parent_id){
+		$term_id = 0;
+		DB::transaction(
+		 function() use(&$term_id,$category_name,$parent_id)
 		{
 			$term  = new Term;
-			
-			//$post_id = Input::get('post_id');
 			DB::table('terms')->insert(
-				array('name'=>Input::get('term_name') )
+				array('name'=>$category_name)
 			);
 			
 			$get_last_term_id_sql = "SELECT LAST_INSERT_ID() term_id";
-			$term_id = DB::select($get_last_term_id_sql);
-Log::info("TERMID".$term_id[0]->term_id);
-			
+			//$term_id = ;
+//Log::info("TERMID".$term_id[0]->term_id);
+			$term_id = DB::select($get_last_term_id_sql)[0]->term_id;
 			DB::table('term_taxonomy')->insert(
-				array('term_id' => $term_id[0]->term_id,
-				'taxonomy' => Input::get('term_taxonomy'),
+				array('term_id' => $term_id,//$term_id[0]->term_id,
+				'taxonomy' => Constant::$TERM_CATEGORY ,
 				'description'=> '',
-				'parent'=> Input::get('parent'), 'count'=>0)//提交后count+1
+				'parent'=> $parent_id ,
+				'count'=>0)//提交后count+1
 			);
-			
 		});
+		Log::info('CreateCategory:'.$term_id);
+		return $term_id;
 	}
 	
 	/**

@@ -1,7 +1,7 @@
 @include('templates/header_login')
 
 {{ HTML::script('js/tinymce/tinymce.min.js') }}
-{{ HTML::script('js/post/post_tag_add.js') }}
+{{ HTML::script('js/post/create_post.js') }}
 {{ HTML::style('css/create_post.css') }}
 <script type="text/javascript">
 tinymce.init({
@@ -45,7 +45,7 @@ tinymce.init({
 		
 		<select class="form-control" name="category" id="category">
 			@foreach($category as $cat)
-			  <option value="{{$cat->term_id }}">{{ $cat->name }}</option>
+			  <option id="category{{$cat->term_id}}" value="{{$cat->term_id }}">{{ $cat->name }}</option>
 			@endforeach
 		</select>
 	</div>
@@ -63,7 +63,7 @@ tinymce.init({
 			    </div>
 			    <div class="modal-body">
 			        <h5>{{Lang::get('term.CATEGORY_NAME')}}</h5>
-			        <input type="text"  class="form-control" id="new_catagory_name" name="new_catagory_name"/>
+			        <input type="text"  class="form-control" id="new_category_name" name="new_category_name"/>
 			         
 			        <h5>{{Lang::get('post.NEW_CATEGORY_PARENT')}}</h5>
 		

@@ -47,7 +47,7 @@ Log::info('post date:'.$last_query['query']);
 		}else{
 			$posts = Post::getPosts(Constant::$PAGESIZE);
 		}
-		$posts = Post::postAddMeta($posts);
+		$posts = Post::postAddMeta($posts,Constant::$POST_INDEX_CUT_SIZE);
 		$sidebar = PostController::get_sidebar();
 		$username = User::getNameFromSession( Session::get('user') );
 		$view = View::make('index',
@@ -78,7 +78,7 @@ $queries = DB::getQueryLog();
 $last_query = end($queries);
 Log::info('post date:'.$last_query['query']);
 		
-		$posts = Post::postAddMeta($posts);
+		$posts = Post::postAddMeta($posts,Constant::$POST_INDEX_CUT_SIZE);
 		$sidebar = PostController::get_sidebar();
 		$username = User::getNameFromSession( Session::get('user') );
 		
@@ -103,7 +103,7 @@ Log::info('post date:'.$last_query['query']);
 			App::abort(404);
 		}
 		$posts = Post::getPostByUser($user_id,Constant::$PAGESIZE);
-		$posts = Post::postAddMeta($posts);
+		$posts = Post::postAddMeta($posts ,Constant::$POST_INDEX_CUT_SIZE );
 		$sidebar = PostController::get_sidebar();
 		$user4title = User::find($user_id);
 		$username = User::getNameFromSession( Session::get('user') );
@@ -151,7 +151,7 @@ Log::info('post date:'.$last_query['query']);
 		//login can create post
 		if( strcmp($sess_user_json, 'default') == 0 ){
 			// to error page
-			return Redirect::action('PostController@index');;
+			return Redirect::action('PostController@index');
 		}
 		//Log::info('CREATE POST:'.strcmp($sess_user_json, 'default') );
 		
@@ -187,6 +187,26 @@ Log::info('post date:'.$last_query['query']);
 		Post::delete_with_term_comment();
 	}
 	
+	public function admin(){
+		$sess_user = Session::get('user');
+		if(is_null($sess_user) ){
+			return Redirect::action('PostController@index');
+		}
+		$username = User::getNameFromSession( $sess_user);
+		$user_id = User::getUserIDFromSession( $sess_user );
+		$title = '博文管理';
+		
+		$posts = Post::getPostsByUserID( $user_id, Constant::$ADMIN_PAGESIZE);
+		if(count($posts)<=0){
+			$posts = null;
+		}else{
+			$posts = Post::postAddMeta( $posts, Constant::$POST_ADMIN_CUT_SIZE);
+		}
+		$view = View::make('posts/postadmin',
+				array('title'=>$title,'username'=>$username, 'posts'=>$posts,
+				));
+		return $view;
+	}
 	
 	
 }

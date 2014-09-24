@@ -27,17 +27,25 @@ Route::get('/{term_id?}', array('as'=>'index','uses' => 'PostController@index'))
 Route::get('/date/{date}', array('as'=>'dpost','uses' => 'PostController@posts_by_date'));
 Route::any('/author/{user_id}', array('as'=>'author','uses'=>'PostController@posts_by_author'));
 
-Route::any('/post/single/{post_id}','PostController@single'); // /{term_id}/{post_date?}',
-Route::any('/post/create/{param}','PostController@create');
+
+
 // default:show page post/create/page
 // add post  posts/create/do?post_title=p1&post_content=c1&term_id=1
-Route::get('/post/delete','PostController@delete_with_term_comment');// post/delete?post_id=
+
+
+Route::group(array('prefix' => 'post'), function() {
+	Route::any('admin','PostController@admin');
+	Route::any('single/{post_id}','PostController@single'); // /{term_id}/{post_date?}',
+	Route::any('create/{param}','PostController@create');
+	Route::get('delete','PostController@delete_with_term_comment');// post/delete?post_id=
+});
 
 //Comment index
-Route::any('/comment/index',function(){
-	return View::make('comments/comment',array('title'=>'评论管理'));
-});
-//Comment CRUD
+Route::any('/comment/admin','CommentController@admin');
+Route::any('/comment/delete/{cid}','CommentController@delete');// /comment/delete/
+// function(){ return View::make('comments/comment',array('title'=>'评论管理')); });
+
+//Comment CRUD API 
 Route::group(array('prefix' => 'api'), function() {
 	Route::resource('comments', 'CommentController',
 	array('only' => array('index', 'store', 'destroy')));
@@ -48,9 +56,18 @@ Route::get('/comment/delete','CommentController@delete');
 Route::get('/term/unreadcmtcnt/{uid}','CommentController@get_unread_comment_cnt');
 // /term/unreadcmtcnt/1
 
-//Term
-Route::any('/category/create/{param}','TermsController@create');
-// category/create/asyncadd?new_catagory_name=cat&new_category_parent=23
+//Terms
+Route::group(array('prefix' => 'category'), function() {
+	//API
+	Route::group(array('prefix' => 'api'), function() {
+		Route::any('create','TermsController@create_category_api');
+		// http://www.lblog.com/category/api/create?new_catagory_name=cat&new_category_parent=23
+	});
+	//
+	Route::any('create/{param}','TermsController@create');
+});
+
+
 Route::get('term/admin','TermsController@admin');
 Route::get('/term/delete','TermsController@delete');//term/delete?tid=
 

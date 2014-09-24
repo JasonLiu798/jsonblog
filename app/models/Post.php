@@ -16,6 +16,33 @@ class Post extends Eloquent  {
 		return $this->hasMany('Comment');
 	}
 	
+	/**
+	 * 
+	 * @param unknown $user_id
+	 * @param unknown $pagesize
+	 * @return unknown
+	 */
+	public static function getPostsByUserID($user_id,$pagesize){
+/**
+select users.user_login post_author,posts.ID post_id,post_date,post_content,count(comments.comment_ID) post_comment_count
+from posts 
+left join comments on comments.comment_post_ID = posts.ID
+left join users on users.ID = posts.post_author
+where  posts.post_author = 1
+group by posts.ID
+order by posts.post_date desc;
+*/
+		$posts = DB::table('posts')
+			->select('users.user_login as post_author','posts.ID as post_id','post_title','post_date','post_content',DB::raw('count(comments.comment_ID) as post_comment_count'))
+			->leftJoin('comments','comments.comment_post_ID','=','posts.ID')
+			->leftJoin('users','users.ID','=','posts.post_author')
+			->where('posts.post_author','=',$user_id)
+			->groupBy('posts.ID')
+			->orderBy('posts.post_date','desc')
+			->paginate($pagesize);
+		return $posts;
+	}
+	
 	public static function getPosts($pagesize){
 		$posts = null;
 		if($pagesize>0){
@@ -191,7 +218,7 @@ Log::info('NXT POST SQL:'.$last_query['query']);
 		return $res;
 	}
 	
-	public static function postAddMeta($posts){
+	public static function postAddMeta($posts,$cut_size){
 		foreach($posts as $post):
 			$terms = Term::getTermsByPostID($post->post_id);
 
@@ -200,7 +227,7 @@ Log::info('post'.$post->post_id.' cat:'.$cat[0]->term_id);
 			$tag = Term::getTag($terms);
 			$post->category = !empty($cat)?$cat:null;
 			$post->post_tag = !empty($tag)?$tag:null;
-			$post->post_content = Post::get_adjust_post($post->post_content,200);
+			$post->post_content = Post::get_adjust_post($post->post_content,$cut_size);
 		endforeach;
 		return $posts;
 	} 
@@ -329,10 +356,10 @@ where posts.ID=17;
 	public static function get_adjust_length($content, $length){
 		preg_match_all("/(<(\/)*([\w]+)[^>]*>)/", $content, $labels, PREG_SET_ORDER|PREG_OFFSET_CAPTURE);
 		$length_backup = $length;
+		$res = 0;
 		foreach($labels as $label){
 			$label_length  = strlen($label[0][0]);
 			$label_idx = $label[0][1];
-	
 			if( $label_idx + $label_length <= $length ){//before label 
 				$res = $length;
 			}else if(  $label_idx < $length  && $length < $label[0][1]+ strlen($label[0][0]) ){//in the middle of lable
@@ -395,7 +422,8 @@ where posts.ID=17;
 			return $content;
 		}
 		$length = Post::get_adjust_length($content,$length);
-		$content  = substr($content,0,$length);
+		//$content  = substr($content,0,$length);
+		$content = mb_substr($content,0,$length, Constant::$UTF_8 );
 		$content = Post::get_adjust_content($content);
 		return $content;
 	}

@@ -1,7 +1,7 @@
 <?php
 
 class Comment extends Eloquent  {
-
+	
 
 	/**
 	 * The database table used by the model.
@@ -13,6 +13,40 @@ class Comment extends Eloquent  {
 	public $timestamps = false;
 	
 	protected $softDelete = true;
+	
+	
+	public static function getCommentsByUserID($uid,$pagesize){
+/**
+select comments.comment_ID,
+	users.user_login comment_author_reg,comments.comment_author,
+	comments.comment_content,comments.comment_date,
+	posts.post_title
+from comments 
+left join posts on posts.ID = comments.comment_post_ID 
+left join users on users.ID = comments.comment_author_id 
+where  comment_post_ID in (select ID from posts where post_author = 1)
+order by comment_date desc;
+*/
+		$comments = DB::table('comments')
+			->select('comments.comment_ID','users.user_login as comment_author_reg',
+			'comments.comment_author','comments.comment_content','comments.comment_date',
+			'posts.post_title')
+			->leftJoin('posts','posts.ID','=','comments.comment_post_ID')
+			->leftJoin('users','users.ID','=','comments.comment_author_id')
+			//->where('comment_post_ID','in','')
+			->whereExists(function($query)use($uid)
+			{
+				$query->select('ID')
+				->from('posts')
+				->where('post_author','=',$uid);
+			})->orderBy('comment_date','desc')
+			->paginate($pagesize);
+			
+		
+		return $comments;
+	}
+	
+	
 	
 	public static function getCommentsByPostID($post_id){
 		$comments = DB::table('comments')

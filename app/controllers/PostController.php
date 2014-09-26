@@ -45,7 +45,7 @@ Log::info('post date:'.$last_query['query']);
 				App::abort(404);
 			}
 		}else{
-			$posts = Post::getPosts(Constant::$PAGESIZE);
+			$posts = Post::get_posts(Constant::$PAGESIZE);
 		}
 		$posts = Post::postAddMeta($posts,Constant::$POST_INDEX_CUT_SIZE);
 		$sidebar = PostController::get_sidebar();
@@ -149,16 +149,16 @@ Log::info('post date:'.$last_query['query']);
 	public function create($param='page'){
 		$sess_user_json = Session::get('user','default');
 		//login can create post
-		if( strcmp($sess_user_json, 'default') == 0 ){
-			// to error page
-			return Redirect::action('PostController@index');
-		}
+		
 		//Log::info('CREATE POST:'.strcmp($sess_user_json, 'default') );
 		
 		$user = json_decode($sess_user_json);
 		$sidebar = PostController::get_sidebar();
 		if($param === 'page'){
-			
+			if( strcmp($sess_user_json, 'default') == 0 ){
+				// to error page
+				return Redirect::action('PostController@index');
+			}
 			//$terms = Term::getTermsByUserID($user->uid);
 			$category = Term::get_category_by_userid($user->uid);
 			//Term::format_category2tree($category);
@@ -176,8 +176,26 @@ Log::info('post date:'.$last_query['query']);
 		}else if($param==='draft_page'){
 			
 		}else if($param==='do'){
-			Post::create_();
+			if( is_null( $user ) ){
+				return 'error';//ADD
+			}
+			//$category = urldecode(urldecode(Input::get() ));
+			$post_title = Input::get('post_title');//urldecode(urldecode());
+			$post_content = Input::get('post_content');//urldecode(urldecode(Input::get('post_content')));
+Log::info('CREATE POST:'.$post_title.','.$post_content);
+			$post_id = Post::create_post($user->uid,$post_title,$post_content);
+			if($post_id<0){
+				//error
+				return Response::make('创建博文失败!', 500 );
+			}
+			$category_id = Input::get('category');
+			$post_tag_ids = Input::get('post_tag_ids');
+			$termid_arr = explode(',',$post_tag_ids);
+			array_push( $termid_arr, $category_id);
+			Post::create_post_term( $post_id, $termid_arr );
 			
+			Log::info("POST TAGS:".$post_tag_ids.",CAT:".$category_id);
+			return Redirect::route('singlepost',array($post_id));
 		}else{
 			App::abort(404);
 		}

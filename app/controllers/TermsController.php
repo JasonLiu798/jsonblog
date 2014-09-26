@@ -39,15 +39,58 @@ class TermsController extends BaseController {
 	}
 	
 	/**
-	 * 添加Post时，异步添加用
+	 * new Post,dynamic add category
 	 * 
 	 * http://www.lblog.com/category/api/create?new_catagory_name=cat&new_category_parent=23
 	 */
 	public function create_category_api(){
-		$category_name = Input::get('new_catagory_name');
+		$sess_user = Session::get('user');
+		$user_id = User::getUserIDFromSession( $sess_user );
+		if(is_null($sess_user )) {
+			return Rresponse::json(array('success' => 'false', 'msg' => 'nologin'));
+		}
+		$category_name = urldecode(urldecode(Input::get('new_catagory_name')));
+		if(Term::chk_term_name_exist($category_name) > 0){
+			return Response::make('分类名已经存在!', 500 );
+		}
+		
 		$new_category_parent = Input::get('new_category_parent');
-		$term_id = Term::create_category_api($category_name,$new_category_parent);
-		return Response::json(array('success' => 'true', 'data' => $term_id));
+		$term_id = Term::create_category_api($user_id,$category_name,$new_category_parent);
+		if($term_id<=0){
+			return Rresponse::json(array('success' => 'false', 'msg' =>'failed'));
+		}
+		return Response::json(array('success' => 'true', 'term_id' => $term_id));
+	}
+	
+	public function chk_term_name_exist(){
+		$term_name = urldecode(urldecode(Input::get('term_name')));
+		if(Term::chk_term_name_exist($term_name) > 0){
+			return Response::make('标签名已经存在!', 500 );//$statusCode);
+			//return Response::json(array('success' => 'false', 'msg' => '标签名已经存在!'));
+		}
+	}
+	
+	/**
+	 * new Post,dynamic add post tag
+	 * http://www.lblog.com/tag/api/create?new_tag_name=cat
+	 */
+	public function create_tag_api(){
+		$sess_user = Session::get('user');
+		$user_id = User::getUserIDFromSession( $sess_user );
+		if(is_null($sess_user )) {
+			//return Response::json(array('success' => 'false', 'msg' => 'nologin'));
+			return Response::make('未登录', 500 );//$statusCode);
+		}
+		$tag_name = urldecode(urldecode(Input::get('new_tag_name')));
+		if(Term::chk_term_name_exist($tag_name) > 0){
+			return Response::make('标签名已经存在!', 500 );//$statusCode);
+			//return Response::json(array('success' => 'false', 'msg' => '标签名已经存在!'));
+		}
+		$term_id = Term::create_tag_api($user_id,$tag_name);
+		if($term_id<=0){
+			return Response::json(array('success' => 'false', 'msg' =>'failed'));
+		}
+		return Response::json(array('success' => 'true', 'term_id' => $term_id));
 	}
 	
 	

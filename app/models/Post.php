@@ -11,10 +11,10 @@ class Post extends Eloquent  {
 	protected $table = 'posts';
 	protected $primaryKey = 'ID';
 	
-	public function get()
-	{
-		return $this->hasMany('Comment');
-	}
+// 	public function get()
+// 	{
+// 		return $this->hasMany('Comment');
+// 	}
 	
 	/**
 	 * 
@@ -43,7 +43,7 @@ order by posts.post_date desc;
 		return $posts;
 	}
 	
-	public static function getPosts($pagesize){
+	public static function get_posts($pagesize){
 		$posts = null;
 		if($pagesize>0){
 			$posts = DB::table('posts')
@@ -52,6 +52,7 @@ order by posts.post_date desc;
 						,DB::raw('count(comments.comment_ID) as comment_count'))
 				->leftJoin('comments','comments.comment_post_ID','=','posts.ID')
 				->groupBy('posts.ID')
+				->orderBy('post_date','desc')
 				->paginate($pagesize);
 		}
 		return $posts;
@@ -290,42 +291,26 @@ where posts.ID=17;
 	/**
 	 * 创建post
 	 */
-	public static function create_(){
-		DB::transaction(function()
-		{
+	public static function create_post($user_id,$post_title,$post_content){
 			//$post = new Post;
-			date_default_timezone_set("Europe/London");
-			$post_date_gmt = date('Y-m-d H:i:s',time());
-			date_default_timezone_set("Asia/Shanghai");
-			$post_date = date('Y-m-d H:i:s',time());
-			
-			DB::table('posts')->insert(
-				array(
-					'post_title'=>Input::get('post_title'),
-					'post_content'=>Input::get('term_name'), 
-					//'post_author'=>Input::get('post_author'),
-					'post_date'=>$post_date,
-					'post_date_gmt'=>$post_date_gmt
-				)
-			);
-			$catid = Input::get('category');
-			$post_tags = Input::get('post_tag_id');
-			Log::info("post tags:".$post_tags);
-			
-			
-			/*
-			$term_id =Input::get('term_id'); 
-			if(!is_null($term_id)){
-				$get_last_post_id_sql = "SELECT LAST_INSERT_ID() ID";
-				$post_id = DB::select($get_last_post_id_sql);
-				DB::table('term_relationships')
-					->insert(array(
-					'object_id'=>$post_id[0]->ID,
-					'term_taxonomy_id'=>$term_id
-				));
-			}
-			*/
-		});
+		date_default_timezone_set("Europe/London");
+		$post_date_gmt = date('Y-m-d H:i:s',time());
+		date_default_timezone_set("Asia/Shanghai");
+		$post_date = date('Y-m-d H:i:s',time());
+		
+		DB::table('posts')->insert(
+			array(
+				'post_author'=>$user_id,
+				'post_title'=>$post_title,
+				'post_content'=>$post_content, 
+				'post_date'=>$post_date,
+				'post_date_gmt'=>$post_date_gmt
+			)
+		);
+		$get_last_post_id_sql = "SELECT LAST_INSERT_ID() ID";
+		$post_id = DB::select($get_last_post_id_sql)[0]->ID;
+		Log::info('CreatePost:'.$post_id);
+		return $post_id; 
 	}
 	
 	/**
@@ -427,4 +412,16 @@ where posts.ID=17;
 		$content = Post::get_adjust_content($content);
 		return $content;
 	}
+	
+	public static function create_post_term( $post_id, $termid_arr ){
+		$insert_arr = array();
+		foreach($termid_arr as $term_id){
+			array_push($insert_arr, array('object_id'=>$post_id,'term_taxonomy_id'=>$term_id) );
+		}
+		DB::table('term_relationships')->insert($insert_arr);
+	}
+	
+	
+	
+	
 }

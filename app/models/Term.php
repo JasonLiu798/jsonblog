@@ -119,14 +119,14 @@ class Term extends Eloquent  {
 	 * create category async
 	 * used in the post create
 	 */
-	public static function create_category_api($category_name,$parent_id){
+	public static function create_category_api($user_id,$category_name,$parent_id){
 		$term_id = 0;
 		DB::transaction(
-		 function() use(&$term_id,$category_name,$parent_id)
+		 function() use(&$term_id,$user_id,$category_name,$parent_id)
 		{
 			$term  = new Term;
 			DB::table('terms')->insert(
-				array('name'=>$category_name)
+				array('name'=>$category_name,'uid'=>$user_id)
 			);
 			
 			$get_last_term_id_sql = "SELECT LAST_INSERT_ID() term_id";
@@ -143,6 +143,42 @@ class Term extends Eloquent  {
 		});
 		Log::info('CreateCategory:'.$term_id);
 		return $term_id;
+	}
+	
+	/**
+	 * 
+	 * @param unknown $user_id
+	 * @param unknown $tag_name
+	 * @return unknown
+	 */
+	public static function create_tag_api($user_id,$tag_name){
+		$term_id = 0;
+		DB::transaction(
+		function() use(&$term_id,$user_id,$tag_name)
+		{
+			$term  = new Term;
+			DB::table('terms')->insert(
+				array('name'=>$tag_name,'uid'=>$user_id)
+			);
+				
+			$get_last_term_id_sql = "SELECT LAST_INSERT_ID() term_id";
+			//$term_id = ;
+			//Log::info("TERMID".$term_id[0]->term_id);
+			$term_id = DB::select($get_last_term_id_sql)[0]->term_id;
+			DB::table('term_taxonomy')->insert(
+			array('term_id' => $term_id,//$term_id[0]->term_id,
+			'taxonomy' => Constant::$TERM_TAG ,
+			'description'=> '',
+			'parent'=> Constant::$TERM_TAG_NOPARENT ,
+			'count'=>0)//提交后count+1
+			);
+		});
+		Log::info('CreateTag:'.$term_id);
+		return $term_id;
+	}
+	
+	public static function chk_term_name_exist($term_name){
+		return DB::table('terms')->where('name','=',$term_name )->count();
 	}
 	
 	/**

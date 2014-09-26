@@ -14,4 +14,12 @@ class Constant {
 	
 	public static $TERM_CATEGORY = 'category';
 	public static $TERM_TAG = 'post_tag';
+	public static $TERM_TAG_NOPARENT = 0;
+	
+	//public static $UPLOAD_IMG_DIR = dirname(__FILE__).'../';
+	public static function get_upload_img_dir(){
+		return dirname(__FILE__).'/../../public/upload/img/';
+	}
+	
+	public static $UPLOAD_IMG_DIR = '/upload/img/';
 }

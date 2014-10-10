@@ -55,4 +55,61 @@
 }
 
 
+#upload_img_and_preview{
+	width:800px;
+	height:350px;
+}
 
+/**
+ * for img preview
+ */
+.jcrop-holder #preview-pane {
+  display: block;
+  position: absolute;
+  z-index: 2000;
+  top: 10px;
+  right: -280px;
+  padding: 6px;
+  border: 1px rgba(0,0,0,.4) solid;
+  background-color: white;
+
+  -webkit-border-radius: 6px;
+  -moz-border-radius: 6px;
+  border-radius: 6px;
+
+  -webkit-box-shadow: 1px 1px 5px 2px rgba(0, 0, 0, 0.2);
+  -moz-box-shadow: 1px 1px 5px 2px rgba(0, 0, 0, 0.2);
+  box-shadow: 1px 1px 5px 2px rgba(0, 0, 0, 0.2);
+}
+
+#preview-pane .preview-container {
+	width: 270px;
+	height: 170px;
+	overflow: hidden;
+	float: right;
+}
+
+#img_preview{
+	max-width:250px;
+	max-height:150px;
+	width:250px;
+	height:150px;
+}
+
+/**
+ * upload img panel
+ */
+#upload_img_pane{
+	width: 450px;
+	height: 250px;
+	float:left;
+}
+
+#up_cover_img{
+	max-width:450px;
+	max-height:350px;
+	width: 450px;
+	height: 350px;
+	overflow: hidden;
+	/**position: absolute;**/
+}

@@ -6,18 +6,19 @@
 	@section('title')
 	<title>{{$title}}</title>
 	@show
-	{{ HTML::script('js/jquery-1.11.1.js') }}
-	{{ HTML::script('js/jquery-plugin.js') }}
+	{{ HTML::script('js/lib/jquery-1.11.1.js') }}
+	{{ HTML::script('js/lib/jquery-plugin.js') }}
 	{{ HTML::script('bootstrap/js/bootstrap.js') }}
-	{{ HTML::script('js/tool.js') }}
-
+	{{ HTML::script('js/lib/tool.js') }}
 	{{ HTML::style('bootstrap/css/bootstrap.css') }}
     {{ HTML::style('css/style.css') }}
+    {{ HTML::style('css/jquery.Jcrop.min.css') }}
 	@if (! empty ( $next_url ))
 		<META HTTP-EQUIV="REFRESH" CONTENT="100;URL={{$next_url}}?>" />
 	@endif
 	
 	<!-- 	{{ HTML::script('js/angular/angular.1.2.19.js') }} -->
+	
 	<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
 	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
 	<!--[if lt IE 9]>

@@ -173,13 +173,14 @@ Log::info('post date:'.$last_query['query']);
 					'post_tag'=>$top5post_tag,
 					'sidebar'=>$sidebar));
 			return $view;
-		}else if($param==='draft_page'){
+		}else if($param === 'draft_page'){
 			
-		}else if($param==='do'){
+		}else if($param === 'do'){
+Log::info('Create Post do');
 			if( is_null( $user ) ){
 				return 'error';//ADD
 			}
-			//$category = urldecode(urldecode(Input::get() ));
+			
 			$post_title = Input::get('post_title');//urldecode(urldecode());
 			$post_content = Input::get('post_content');//urldecode(urldecode(Input::get('post_content')));
 Log::info('CREATE POST:'.$post_title.','.$post_content);
@@ -190,8 +191,13 @@ Log::info('CREATE POST:'.$post_title.','.$post_content);
 			}
 			$category_id = Input::get('category');
 			$post_tag_ids = Input::get('post_tag_ids');
-			$termid_arr = explode(',',$post_tag_ids);
-			array_push( $termid_arr, $category_id);
+			if( strlen($post_tag_ids) > 0 ){
+				$termid_arr = explode(',',$post_tag_ids);
+				array_push( $termid_arr, $category_id);
+			}else{
+				$termid_arr = array();
+				array_push( $termid_arr, $category_id);
+			}
 			Post::create_post_term( $post_id, $termid_arr );
 			
 			Log::info("POST TAGS:".$post_tag_ids.",CAT:".$category_id);

@@ -224,7 +224,9 @@ Log::info('NXT POST SQL:'.$last_query['query']);
 			$terms = Term::getTermsByPostID($post->post_id);
 
 			$cat = Term::getCategory($terms);
-Log::info('post'.$post->post_id.' cat:'.$cat[0]->term_id);			
+// 			if(count($cat)>0){
+// 				Log::info('post'.$post->post_id.' cat:'.$cat[0]->term_id);
+// 			}
 			$tag = Term::getTag($terms);
 			$post->category = !empty($cat)?$cat:null;
 			$post->post_tag = !empty($tag)?$tag:null;
@@ -330,7 +332,11 @@ where posts.ID=17;
 		});
 	}
 	
+	
+	
 	/** --------------------------- Tool funcions --------------------------- **/
+	
+	
 	
 	/**
 	 * 首页内容截取，获取适合长度
@@ -343,12 +349,12 @@ where posts.ID=17;
 		$length_backup = $length;
 		$res = 0;
 		foreach($labels as $label){
-			$label_length  = strlen($label[0][0]);
+			$label_length  = mb_strlen($label[0][0], Constant::$UTF_8);//, Constant::$UTF_8);
 			$label_idx = $label[0][1];
 			if( $label_idx + $label_length <= $length ){//before label 
 				$res = $length;
-			}else if(  $label_idx < $length  && $length < $label[0][1]+ strlen($label[0][0]) ){//in the middle of lable
-				$res = $label[0][1]+ strlen($label[0][0]);//正好在中间的标签，删除
+			}else if(  $label_idx < $length  && $length < $label[0][1]+ mb_strlen($label[0][0], Constant::$UTF_8) ){//in the middle of lable
+				$res = $label[0][1]+ mb_strlen($label[0][0], Constant::$UTF_8);//正好在中间的标签，删除
 				break;
 			}else{//after label
 				$res = $length_backup;
@@ -363,7 +369,12 @@ where posts.ID=17;
 	 * @param unknown $label
 	 */
 	public static function is_start_label($label){
-		return preg_match("(<([\w]+)[^>]*>)",$label);
+		preg_match("(<([\w]+)[^>]*>)",$label,$matches);
+		$res = false;
+		if(count($matches)>0){
+			$res = true;
+		}
+		return $res;
 	}
 	
 	/**
@@ -403,13 +414,19 @@ where posts.ID=17;
 	 * @return unknown
 	 */
 	public static function get_adjust_post($content,$length){
-		if(strlen($content)<=$length){
+Log::info('Cut to:'.$length);		
+Log::info('Before cut:'.strlen($content));
+		if(mb_strlen($content, Constant::$UTF_8)<=$length){
 			return $content;
 		}
 		$length = Post::get_adjust_length($content,$length);
+Log::info('Adjust Lenght:'.$length);		
 		//$content  = substr($content,0,$length);
 		$content = mb_substr($content,0,$length, Constant::$UTF_8 );
+Log::info('Af cut:'.$content);		
+		//$content = substr($content,0,$length);//, Constant::$UTF_8 );
 		$content = Post::get_adjust_content($content);
+Log::info('Af add:'.$content);
 		return $content;
 	}
 	

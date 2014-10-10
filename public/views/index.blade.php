@@ -69,7 +69,7 @@
 			{{$posts_item->post_content}}
 		    @if (strlen( $posts_item->post_content )>100)
 			<div class="post_readmore">
-				 <a href="{{url('post/'.$posts_item->post_id) }}" >Read More &raquo;</a>
+				 <a href="{{url('post/single/'.$posts_item->post_id) }}" >Read More &raquo;</a>
 			</div><!-- readmore -->
 		    @endif
 	    </div><!-- post content -->

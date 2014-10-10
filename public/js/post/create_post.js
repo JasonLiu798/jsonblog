@@ -244,8 +244,107 @@ console.log('space index'+txt.indexOf(' '));
         return count;
     }
     
-//    $("#create_post_form").submit(function(e){
-//    	
-//    });
+    var jcrop_api;
     
+    /**
+     * 上传封面图片
+     */
+    $('#upload_cover_img').click(function(){
+    	if(jcrop_api!=null){
+    		console.log('Destory jcrop,type:'+typeof(jcrop_api)+",obj:"+jcrop_api);
+    		//dump(jcrop_api);
+    		jcrop_api.destroy();
+    	}
+    	var upfile = $('#up_cover_img_file').val();
+    	if( upfile == ''|| upfile == null){
+    		alert("请选择上传文件");
+    		return;
+    	}
+    	//ajaxFileUpload();
+    	
+    	//add_img_processor();
+    });
+    
+    function add_img_processor(){
+    	var jcrop_api,
+        boundx,
+        boundy,
+        // Grab some information about the preview pane
+        $preview = $('#preview-pane'),
+        $pcnt = $('#preview-pane .preview-container'),
+        $pimg = $('#img_preview'),//$('#preview-pane .preview-container img'),
+        xsize = $pcnt.width(),
+        ysize = $pcnt.height();
+    
+console.log('init',[xsize,ysize]);
+
+    	$('#up_cover_img').Jcrop({
+    	      onChange: updatePreview,
+    	      onSelect: updatePreview,
+    	      aspectRatio: xsize / ysize
+    	    },function(){
+    	      // Use the API to get the real image size
+    	      var bounds = this.getBounds();
+    	      boundx = bounds[0];
+    	      boundy = bounds[1];
+    	      // Store the API in the jcrop_api variable
+    	      jcrop_api = this;
+    	      // Move the preview into the jcrop container for css positioning
+    	      $preview.appendTo(jcrop_api.ui.holder);
+    	 });
+    	
+		function updatePreview(c)
+		{
+			if (parseInt(c.w) > 0){
+				var rx = xsize / c.w;
+				var ry = ysize / c.h;
+		
+				$pimg.css({
+					width: Math.round(rx * boundx) + 'px',
+					height: Math.round(ry * boundy) + 'px',
+					marginLeft: '-' + Math.round(rx * c.x) + 'px',
+					marginTop: '-' + Math.round(ry * c.y) + 'px'
+				});
+			}
+		};
+    }
+    
+    /**
+     * ajax upload
+     */
+    function ajaxFileUpload() {
+    	$.ajaxFileUpload
+        (
+            {
+                url: "http://"+window.location.host+"/img/post/cover/upload", //用于文件上传的服务器端请求地址
+                secureuri: false, //是否需要安全协议，一般设置为false
+                fileElementId: 'up_cover_img_file', //文件上传域的ID
+                dataType: 'json',//'json', //返回值类型 一般设置为json
+                success: 
+                function (data, status){
+                	console.log("IMG URL:"+data.url);
+                    $("#up_cover_img").attr("src", data.url );
+                    setTimeout(function(){
+                    	jcrop_api = $.Jcrop('#up_cover_img');//$('#up_cover_img').Jcrop();
+                    	//dump(jcrop_api);
+                    	//console.log("jcrop type:"+typeof(jcrop_api)+",obj:"+jcrop_api);
+                	},500);
+                    if (typeof (data.error) != 'undefined') {
+                        if (data.error != '') {
+                            alert("出错了:"+data.error);
+                        } else {
+                            alert("出错了"+data.msg);
+                        }
+                    }
+                },
+                error: 
+                function (data, status, e){
+                    alert(e);
+                }
+            }
+        );
+    	return false;
+    }
+    
+
 });

@@ -31,6 +31,7 @@ class ImgController extends BaseController {
 	public function post_cover_upload(){
 		$uploaddir = Constant::get_upload_img_dir();
 		//$editor = $_POST['editor'];
+		//strstr($_FILES['up_cover_img_file']['name']);
 		$upload_file_name = md5( time().$_FILES['up_cover_img_file']['name'] );//generate hash file name
 		
 		//$upload_file_hash_name = $upload_file_name.

@@ -136,10 +136,15 @@ tinymce.init({
 	<div class="form-group col-sm-offset-5 col-sm-12">
 		<!-- <input type="submit" value="{{Lang::get('post.PUBLISH')}}" class="btn btn-default"/> -->
 		<input type="button" class="btn btn-default" id="submit_button" data-toggle="modal" data-target="#cover_img_diag" value="设置摘要图片"/>
-		<!--  -->
-		<!-- ADD CATEGORY DIAG -->
-		<div  id="cover_img_diag" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" 
-			aria-labelledby="myLargeModalLabel" aria-hidden="true" >
+		
+		<input type="submit" value="{{Lang::get('post.PUBLISH')}}" class="btn btn-default"/>
+		&nbsp;&nbsp;&nbsp;
+		<input type="button" name="save_draft" class="btn btn-default"  value="保存草稿" />
+	</div>
+	
+	
+	<!-- 博文封面图片设置对话框 -->
+	<div  id="cover_img_diag" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true" >
 		  <div class="modal-dialog modal-lg">
 		    <div class="modal-content">
 		    	<div class="modal-header">
@@ -149,6 +154,11 @@ tinymce.init({
 			    <div class="modal-body">
 			    	<!-- <form action="{{url()}}/img/post/cover/upload" id="upload_cover_img_form" method="post" accept-charset="utf-8" enctype="multipart/form-data"> -->
 			    	<h5>选择文件</h5>
+			    	<input type="hidden" id="x" name="x" />
+					<input type="hidden" id="y" name="y" />
+					<input type="hidden" id="w" name="w" />
+					<input type="hidden" id="h" name="h" />
+					
 			        <input type="file" name="up_cover_img_file" id="up_cover_img_file" value="浏览" />
 			        <button type="button" class="btn btn-primary" id="upload_cover_img">上传</button>
 			        <br/>
@@ -158,26 +168,21 @@ tinymce.init({
 				        	<!-- <img id="up_cover_img" src="" alt="请上传图片"> -->
 				        </div>
 				        <div id="preview-pane">
-						    <div class="preview-container">
-								<!-- <img src="{{url()}}/img/space250x150.jpg" class="jcrop-preview" alt="Preview" /> -->
-								<img src="" id="img_preview" class="jcrop-preview" alt="Preview" />
-						    </div>
+				        	<div class="preview-container">
+						    	<img src="{{url()}}/img/space250x150.jpg" id="img_preview" class="jcrop-preview" alt="Preview" />
+							</div>
+							<!-- <img src="" class="jcrop-preview" alt="Preview" /> -->
 						</div>
 					</div>
-			      	
+			      	<button type="button" class="btn btn-default" id="cut_img">剪裁</button>
 			    </div>
 			    <div class="modal-footer">
-			        <button type="button" class="btn btn-default" data-dismiss="modal" id="submit_post">不设置</button>
-			        <button type="button" class="btn btn-primary" id="save_img">设置并保存</button>
+			        <button type="button" class="btn btn-default" data-dismiss="modal" id="submit_post">取消</button>
+			        <button type="button" class="btn btn-primary" id="save_img">设置</button>
 			    </div>
-		    </div>
-		  </div>
-		</div>
-		
-		<input type="submit" value="{{Lang::get('post.PUBLISH')}}" class="btn btn-default"/>
-		&nbsp;&nbsp;&nbsp;
-		<input type="button" name="save_draft" class="btn btn-default"  value="保存草稿" />
-	</div>
+		    </div><!-- end of modal-content -->
+		  </div><!-- end of modal-dialog modal-lg -->
+		</div><!-- end of cover_img_diag -->
 	
 </form>
 </div><!-- end of col-sm-8 -->

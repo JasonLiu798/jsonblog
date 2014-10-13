@@ -260,35 +260,91 @@ console.log('space index'+txt.indexOf(' '));
     		alert("请选择上传文件");
     		return;
     	}
-    	//ajaxFileUpload();
+    	//check file type by extend name
+    	if( check_file_type(upfile)<0 ){
+    		alert('图片类型不符合要求，只能上传jpg,gif,png,bmp类型图片！');
+    	};
+    	
+    	ajaxFileUpload();
     	
     	//add_img_processor();
     });
     
-    function add_img_processor(){
-    	var jcrop_api,
-        boundx,
-        boundy,
+    function check_file_type(file_name){
+    	var res = 0;
+    	var imgtype = new Array(".jpg",".gif",".png",".bmp");
+    	var upfile_lowcase = file_name.toLowerCase();
+    	console.log("up file name:" + upfile_lowcase);
+    	var is_img = "";
+    	for(i=0;i<imgtype.length;i++){
+    		if( upfile_lowcase.indexOf(imgtype[i]) >0){
+    			is_img=imgtype[i];
+    			break;
+    		}
+    	}
+    	//console.log("is img:"+is_img);
+    	if(is_img.length==0){
+    		res = -1;
+    	}
+    	return res;
+    }
+    
+    function add_img_processor(jcropapi){
+    	var jcrop_api,boundx,boundy,
         // Grab some information about the preview pane
-        $preview = $('#preview-pane'),
-        $pcnt = $('#preview-pane .preview-container'),
-        $pimg = $('#img_preview'),//$('#preview-pane .preview-container img'),
-        xsize = $pcnt.width(),
-        ysize = $pcnt.height();
+        //$preview = $('#preview-pane'),
+    	$preview = $('#img_preview'),
+        //$pcnt = $('#preview-pane .preview-container'),
+        //$pimg = $('#img_preview'),//$('#preview-pane .preview-container img'),
+        xsize = $preview.width(),
+        ysize = $preview.height();
     
 console.log('init',[xsize,ysize]);
-
-    	$('#up_cover_img').Jcrop({
-    	      onChange: updatePreview,
-    	      onSelect: updatePreview,
-    	      aspectRatio: xsize / ysize
-    	    },function(){
+		jcrop_api = $.Jcrop('#up_cover_img',{
+			onChange: showPreview,
+  	      	onSelect: showPreview,
+  	      	onRelease: hidePreview,
+  	      	aspectRatio: xsize / ysize
+		});
+		
+		function showPreview(coords){
+		    if ( parseInt(coords.w) > 0){
+		    	$('#x').val(c.x);
+		    	$('#y').val(c.y);
+		    	$('#w').val(c.w);
+		    	$('#h').val(c.h);
+		    	
+		    	var rx = 100 / coords.w;
+		    	var ry = 100 / coords.h;
+		    	
+		    	$preview.css({
+		    		width: Math.round(rx * 500) + 'px',
+		    		height: Math.round(ry * 370) + 'px',
+		    		marginLeft: '-' + Math.round(rx * coords.x) + 'px',
+		    		marginTop: '-' + Math.round(ry * coords.y) + 'px'
+		    	}).show();
+		    }
+		}
+		
+		function hidePreview(){
+			$preview.stop().fadeOut('fast');
+		}
+    }
+		
+	
+		  
+		/*  
+		$('#up_cover_img').Jcrop({
+    	      
+    	      
+    	    },
+    	    function(){
     	      // Use the API to get the real image size
     	      var bounds = this.getBounds();
     	      boundx = bounds[0];
     	      boundy = bounds[1];
     	      // Store the API in the jcrop_api variable
-    	      jcrop_api = this;
+    	      //jcrop_api = this;
     	      // Move the preview into the jcrop container for css positioning
     	      $preview.appendTo(jcrop_api.ui.holder);
     	 });
@@ -306,9 +362,10 @@ console.log('init',[xsize,ysize]);
 					marginTop: '-' + Math.round(ry * c.y) + 'px'
 				});
 			}
-		};
+		}
+		
     }
-    
+    */
     /**
      * ajax upload
      */
@@ -324,8 +381,10 @@ console.log('init',[xsize,ysize]);
                 function (data, status){
                 	console.log("IMG URL:"+data.url);
                     $("#up_cover_img").attr("src", data.url );
+                    $("#img_preview").attr("src", data.url );
                     setTimeout(function(){
-                    	jcrop_api = $.Jcrop('#up_cover_img');//$('#up_cover_img').Jcrop();
+                    	jcrop_api = add_img_processor();
+                    	//$('#up_cover_img').Jcrop();
                     	//dump(jcrop_api);
                     	//console.log("jcrop type:"+typeof(jcrop_api)+",obj:"+jcrop_api);
                 	},500);

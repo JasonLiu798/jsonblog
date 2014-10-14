@@ -251,8 +251,7 @@ console.log('space index'+txt.indexOf(' '));
      */
     $('#upload_cover_img').click(function(){
     	if(jcrop_api!=null){
-    		console.log('Destory jcrop,type:'+typeof(jcrop_api)+",obj:"+jcrop_api);
-    		//dump(jcrop_api);
+    		console.log('Destory jcrop');
     		jcrop_api.destroy();
     	}
     	var upfile = $('#up_cover_img_file').val();
@@ -268,6 +267,43 @@ console.log('space index'+txt.indexOf(' '));
     	ajaxFileUpload();
     	
     	//add_img_processor();
+    });
+    
+    /**
+     * 裁切图片，发送裁切尺寸至服务器，接收返回图片url并显示
+     */
+    $('#cut_img').click(function(){
+    	$('#cutted').val("true");//设置为剪切过，使用*_cover，否则使用原文件名
+    	if(jcrop_api!=null){
+    		console.log('Destory jcrop');
+    		jcrop_api.destroy();
+    	}
+    	var img_url = $('#cover_img_url').val();
+    	var img_name = img_url.substring( img_url.lastIndexOf('/'));
+    	console.log( 'Cut img,img name:' + img_name );
+    	$.ajax({
+            url: "http://"+window.location.host+"/img/post/cover/cut",
+            async: false,
+            data: { x: $('#x').val(),y:$('#y').val(),
+            	w:$('#w').val(),h:$('#h').val(),
+            	cover_img_name:img_name },
+            success: function (data) {
+            	var img_url = data.img_url;
+            	$("#up_cover_img").attr("src", data.img_url );
+                $("#img_preview").attr("src", data.img_url );
+                if ( typeof (data.error) != 'undefined' ) {
+                    if (data.error != '') {
+                        alert("出错了:"+data.error);
+                    } else {
+                        alert("出错了"+data.msg);
+                    }
+                }
+            },
+            error: function (msg) {
+                alert(msg.responseText);
+            }
+        });
+    	
     });
     
     function check_file_type(file_name){
@@ -298,7 +334,6 @@ console.log('space index'+txt.indexOf(' '));
         //$pimg = $('#img_preview'),//$('#preview-pane .preview-container img'),
         xsize = $preview.width(),
         ysize = $preview.height();
-    
 console.log('init',[xsize,ysize]);
 		jcrop_api = $.Jcrop('#up_cover_img',{
 			onChange: showPreview,
@@ -309,17 +344,21 @@ console.log('init',[xsize,ysize]);
 		
 		function showPreview(coords){
 		    if ( parseInt(coords.w) > 0){
-		    	$('#x').val(c.x);
-		    	$('#y').val(c.y);
-		    	$('#w').val(c.w);
-		    	$('#h').val(c.h);
-		    	
-		    	var rx = 100 / coords.w;
-		    	var ry = 100 / coords.h;
-		    	
+		    	$('#x').val(coords.x);
+		    	$('#y').val(coords.y);
+		    	$('#w').val(coords.w);
+		    	$('#h').val(coords.h);
+		    	var $pcnt = $('#preview-pane .preview-container');
+		    	var xsize = $pcnt.width();
+		    	var ysize = $pcnt.height();
+		    	var rx = xsize / coords.w;
+		    	var ry = ysize / coords.h;
+		    	var bounds = jcrop_api.getBounds();
+		    	var boundx = bounds[0];
+		    	var boundy = bounds[1];
 		    	$preview.css({
-		    		width: Math.round(rx * 500) + 'px',
-		    		height: Math.round(ry * 370) + 'px',
+		    		width: Math.round(rx * boundx) + 'px',
+		    		height: Math.round(ry * boundy) + 'px',
 		    		marginLeft: '-' + Math.round(rx * coords.x) + 'px',
 		    		marginTop: '-' + Math.round(ry * coords.y) + 'px'
 		    	}).show();
@@ -382,11 +421,9 @@ console.log('init',[xsize,ysize]);
                 	console.log("IMG URL:"+data.url);
                     $("#up_cover_img").attr("src", data.url );
                     $("#img_preview").attr("src", data.url );
+                    $('#cover_img_url').val(data.url);
                     setTimeout(function(){
                     	jcrop_api = add_img_processor();
-                    	//$('#up_cover_img').Jcrop();
-                    	//dump(jcrop_api);
-                    	//console.log("jcrop type:"+typeof(jcrop_api)+",obj:"+jcrop_api);
                 	},500);
                     if (typeof (data.error) != 'undefined') {
                         if (data.error != '') {

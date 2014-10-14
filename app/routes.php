@@ -46,7 +46,7 @@ Route::group(array('prefix' => 'post'), function() {
 Route::group(array('prefix' => 'img'), function() {
 	Route::any('post/content/upload','ImgController@post_img_upload');// img/post/content/upload
 	Route::any('post/cover/upload','ImgController@post_cover_upload');// img/post/cover/upload
-	
+	Route::any('post/cover/cut','ImgController@post_cover_cut');// img/post/cover/cut
 	
 });
 //Comment index

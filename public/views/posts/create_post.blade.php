@@ -42,6 +42,8 @@ tinymce.init({
 	
 <form method="post" action="{{url()}}/post/create/do" accept-charset="utf-8" role="form" id="create_post_form">
 	<input type="hidden" name="post_tag_ids" id="post_tag_ids" value="" />
+	<input type="hidden" id="cutted" name="cutted" value="false" />
+	<input type="hidden" id="cover_img_name" name="cover_img_name" value="false"/>
 	<div class="form-group">
 		{{ Form::label('post_title', Lang::get('post.POST_TITLE')) }}
 		{{ Form::text('post_title', '', array('class' => 'form-control')) }}
@@ -62,45 +64,12 @@ tinymce.init({
 	</div>
 	
 	<div class="form-group">
-		<!-- Large modal -->
+		<!-- 增加分类button -->
 		<input type="button" class="btn btn-default" id="new_category_button" data-toggle="modal" data-target="#create_category_diag" value="创建分类"/>
-		<!-- ADD CATEGORY DIAG -->
-		<div  id="create_category_diag" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true" >
-		  <div class="modal-dialog">
-		    <div class="modal-content">
-		    	<div class="modal-header">
-			        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-			        <h4 class="modal-title" id="myModalLabel">创建分类</h4>
-			    </div>
-			    <div class="modal-body">
-					<div class="alert alert-danger alert-dismissible fade in" role="alert" id="new_category_alert_box">
-				    	<button type="button" class="close" data-dismiss="alert">
-				    		<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
-				    	</button>
-				    	<strong id="new_category_alert_text"></strong>
-				    </div>
-			        <h5>{{Lang::get('term.CATEGORY_NAME')}}</h5>
-			        
-			        <input type="text"  class="form-control" id="new_category_name" name="new_category_name" />
-			         
-			        <h5>{{Lang::get('post.NEW_CATEGORY_PARENT')}}</h5>
-					
-					<select class="form-control" name="new_category_parent" id="new_category_parent">
-						<option value="0">{{ Lang::get('term.NO_PARENT') }}</option>
-						@foreach($category as $cat)
-							<option id="new_category_parent{{$cat->term_id}}" value="{{$cat->term_id }}">{{ $cat->name }}</option>
-						@endforeach
-					</select>
-			    </div>
-			    <div class="modal-footer">
-			        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-			        <button type="button" class="btn btn-primary" id="save_new_category">保存</button>
-			    </div>
-		    </div>
-		  </div>
-		</div>
 	</div><!-- end of from group -->
 	
+	<!-- 博客标签添加选择 -->
+	<div class="form-group">
 	<div class="tagbox">
 		<h5>{{Lang::get('post.POST_TAG')}}&nbsp;<small>{{ Lang::get('post.POST_TAG_ADD_INFO')}}</small></h5>
 		<div class="clearfix"></div>
@@ -119,7 +88,7 @@ tinymce.init({
             @endforeach
         </div>
     </div>
-    
+    </div>
 	<!-- 
 	<div class="row">
 		<div class="col-xs-6">
@@ -132,16 +101,55 @@ tinymce.init({
 	</div>
 	
 	<div class="form-group"></div> -->
+	<div class="form-group">
+		<!-- 设置博文封面图片 -->
+		<input type="button" class="btn btn-default" id="submit_button" data-toggle="modal" data-target="#cover_img_diag" value="设置摘要图片"/>
+	</div>
 	
 	<div class="form-group col-sm-offset-5 col-sm-12">
-		<!-- <input type="submit" value="{{Lang::get('post.PUBLISH')}}" class="btn btn-default"/> -->
-		<input type="button" class="btn btn-default" id="submit_button" data-toggle="modal" data-target="#cover_img_diag" value="设置摘要图片"/>
-		
 		<input type="submit" value="{{Lang::get('post.PUBLISH')}}" class="btn btn-default"/>
 		&nbsp;&nbsp;&nbsp;
 		<input type="button" name="save_draft" class="btn btn-default"  value="保存草稿" />
 	</div>
+	</form>
 	
+	<!-- 增加分类对话框 -->
+	<div  id="create_category_diag" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true" >
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+	    	<div class="modal-header">
+		        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+		        <h4 class="modal-title" id="myModalLabel">创建分类</h4>
+		    </div>
+		    <div class="modal-body">
+				<div class="alert alert-danger alert-dismissible fade in" role="alert" id="new_category_alert_box">
+			    	<button type="button" class="close" data-dismiss="alert">
+			    		<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+			    	</button>
+			    	<strong id="new_category_alert_text"></strong>
+			    </div>
+		        <h5>{{Lang::get('term.CATEGORY_NAME')}}</h5>
+		        
+		        <input type="text"  class="form-control" id="new_category_name" name="new_category_name" />
+		         
+		        <h5>{{Lang::get('post.NEW_CATEGORY_PARENT')}}</h5>
+				
+				<select class="form-control" name="new_category_parent" id="new_category_parent">
+					<option value="0">{{ Lang::get('term.NO_PARENT') }}</option>
+					@foreach($category as $cat)
+						<option id="new_category_parent{{$cat->term_id}}" value="{{$cat->term_id }}">{{ $cat->name }}</option>
+					@endforeach
+				</select>
+		    </div>
+		    <div class="modal-footer">
+		        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+		        <button type="button" class="btn btn-primary" id="save_new_category">保存</button>
+		    </div>
+	    </div><!-- end of modal-content -->
+	  </div><!-- end of modal-dialog -->
+	</div><!-- end of create_category_diag -->
+		
+		
 	
 	<!-- 博文封面图片设置对话框 -->
 	<div  id="cover_img_diag" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true" >
@@ -153,15 +161,21 @@ tinymce.init({
 			    </div>
 			    <div class="modal-body">
 			    	<!-- <form action="{{url()}}/img/post/cover/upload" id="upload_cover_img_form" method="post" accept-charset="utf-8" enctype="multipart/form-data"> -->
-			    	<h5>选择文件</h5>
-			    	<input type="hidden" id="x" name="x" />
-					<input type="hidden" id="y" name="y" />
-					<input type="hidden" id="w" name="w" />
-					<input type="hidden" id="h" name="h" />
-					
-			        <input type="file" name="up_cover_img_file" id="up_cover_img_file" value="浏览" />
-			        <button type="button" class="btn btn-primary" id="upload_cover_img">上传</button>
-			        <br/>
+			    	<form class="form-inline" role="form">
+				    	<h5>选择文件</h5>
+				    	
+				    	<input type="hidden" id="x" name="x" />
+						<input type="hidden" id="y" name="y" />
+						<input type="hidden" id="w" name="w" />
+						<input type="hidden" id="h" name="h" />
+						<div class="form-group">
+					        <input type="file" name="up_cover_img_file" id="up_cover_img_file" value="请选择图片" />
+					        <p class="help-block">请选择jpg、png、bmp、gif格式图片上传</p>
+				        </div>
+				        <div class="form-group">
+							<button type="button" class="btn btn-primary" id="upload_cover_img">上传</button>		        
+				        </div>
+			        </form><!-- end of form -->
 			        <div id="upload_img_and_preview">
 				        <div id="upload_img_pane">
 				        	<img id="up_cover_img" src="{{url()}}/img/space450x250.jpg" alt="上传图片"> 
@@ -174,7 +188,10 @@ tinymce.init({
 							<!-- <img src="" class="jcrop-preview" alt="Preview" /> -->
 						</div>
 					</div>
-			      	<button type="button" class="btn btn-default" id="cut_img">剪裁</button>
+					<div class="form-group">
+				      	<button type="button" class="btn btn-primary" id="cut_img">剪裁</button>
+				      	<button type="button" class="btn btn-default" id="cut_img_back">撤销</button>
+			      	</div>
 			    </div>
 			    <div class="modal-footer">
 			        <button type="button" class="btn btn-default" data-dismiss="modal" id="submit_post">取消</button>
@@ -184,7 +201,7 @@ tinymce.init({
 		  </div><!-- end of modal-dialog modal-lg -->
 		</div><!-- end of cover_img_diag -->
 	
-</form>
+
 </div><!-- end of col-sm-8 -->
 @include('templates/sidebar')
 </div><!-- end of row -->

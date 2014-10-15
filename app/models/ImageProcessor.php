@@ -78,9 +78,6 @@ public function make_image2rate($file_path,$rate){
 	 * @param unknown $h
 	 * @return string
 	 */
-/**
-	 * 创建600x300图片
-	 */
 	public function cut_image($file_path,$x,$y,$w,$h){
 		$img_type = $this->is_image_file( $file_path );
 		if( strlen($img_type) == 0 ) {
@@ -103,16 +100,22 @@ public function make_image2rate($file_path,$rate){
 		if(  $h-$y> $img_src_h){
 			$h = $img_src_h-$y;
 		}
+		$sx = round($img_src_w/$des_w * $x);
+		$sy = round($img_src_h/$des_h * $y);
+		$sw = round($img_src_w/$des_w * $w);
+		$sh = round($img_src_h/$des_h * $h);
+		Log::info('IMG W:'.$img_src_w.','.$img_src_h);
+		Log::info('AF CC:['.$sx.','.$sy.'],['.$sw.','.$sh.']');
 		$error_msg = "";
 		$img_des = $this->create_image_fill_bg($des_w,$des_h,'white');
 		//$img_des = imagecreatetruecolor($des_w,$des_h);
 		if( is_string($img_des)){
 			$error_msg = $img_des;
 		}else{
-			if( imagecopyresized( $img_des, $img_src, 0,0, $x,$y, $des_w,$des_h, $w,$h  )==false ){
+			if( imagecopyresized( $img_des, $img_src, 0,0, $sx,$sy, $des_w,$des_h, $sw,$sh  )==false ){
 				$error_msg =  "拷贝图片失败！";
 			}else{
-				$img_des_path =  $file_path.'_cover';
+				$img_des_path =  $file_path.'_cut';
 				if( $img_type === 'png'){
 					if( !imagepng( $img_des, $img_des_path ) ){
 						$error_msg = "创建png图片失败！";
@@ -133,7 +136,7 @@ public function make_image2rate($file_path,$rate){
 		if( strlen($error_msg)>0 ){
 			return $error_msg;
 		}
-		return $img_des_path;
+		return true;
 	}
 
 	

@@ -58,8 +58,8 @@
  * 图片框
  */
 #upload_img_and_preview{
-	width:840px;
-	height:260px;
+	width:860px;
+	height:320px;
 	margin: 10px;
 }
 
@@ -67,17 +67,17 @@
  * 主图片框
  */
 #upload_img_pane{
-	width: 500px;
-	height: 250px;
-	margin: 0 50px 0 0;
+	width: 600px;
+	height: 300px;
+	margin: 0 15px 0 0;
 	float:left;/*左浮动*/
 }
 
 #up_cover_img{
-	max-width:500px;
-	max-height:250px;
-	width: 500px;
-	height: 250px;
+	max-width:600px;
+	max-height:300px;
+	width: 600px;
+	height: 300px;
 	overflow: hidden;
 	/**position: absolute;**/
 }

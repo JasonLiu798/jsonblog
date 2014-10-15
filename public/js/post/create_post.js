@@ -265,8 +265,6 @@ console.log('space index'+txt.indexOf(' '));
     	};
     	
     	ajaxFileUpload();
-    	
-    	//add_img_processor();
     });
     
     /**
@@ -274,23 +272,28 @@ console.log('space index'+txt.indexOf(' '));
      */
     $('#cut_img').click(function(){
     	$('#cutted').val("true");//设置为剪切过，使用*_cover，否则使用原文件名
-    	if(jcrop_api!=null){
+    	
+    	if(jcrop_api != null){
     		console.log('Destory jcrop');
+    		jcrop_api.disable();
     		jcrop_api.destroy();
     	}
-    	var img_url = $('#cover_img_url').val();
-    	var img_name = img_url.substring( img_url.lastIndexOf('/'));
+    	var img_name = String($('#cover_img_name').val());
+    	//console.log( 'val type:' + typeof( img_url ) );
+    	//var img_name = img_url.substring( img_url.lastIndexOf('/')+1 );
     	console.log( 'Cut img,img name:' + img_name );
     	$.ajax({
             url: "http://"+window.location.host+"/img/post/cover/cut",
             async: false,
+            dataType:'json',
             data: { x: $('#x').val(),y:$('#y').val(),
             	w:$('#w').val(),h:$('#h').val(),
             	cover_img_name:img_name },
             success: function (data) {
-            	var img_url = data.img_url;
-            	$("#up_cover_img").attr("src", data.img_url );
-                $("#img_preview").attr("src", data.img_url );
+            	//var img_url = data.url;
+            	console.log('get cut img url:'+data.url);
+            	$("#up_cover_img").attr("src", data.url );
+                $("#img_preview").attr("src", data.url );
                 if ( typeof (data.error) != 'undefined' ) {
                     if (data.error != '') {
                         alert("出错了:"+data.error);
@@ -306,6 +309,9 @@ console.log('space index'+txt.indexOf(' '));
     	
     });
     
+    /**
+     * 检查图片文件扩展名
+     */
     function check_file_type(file_name){
     	var res = 0;
     	var imgtype = new Array(".jpg",".gif",".png",".bmp");
@@ -325,8 +331,11 @@ console.log('space index'+txt.indexOf(' '));
     	return res;
     }
     
-    function add_img_processor(jcropapi){
-    	var jcrop_api,boundx,boundy,
+    /**
+     * 添加图片剪切控件
+     */
+    function add_img_processor(){
+    	var boundx,boundy,
         // Grab some information about the preview pane
         //$preview = $('#preview-pane'),
     	$preview = $('#img_preview'),
@@ -334,8 +343,9 @@ console.log('space index'+txt.indexOf(' '));
         //$pimg = $('#img_preview'),//$('#preview-pane .preview-container img'),
         xsize = $preview.width(),
         ysize = $preview.height();
+    	
 console.log('init',[xsize,ysize]);
-		jcrop_api = $.Jcrop('#up_cover_img',{
+		var jcrop_api = $.Jcrop('#up_cover_img',{
 			onChange: showPreview,
   	      	onSelect: showPreview,
   	      	onRelease: hidePreview,
@@ -368,45 +378,11 @@ console.log('init',[xsize,ysize]);
 		function hidePreview(){
 			$preview.stop().fadeOut('fast');
 		}
+		return jcrop_api;
     }
-		
 	
-		  
-		/*  
-		$('#up_cover_img').Jcrop({
-    	      
-    	      
-    	    },
-    	    function(){
-    	      // Use the API to get the real image size
-    	      var bounds = this.getBounds();
-    	      boundx = bounds[0];
-    	      boundy = bounds[1];
-    	      // Store the API in the jcrop_api variable
-    	      //jcrop_api = this;
-    	      // Move the preview into the jcrop container for css positioning
-    	      $preview.appendTo(jcrop_api.ui.holder);
-    	 });
-    	
-		function updatePreview(c)
-		{
-			if (parseInt(c.w) > 0){
-				var rx = xsize / c.w;
-				var ry = ysize / c.h;
-		
-				$pimg.css({
-					width: Math.round(rx * boundx) + 'px',
-					height: Math.round(ry * boundy) + 'px',
-					marginLeft: '-' + Math.round(rx * c.x) + 'px',
-					marginTop: '-' + Math.round(ry * c.y) + 'px'
-				});
-			}
-		}
-		
-    }
-    */
     /**
-     * ajax upload
+     * 图片上传
      */
     function ajaxFileUpload() {
     	$.ajaxFileUpload
@@ -421,7 +397,9 @@ console.log('init',[xsize,ysize]);
                 	console.log("IMG URL:"+data.url);
                     $("#up_cover_img").attr("src", data.url );
                     $("#img_preview").attr("src", data.url );
-                    $('#cover_img_url').val(data.url);
+                    var img_name = data.url.substring( data.url.lastIndexOf('/')+1 );
+                    console.log('img name:'+img_name);
+                    $('#cover_img_name').val( img_name );
                     setTimeout(function(){
                     	jcrop_api = add_img_processor();
                 	},500);

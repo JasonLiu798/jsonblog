@@ -82,7 +82,7 @@ class ImgController extends BaseController {
 		$w = Input::get('w');
 		$h = Input::get('h');
 		$img_name = Input::get('cover_img_name');
-		Log::info('CutImg:'.$img_url.'['.$x.','.$y.'],['.$w.','.$h.']');
+		Log::info('CutImg:'.$img_name.'['.$x.','.$y.'],['.$w.','.$h.']');
 		$uploaddir = Constant::get_upload_img_dir();
 		$src_img_path = $uploaddir.$img_name;
 		$res = self::$img_pr->cut_image($src_img_path,$x,$y,$w,$h);

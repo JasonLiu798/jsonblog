@@ -149,9 +149,7 @@ Log::info('post date:'.$last_query['query']);
 	public function create($param='page'){
 		$sess_user_json = Session::get('user','default');
 		//login can create post
-		
 		//Log::info('CREATE POST:'.strcmp($sess_user_json, 'default') );
-		
 		$user = json_decode($sess_user_json);
 		$sidebar = PostController::get_sidebar();
 		if($param === 'page'){
@@ -183,8 +181,20 @@ Log::info('Create Post do');
 			
 			$post_title = Input::get('post_title');//urldecode(urldecode());
 			$post_content = Input::get('post_content');//urldecode(urldecode(Input::get('post_content')));
-Log::info('CREATE POST:'.$post_title.','.$post_content);
-			$post_id = Post::create_post($user->uid,$post_title,$post_content);
+			$post_img_id = Input::get('cover_img_id');
+			$post_cover_img_name = Input::get('cover_img_name');
+Log::info('CREATE POST:'.$post_title.','.$post_content.','.$post_img_id);
+			if($post_img!=null){
+				//有封面图片，只显示 标题+图片
+				$post_cover_img = url().Constant::$UPLOAD_IMG_DIR.$post_cover_img_name;
+				$post_summary = '';
+			}else{
+				//无封面图片，显示 标题+summary
+				$post_cover_img = '';
+				$post_summary = Post::get_summary($post_content,Constant::$POST_INDEX_CUT_SIZE);
+			}
+			
+			$post_id = Post::create_post($user->uid,$post_title,$post_content,$post_cover_img,$post_summary);
 			if($post_id<0){
 				//error
 				return Response::make('创建博文失败!', 500 );

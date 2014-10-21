@@ -40,42 +40,65 @@ class ImgController extends BaseController {
 	}
 	
 	/**
-	 * 上传封面图片，转化图片为2:1，回传url
+	 * 上传封面图片，转化图片为2:1，回传url,iid
 	 * @return unknown
 	 */
 	public function post_cover_upload(){
+		$sess_user_json = Session::get('user','default');
+		if( strcmp($sess_user_json, 'default') == 0 ){
+			// to error page
+			$msg = '未登录，或登录超时，请重新上传';
+			//Redirect::action('UserController@login');
+			$user_id = 0;
+		}else{
+			$user_id = json_decode($sess_user_json)->uid;
+		}
 		$uploaddir = Constant::get_upload_img_dir();
 		$upload_file_name = md5( time().$_FILES['up_cover_img_file']['name'] );//generate hash file name
-		
-		$upload_file = $uploaddir.basename( $upload_file_name );//原文件 path+文件名
-		Log::info( 'IMG DESTINATION:'.$upload_file );
-		Log::info( 'IMG TMP NAME:'.$_FILES['up_cover_img_file']['tmp_name'] );
+		$upload_img_name = $_FILES['up_cover_img_file']['name'];
+		$upload_file_path = $uploaddir.basename( $upload_file_name );//原文件 path+文件名
+		Log::info( 'IMG PATH:'.$upload_file_path );
+		//Log::info( 'IMG TMP NAME:'.$_FILES['up_cover_img_file']['tmp_name'] );
 		$res_msg="";
-		if (!move_uploaded_file($_FILES['up_cover_img_file']['tmp_name'], $upload_file)) {
-			//Log::info('Possible file upload attack!');
+		if (!move_uploaded_file($_FILES['up_cover_img_file']['tmp_name'], $upload_file_path)) {
 			$res_msg = array('error'=>'上传失败!');
 		}else{
-			//转化图片为2:1
-			//$img_pr = new ImageProcessor();
-			$res = self::$img_pr->make_image2rate( $upload_file, 2);
-			//出错信息
-			if( is_string($res ) ){
-				$res_msg = array('error'=>$res);
-				$response = Response::make( json_encode( $res_msg ) );
-				$response->header('Content-Type', 'text/html');
-				return $response;
-			}
-			//转化正常
-			$img_url = url().Constant::$UPLOAD_IMG_DIR.$upload_file_name;//$_FILES['uploadimg']['name'];
-			Log::info('IMG URL:'.$img_url);
-			
-			$res_msg = array('msg'=>'上传成功！','url' => $img_url);
+			$img_type = self::$img_pr->is_image_file( $upload_file_path );
+			if( strlen($img_type) == 0 ) {
+				$res_msg = array('error'=>"非图片文件！"); 
+			}else{
+				//转换图片为2:1，如小于，则扩大
+				$res = self::$img_pr->make_image2rate( $upload_file_path , 2 , $img_type );
+				//出错信息
+				if( is_string($res ) ){
+					$res_msg = array('error'=>$res);
+				}else{
+					//转换正常
+					$img_url = url().Constant::$UPLOAD_IMG_DIR.$upload_file_name;//$_FILES['uploadimg']['name'];
+					Log::info('IMG URL:'.$img_url);
+					$img_size = filesize($upload_file_path);
+					//获取图片宽高
+					$res_arr = self::$img_pr->get_width_height_size_nocheck($upload_file_path);
+					if( is_string($res_arr ) ){
+						$res_msg = array('error'=>$res_arr);
+					}else{
+						//存库
+						//save_img($img_name,$img_url,$img_path,$uid,$pid,$width,$height,$size){
+						$iid = PostImage::save_img( $upload_img_name , $upload_file_name , $img_type, $user_id, 0, $res_arr[0], $res_arr[1],$img_size);//暂时不关联blog,pid=0保存博文后关联
+						$res_msg = array('msg'=>'上传成功！','url' => $img_url,'iid'=>$iid );
+					}//end of get w,h 
+				}//end of coverate 2:1
+			}//end of type test
 		}
 		$response = Response::make( json_encode( $res_msg ) );
 		$response->header('Content-Type', 'text/html');
 		return $response;
 	}
 	
+	/**
+	 * 图片剪裁
+	 * @return unknown
+	 */
 	public function post_cover_cut(){
 		$x = Input::get('x');
 		$y = Input::get('y');
@@ -90,12 +113,57 @@ class ImgController extends BaseController {
 			$res_msg = array( 'error'=>$res );
 		}else{
 			$img_url = url().Constant::$UPLOAD_IMG_DIR.$img_name.'_cut';
-			$res_msg = array('msg'=>'上传成功！','url' => $img_url);
-			Log::info( 'Cutted Img URL:'.$img_url );
+			$res_arr = self::$img_pr->get_width_height_size_nocheck($src_img_path.'_cut');
+			if( is_string($res_arr ) ){
+				$res_msg = array('error'=>$res_arr);
+			}else{
+			
+			
+				$res_msg = array('msg'=>'上传成功！','url' => $img_url);
+				
+				
+				//PostImage::update($iid,$img_url,$src_img_path.'_cut' ,);
+				Log::info( 'Cutted Img URL:'.$img_url );
+			}
 		}
 		$response = Response::make( json_encode( $res_msg ) );
 		$response->header('Content-Type', 'text/html');
 		return $response;
+	}
+	
+	/**
+	 * 更新图片信息至数据库
+	 */
+	public function post_cover_save(){
+		//$img_url = Input::get('img_url');
+		$sess_user_json = Session::get('user','default');
+		if( strcmp($sess_user_json, 'default') == 0 ){
+			// to error page
+			$msg = '未登录，或登录超时，草稿已保存，请重新登录后再进行编辑';
+			//Redirect::action('UserController@login');
+			$user_id = 0;
+		}else{
+			$user_id = json_decode($sess_user_json)->uid;
+		}
+		$iid = Inpug::get('iid');
+		if( PostImage::chk_exist($iid)!=1 ){
+			//图片不存在
+			$res_msg = '图片不存在';
+		}else{
+			$img_name = Input::get('img_name');
+			$img_path = Constant::get_upload_img_dir().$img_name;
+			//$img_url = url().Constant::$UPLOAD_IMG_DIR.$img_name;
+			$res_arr = self::$img_pr->get_width_height_size_nocheck( $img_path );
+			if( is_string($res_arr ) ){
+				$res_msg = array( 'error' => $res_arr );
+			}else{
+				$img_size = filesize( $upload_file_path );
+				//update_cut_img($iid,$filename,$width,$height,$size)
+				PostImage::update_cut_img( $iid, $img_name, $res_arr[0], $res_arr[1], $img_size);
+			}
+		}
+		$img_uid = $user_id;
+		
 	}
 	
 	

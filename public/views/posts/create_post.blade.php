@@ -44,6 +44,7 @@ tinymce.init({
 	<input type="hidden" name="post_tag_ids" id="post_tag_ids" value="" />
 	<input type="hidden" id="cutted" name="cutted" value="false" />
 	<input type="hidden" id="cover_img_name" name="cover_img_name" value="false"/>
+	<input type="hidden" id="cover_img_id" name="cover_img_id" value=""/>
 	<div class="form-group">
 		{{ Form::label('post_title', Lang::get('post.POST_TITLE')) }}
 		{{ Form::text('post_title', '', array('class' => 'form-control')) }}
@@ -194,7 +195,7 @@ tinymce.init({
 			      	</div>
 			    </div>
 			    <div class="modal-footer">
-			        <button type="button" class="btn btn-default" data-dismiss="modal" id="submit_post">取消</button>
+			        <button type="button" class="btn btn-default" id="cancle_save_img">取消</button>
 			        <button type="button" class="btn btn-primary" id="save_img">设置</button>
 			    </div>
 		    </div><!-- end of modal-content -->

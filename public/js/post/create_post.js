@@ -92,7 +92,7 @@ $(document).ready(function(){
             		$('#post_tag_alert').text('标签不能包含英文逗号，请删除逗号后提交！');
             		return false;
             	}
-console.log('space index'+txt.indexOf(' '));
+//console.log('space index'+txt.indexOf(' '));
             	if( txt.indexOf(' ')>=0 ){
             		$('#post_tag_alert').text('标签不能包含空格，请删除空格后提交！');
             		return false;
@@ -234,7 +234,7 @@ console.log('space index'+txt.indexOf(' '));
         do
         {
             offset = mainStr.indexOf(subStr, offset);
-            console.log('offset:'+offset);
+            //console.log('offset:'+offset);
             if(offset != -1)
             {
                 count++;
@@ -245,13 +245,23 @@ console.log('space index'+txt.indexOf(' '));
     }
     
     var jcrop_api;
-    
+    var iid;
+    var img_name_before_cut_url;
+    var img_name_after_cut_url;
+    var is_cut=false;
+    var is_upload=false;
+    var uploading = false;
     /**
      * 上传封面图片
      */
     $('#upload_cover_img').click(function(){
+    	if( uploading ){
+    		alert('正在上传！');
+    		return;
+    	}
+    	uploading = true;
     	if(jcrop_api!=null){
-    		console.log('Destory jcrop');
+    		console.log('upload destory jcrop!');
     		jcrop_api.destroy();
     	}
     	var upfile = $('#up_cover_img_file').val();
@@ -262,38 +272,53 @@ console.log('space index'+txt.indexOf(' '));
     	//check file type by extend name
     	if( check_file_type(upfile)<0 ){
     		alert('图片类型不符合要求，只能上传jpg,gif,png,bmp类型图片！');
-    	};
-    	
+    	}
+    	img_name_before_cut_url=null;
+    	img_name_after_cut_url=null;
+    	iid=null;
+    	is_cut = false;
     	ajaxFileUpload();
     });
     
     /**
-     * 裁切图片，发送裁切尺寸至服务器，接收返回图片url并显示
+     * 裁切图片，发送裁切尺寸至服务器，接收返回图片url并显示，不更新库
      */
     $('#cut_img').click(function(){
+    	if( !is_upload ){
+    		alert('图片未上传！');
+    		return;
+    	}
     	$('#cutted').val("true");//设置为剪切过，使用*_cover，否则使用原文件名
-    	
+    	is_cut = true;
     	if(jcrop_api != null){
-    		console.log('Destory jcrop');
+    		console.log('af cut,destory jcrop');
     		jcrop_api.disable();
     		jcrop_api.destroy();
     	}
-    	var img_name = String($('#cover_img_name').val());
-    	//console.log( 'val type:' + typeof( img_url ) );
-    	//var img_name = img_url.substring( img_url.lastIndexOf('/')+1 );
-    	console.log( 'Cut img,img name:' + img_name );
+    	var img_name = img_name_before_cut_url.substring( img_name_before_cut_url.lastIndexOf('/')+1 ) ;
+    	console.log('Cut img,img name:' + img_name );
     	$.ajax({
             url: "http://"+window.location.host+"/img/post/cover/cut",
             async: false,
             dataType:'json',
-            data: { x: $('#x').val(),y:$('#y').val(),
-            	w:$('#w').val(),h:$('#h').val(),
+            data: {
+            	x: $('#x').val(),
+            	y:$('#y').val(),
+            	w:$('#w').val(),
+            	h:$('#h').val(),
             	cover_img_name:img_name },
             success: function (data) {
             	//var img_url = data.url;
             	console.log('get cut img url:'+data.url);
             	$("#up_cover_img").attr("src", data.url );
                 $("#img_preview").attr("src", data.url );
+                var img_name = data.url.substring( data.url.lastIndexOf('/')+1 );
+                //img_name_before_cut_url='';
+            	img_name_after_cut_url = data.url;
+            	
+            	
+                console.log('af cut img name:'+img_name);
+                $('#cover_img_name').val( img_name );
                 if ( typeof (data.error) != 'undefined' ) {
                     if (data.error != '') {
                         alert("出错了:"+data.error);
@@ -309,6 +334,112 @@ console.log('space index'+txt.indexOf(' '));
     	
     });
     
+    /**
+     * 撤销裁剪图片
+     */
+    $('#cut_img_back').click(function(){
+    	//img_name_before_cut
+    	if(!is_cut){
+    		alert('图片未裁剪！');
+    	}
+    	if(!is_upload){
+    		alert('图片未上传！');
+    	}
+    	is_cut = false;
+    	$("#up_cover_img").attr("src", img_name_before_cut_url );
+    	$("#img_preview").attr("src", img_name_before_cut_url );
+    	
+    	img_name_after_cut_url = '';
+    	setTimeout(function(){
+        	jcrop_api = add_img_processor();
+    	},500);
+    });
+    
+    /**
+     * 保存图片，更新库
+     */
+    $('#save_img').click(function(){
+    	if(!is_upload){
+    		alert('图片未上传！');
+    	}
+    	var final_img_url='';
+    	var cut='no';
+    	if(is_cut){
+    		//已裁切
+    		final_img_url = img_name_after_cut_url;
+    		cut='no';
+    	}else{
+    		//未裁切
+    		if(jcrop_api != null){
+        		console.log('save img,destory jcrop');
+        		jcrop_api.disable();
+        		jcrop_api.destroy();
+        	}
+    		final_img_url = img_name_before_cut_url;
+    		cut = 'yes';
+    	}
+    	final_img_name = final_img_url.substring( final_img_url.lastIndexOf('/')+1 );
+    	//异步保存
+    	$.ajax({
+            url: "http://"+window.location.host+"/img/post/cover/save",
+            async: false,
+            dataType:'json',
+            data: {
+            	iid:iid,
+            	img_name:final_img_name
+            	},
+            success: function (data) {
+            	alert(data.msg);
+            	
+            	$("#up_cover_img").attr("src", data.url );
+                $("#img_preview").attr("src", data.url );
+                
+                if ( typeof (data.error) != 'undefined' ) {
+                    if (data.error != '') {
+                        alert("出错了:"+data.error);
+                    }else {
+                        alert("出错了" +data.msg);
+                    }
+                }
+            },
+            error: function (msg) {
+                alert(msg.responseText);
+            }
+        });
+    	
+    	//清空所有变量
+//    	img_name_before_cut_url='';
+//    	img_name_after_cut_url='';
+    	var main_space = "http://"+window.location.host+"/img/space450x250.jpg";
+    	var prev_space = "http://"+window.location.host+"/img/space250x150.jpg";
+    	$("#up_cover_img").attr("src", main_space );
+    	$("#img_preview").attr("src", prev_space );
+    	is_upload=false;
+    	is_cut=false;
+    	$('#cover_img_diag').modal('hide');//隐藏对话框
+    	
+    });
+    
+    /**
+     * 取消保存
+     */
+    $('#cancle_save_img').click(function(){
+    	//恢复变量
+    	img_name_before_cut_url='';
+    	img_name_after_cut_url='';
+    	is_upload=false;
+    	is_cut=false;
+    	var main_space = "http://"+window.location.host+"/img/space450x250.jpg";
+    	var prev_space = "http://"+window.location.host+"/img/space250x150.jpg";
+    	$("#up_cover_img").attr("src", main_space );
+    	$("#img_preview").attr("src", prev_space );
+    	$('#cover_img_diag').modal('hide');//隐藏对话框
+    });
+    
+    
+    /**
+     * TOOL FUNCTION
+     */
     /**
      * 检查图片文件扩展名
      */
@@ -344,7 +475,7 @@ console.log('space index'+txt.indexOf(' '));
         xsize = $preview.width(),
         ysize = $preview.height();
     	
-console.log('init',[xsize,ysize]);
+///console.log('init',[xsize,ysize]);
 		var jcrop_api = $.Jcrop('#up_cover_img',{
 			onChange: showPreview,
   	      	onSelect: showPreview,
@@ -400,9 +531,15 @@ console.log('init',[xsize,ysize]);
                     var img_name = data.url.substring( data.url.lastIndexOf('/')+1 );
                     console.log('img name:'+img_name);
                     $('#cover_img_name').val( img_name );
+                    img_name_before_cut_url = data.url;
+                    img_name_after_cut_url = '';
+                    is_upload = true;
+                    uploading = false;
                     setTimeout(function(){
                     	jcrop_api = add_img_processor();
                 	},500);
+                    iid = data.iid;
+                    $('cover_img_id').val(iid);
                     if (typeof (data.error) != 'undefined') {
                         if (data.error != '') {
                             alert("出错了:"+data.error);

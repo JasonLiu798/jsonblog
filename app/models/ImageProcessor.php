@@ -2,18 +2,22 @@
 
 class ImageProcessor {
 
+	
+	
 	/**
 	 * 扩大图像至指定比例
 	 * 正常返回true，其他返回错误信息
 	 */
-public function make_image2rate($file_path,$rate){
+public function make_image2rate($file_path,$rate,$img_type){
 		if($rate <= 0){
 			return "比率数字必须大于等于零！";
 		}
+		/* 转移至外部检测，方便获取图片类型
 		$img_type = $this->is_image_file( $file_path );
 		if( strlen($img_type) == 0 ) {
 			return "非图片文件！";
 		}
+		*/
 		$src = file_get_contents($file_path);
 		// is_image_file->至少有两个字节，不用判空$src
 		$error_msg = "";
@@ -145,6 +149,53 @@ public function make_image2rate($file_path,$rate){
 	/**
 	 * ------------------------TOOL FUNCTIONS------------------------
 	 */
+	/**
+	 * 不判断文件类型，获取图片width,height
+	 * @param unknown $file_path
+	 * @return string
+	 */
+	public function get_width_height_size_nocheck($file_path){
+		$src = file_get_contents($file_path);
+		// is_image_file->至少有两个字节，不用判空$src
+		$error_msg = "";
+		$img_src = ImageCreateFromString($src);
+		if( $img_src == false){
+			$error_msg = "创建原图片资源失败！";
+		}else{
+			$img_src_w = imagesx($img_src);
+			$img_src_h = imagesy($img_src);
+		}
+		if(strlen($error_msg) >0 ){
+			return $error_msg;
+		}
+		return array($img_src_w,$img_src_h);
+	}
+	/**
+	 * 判断文件类型，获取图片width,height
+	 * @param unknown $file_path
+	 * @return string
+	 */
+	public function get_width_height_size($file_path , $img_type){
+		$img_type = $this->is_image_file( $file_path );
+		if( strlen($img_type) == 0 ) {
+			return "非图片文件！";
+		}
+		$src = file_get_contents($file_path);
+		// is_image_file->至少有两个字节，不用判空$src
+		$error_msg = "";
+		$img_src = ImageCreateFromString($src);
+		if( $img_src== false){
+			$error_msg = "创建原图片资源失败！";
+		}else{
+			$img_src_w = imagesx($img_src);
+			$img_src_h = imagesy($img_src);
+		}
+		if(strlen($error_msg) >0 ){
+			return $error_msg;
+		}
+		return $array($img_src_w,$img_src_h);
+	}
+	
 	
 	/**
 	 * 创建 image resource var

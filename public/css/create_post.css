@@ -19,8 +19,6 @@
 	background-position: 0 -16px;
 }
 
-
-
 /**
  * FOR tags
  */
@@ -71,14 +69,14 @@
 	height: 300px;
 	margin: 0 15px 0 0;
 	float:left;/*左浮动*/
+	overflow: hidden;
 }
 
 #up_cover_img{
-	max-width:600px;
-	max-height:300px;
+	/*max-width:600px;
+	max-height:300px;*/
 	width: 600px;
 	height: 300px;
-	overflow: hidden;
 	/**position: absolute;**/
 }
 

@@ -293,7 +293,7 @@ where posts.ID=17;
 	/**
 	 * 创建post
 	 */
-	public static function create_post($user_id,$post_title,$post_content){
+	public static function create_post($user_id,$post_title,$post_content,$post_cover_img_id,$post_summary){
 			//$post = new Post;
 		date_default_timezone_set("Europe/London");
 		$post_date_gmt = date('Y-m-d H:i:s',time());
@@ -302,11 +302,16 @@ where posts.ID=17;
 		
 		DB::table('posts')->insert(
 			array(
-				'post_author'=>$user_id,
-				'post_title'=>$post_title,
-				'post_content'=>$post_content, 
-				'post_date'=>$post_date,
-				'post_date_gmt'=>$post_date_gmt
+				'post_author'		=>$user_id,
+				'post_title'		=>$post_title,
+				'post_content'		=>$post_content, 
+				'post_date'			=>$post_date,
+				'post_date_gmt'		=>$post_date_gmt,
+				'post_modified'		=>$post_date,
+				'post_modified_gmt'	=>$post_date_gmt,
+				
+				'post_summary' 		=> $post_summary,
+				'post_cover_img'	=> $post_cover_img_id
 			)
 		);
 		$get_last_post_id_sql = "SELECT LAST_INSERT_ID() ID";
@@ -318,11 +323,12 @@ where posts.ID=17;
 	/**
 	 * 删除相关评论，标签
 	 */
-	public function delete_with_term_comment(){
-		DB::transaction(function()
+	public static function delete_all($post_id){
+		DB::transaction(function() use($post_id)
 		{
-			$post_id = Input::get('post_id');
+			//$post_id = Input::get('post_id');
 			$post = Post::find($post_id);
+			
 			$post->delete();
 			
 			//delete terms relationship
@@ -440,5 +446,35 @@ Log::info('Af add:'.$content);
 	
 	
 	
+	/**
+	 * 获取纯文字摘要
+	 * @param unknown $content
+	 * @param unknown $length
+	 * @return string
+	 */
+	public static function get_summary($content,$length){
+		$res = "";
+		if( mb_strlen($content,'utf-8')<$length ){
+			$res = $content;
+		}else{
+			$short_content = self::remove_html_label($content);
+			if( mb_strlen($short_content,'utf-8')<$length ){
+				$res = $short_content;
+			}else{
+				$res = mb_substr($short_content ,0,$length, 'utf-8');//Constant::$UTF_8 );
+			}
+		}
+		return $res.'...';
+	}
+	
+	/**
+	 * 删除所有html标签
+	 * @param unknown $content
+	 * @return unknown
+	 */
+	public static function remove_html_label($content){
+		$res = preg_replace("/<(.[^>]*)>/","",$content);
+		return $res;
+	}
 	
 }

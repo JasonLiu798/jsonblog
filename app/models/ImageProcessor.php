@@ -74,73 +74,86 @@ public function make_image2rate($file_path,$rate,$img_type){
 	
 	
 	/**
-	 * 切割图片 x,y->w,h，保存至$file_path.'_cover'
+	 * 切割图片 x,y->w,h，保存至 源目录，返回生成的图片
 	 * @param unknown $file_path
 	 * @param int $x
 	 * @param int $y
 	 * @param unknown $w
 	 * @param unknown $h
-	 * @return string
+	 * @return 
+	 * { res:true, msg:filename ! only filename no path }
+	 * { res:false, msg:error_msg}
 	 */
-	public function cut_image($file_path,$x,$y,$w,$h){
-		$img_type = $this->is_image_file( $file_path );
-		if( strlen($img_type) == 0 ) {
-			return "非图片文件！";
-		}
-		$src = file_get_contents($file_path);
-        $img_src = @ImageCreateFromString($src);
-		$img_src_w = imagesx($img_src);
-		$img_src_h = imagesy($img_src);
-		$des_w = 600;
-		$des_h = 300;
-		if( $x> $img_src_w || $y > $img_src_h ){
-			imagedestroy($img_src);
-			return "裁剪图片超出范围！";
-		}
-		//缩小范围至边界
-		if( $w-$x>$img_src_w ){
-			$w = $img_src_w-$x;
-		}
-		if(  $h-$y> $img_src_h){
-			$h = $img_src_h-$y;
-		}
-		$sx = round($img_src_w/$des_w * $x);
-		$sy = round($img_src_h/$des_h * $y);
-		$sw = round($img_src_w/$des_w * $w);
-		$sh = round($img_src_h/$des_h * $h);
-		Log::info('IMG W:'.$img_src_w.','.$img_src_h);
-		Log::info('AF CC:['.$sx.','.$sy.'],['.$sw.','.$sh.']');
+	public function cut_image($img_path,$img_name,$img_type,$x,$y,$w,$h){
 		$error_msg = "";
-		$img_des = $this->create_image_fill_bg($des_w,$des_h,'white');
-		//$img_des = imagecreatetruecolor($des_w,$des_h);
-		if( is_string($img_des)){
-			$error_msg = $img_des;
+		$src_img_path_name = $img_path.$img_name;
+		$img_type = $this->is_image_file( $src_img_path_name );
+		
+		//$img_name = strstr( $file_path, strripos( $file_path ,'/') +1 );
+		 //$file_path
+		//Log::info('Cut Img Name:'.$img_name);
+		if( strlen($img_type) == 0 ) {
+			$error_msg = "非图片文件！";
 		}else{
-			if( imagecopyresized( $img_des, $img_src, 0,0, $sx,$sy, $des_w,$des_h, $sw,$sh  )==false ){
-				$error_msg =  "拷贝图片失败！";
+			$src = file_get_contents( $src_img_path_name );
+			$img_src = @ImageCreateFromString($src);
+			$img_src_w = imagesx($img_src);
+			$img_src_h = imagesy($img_src);
+			$des_w = 600;
+			$des_h = 300;
+			if( $x> $img_src_w || $y > $img_src_h ){
+				imagedestroy($img_src);
+				return "裁剪图片超出范围！";
+			}
+			//缩小范围至边界
+			if( $w-$x>$img_src_w ){
+				$w = $img_src_w-$x;
+			}
+			if(  $h-$y> $img_src_h){
+				$h = $img_src_h-$y;
+			}
+			$sx = round($img_src_w/$des_w * $x);
+			$sy = round($img_src_h/$des_h * $y);
+			$sw = round($img_src_w/$des_w * $w);
+			$sh = round($img_src_h/$des_h * $h);
+			Log::info('IMG W:'.$img_src_w.','.$img_src_h);
+			Log::info('AF CC:['.$sx.','.$sy.'],['.$sw.','.$sh.']');
+			
+			$img_des = $this->create_image_fill_bg($des_w,$des_h,'white');
+			//$img_des = imagecreatetruecolor($des_w,$des_h);
+			if( is_string($img_des)){
+				$error_msg = $img_des;
 			}else{
-				$img_des_path =  $file_path.'_cut';
-				if( $img_type === 'png'){
-					if( !imagepng( $img_des, $img_des_path ) ){
-						$error_msg = "创建png图片失败！";
-					}
-				}else if($img_type ==='gif'){
-					if( !imagegif($img_des , $img_des_path )){
-						$error_msg = "创建gif图片失败！";
-					}
+				if( imagecopyresized( $img_des, $img_src, 0,0, $sx,$sy, $des_w,$des_h, $sw,$sh  )==false ){
+					$error_msg =  "拷贝图片失败！";
 				}else{
-					if( !imagejpeg($img_des , $img_des_path ) ){
-						$error_msg = "创建jpeg图片失败！";
+					$img_des_name = md5( time().$img_name ).'.'.$img_type;
+					$img_des_path =  $img_path.$img_des_name;//new file
+					if( $img_type === 'png'){
+						if( !imagepng( $img_des, $img_des_path ) ){
+							$error_msg = "创建png图片失败！";
+						}
+					}else if($img_type ==='gif'){
+						if( !imagegif($img_des , $img_des_path )){
+							$error_msg = "创建gif图片失败！";
+						}
+					}else{
+						if( !imagejpeg($img_des , $img_des_path ) ){
+							$error_msg = "创建jpeg图片失败！";
+						}
 					}
-				}
-			}//end of create
+				}//end of create
+			}
+			imagedestroy($img_des);
+			imagedestroy($img_src);
 		}
-		imagedestroy($img_des);
-		imagedestroy($img_src);
+		
 		if( strlen($error_msg)>0 ){
-			return $error_msg;
+			$arr = array( false ,$error_msg );
+		}else{
+			$arr = array( true , $img_des_name ); 
 		}
-		return true;
+		return $arr;
 	}
 
 	

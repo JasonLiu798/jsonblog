@@ -56,6 +56,23 @@ function moveDiv(desID,itemID){
 	des.appendChild(itemClone);
 }
 
+function getNaturalWidth(img) {
+    var image = new Image()
+    image.src = img.attr('src');
+    ///console.log(img.attr('src') );
+    var naturalWidth = image.width
+    
+    return naturalWidth
+}
+
+function getNaturalHeight(img) {
+    var image = new Image()
+    image.src = img.attr('src');
+    var naturalHeight = image.height
+    return naturalHeight
+}
+
+
 $().ready(function(){
 	//console.log(window.screen.availHeight + "th:" +window.screen.height);
 	gotoTop(window.screen.availHeight);

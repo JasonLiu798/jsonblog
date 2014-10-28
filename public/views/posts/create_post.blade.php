@@ -42,9 +42,10 @@ tinymce.init({
 	
 <form method="post" action="{{url()}}/post/create/do" accept-charset="utf-8" role="form" id="create_post_form">
 	<input type="hidden" name="post_tag_ids" id="post_tag_ids" value="" />
-	<input type="hidden" id="cutted" name="cutted" value="false" />
-	<input type="hidden" id="cover_img_name" name="cover_img_name" value="false"/>
-	<input type="hidden" id="cover_img_id" name="cover_img_id" value=""/>
+	<input type="hidden" id="set_cover" name="set_cover" value="false" />
+	<!-- <input type="hidden" id="cutted" name="cutted" value="false" /> -->
+	<input type="hidden" id="cover_img_name" name="cover_img_name" value="false"/><!-- 生成摘要url用 -->
+	<input type="hidden" id="cover_img_id" name="cover_img_id" value=""/><!-- 保存用 -->
 	<div class="form-group">
 		{{ Form::label('post_title', Lang::get('post.POST_TITLE')) }}
 		{{ Form::text('post_title', '', array('class' => 'form-control')) }}

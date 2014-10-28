@@ -32,6 +32,23 @@ Route::any('/author/{user_id}', array('as'=>'author','uses'=>'PostController@pos
 // default:show page post/create/page
 // add post  posts/create/do?post_title=p1&post_content=c1&term_id=1
 
+Route::group(array('prefix' => 'admin'), function() {
+	Route::group(array('prefix' => 'post'), function() {
+		Route::any('page','PostController@admin');// admin/post/page
+		Route::any('delete/{post_id}','PostController@delete_all');// admin/post/delete?post_id=
+		Route::get('delete_/{post_id}','PostController@delete_post');// admin/post/delete_?post_id=
+	});
+	
+	
+// 	Route::any('single/{post_id}',array('as' => 'singlepost','uses'=>'PostController@single')); // /{term_id}/{post_date?}',
+// 	// post/single/id
+// 	Route::any('create/{param}','PostController@create');
+// 	// /post/create/do?post_title=testposttitle1&post_content=testcontent&category=1&post_tag_ids=46,44,47
+// 	// post/delete?post_id=
+// 	
+
+});
+
 
 Route::group(array('prefix' => 'post'), function() {
 	Route::any('admin','PostController@admin');
@@ -40,6 +57,7 @@ Route::group(array('prefix' => 'post'), function() {
 	Route::any('create/{param}','PostController@create');
 	// /post/create/do?post_title=testposttitle1&post_content=testcontent&category=1&post_tag_ids=46,44,47
 	Route::get('delete','PostController@delete_with_term_comment');// post/delete?post_id=
+	Route::get('delete_','PostController@delete_only_post');// post/delete_?post_id=
 	
 });
 

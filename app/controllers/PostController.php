@@ -1,5 +1,4 @@
 <?php
-
 class PostController extends BaseController {
 	
 	/**
@@ -178,21 +177,23 @@ Log::info('Create Post do');
 			if( is_null( $user ) ){
 				return 'error';//ADD
 			}
-			
 			$post_title = Input::get('post_title');//urldecode(urldecode());
 			$post_content = Input::get('post_content');//urldecode(urldecode(Input::get('post_content')));
-			$post_img_id = Input::get('cover_img_id');
-			$post_cover_img_name = Input::get('cover_img_name');
-Log::info('CREATE POST:'.$post_title.','.$post_content.','.$post_img_id);
-			if($post_img!=null){
+			$set_cover = Input::get('set_cover');
+			$cover_img_id = Input::get('cover_img_id');
+			if( $set_cover === 'true' ){
 				//有封面图片，只显示 标题+图片
-				$post_cover_img = url().Constant::$UPLOAD_IMG_DIR.$post_cover_img_name;
+				//$post_img_id = Input::get('cover_img_id');//封面
+				$post_cover_img = $cover_img_id;//url().Constant::$UPLOAD_IMG_DIR.$post_cover_img_name;
 				$post_summary = '';
 			}else{
 				//无封面图片，显示 标题+summary
-				$post_cover_img = '';
+				$post_cover_img = 0;
 				$post_summary = Post::get_summary($post_content,Constant::$POST_INDEX_CUT_SIZE);
 			}
+			
+			//$post_cover_img_name = Input::get('cover_img_name');
+Log::info('CREATE POST:'.$post_title.','.$post_content.','.$post_cover_img.','.$post_summary );
 			
 			$post_id = Post::create_post($user->uid,$post_title,$post_content,$post_cover_img,$post_summary);
 			if($post_id<0){
@@ -217,9 +218,24 @@ Log::info('CREATE POST:'.$post_title.','.$post_content.','.$post_img_id);
 		}
 	}
 	
-	public function delete_with_term_comment(){
-		Post::delete_with_term_comment();
+	/**
+	 * delete post relate comments,terms,post_image
+	 * @param unknown $post_id
+	 */
+	public function delete_all($post_id){
+		Post::delete_all($post_id);
+		return Redirect::action('PostController@admin');
 	}
+	/**
+	 * 
+	 * @param unknown $post_id
+	 */
+	public function delete_post($post_id){
+		Post::delete_all($post_id);
+		return Redirect::action('PostController@admin');
+	}
+	
+	
 	
 	public function admin(){
 		$sess_user = Session::get('user');

@@ -84,9 +84,9 @@ class ImgController extends BaseController {
 					}else{
 						//存库
 						//save_img($img_name,$img_url,$img_path,$uid,$pid,$width,$height,$size){
-						$iid = PostImage::save_img( $upload_img_name , $upload_file_name , $img_type, $user_id, 0, $res_arr[0], $res_arr[1],$img_size);//暂时不关联blog,pid=0保存博文后关联
+						$iid = PostImage::save_img( $upload_img_name , $upload_file_name , $img_type, $user_id, $res_arr[0], $res_arr[1],$img_size);//暂时不关联blog,pid=0保存博文后关联
 						$res_msg = array('msg'=>'上传成功！','url' => $img_url,'iid'=>$iid );
-					}//end of get w,h 
+					}//end of get w,h
 				}//end of coverate 2:1
 			}//end of type test
 		}
@@ -97,6 +97,7 @@ class ImgController extends BaseController {
 	
 	/**
 	 * 图片剪裁
+	 * v1.1 生成新文件名，否则会造成浏览器加载缓存或js实现图片剪裁后图片展示
 	 * @return unknown
 	 */
 	public function post_cover_cut(){
@@ -104,25 +105,22 @@ class ImgController extends BaseController {
 		$y = Input::get('y');
 		$w = Input::get('w');
 		$h = Input::get('h');
-		$img_name = Input::get('cover_img_name');
-		Log::info('CutImg:'.$img_name.'['.$x.','.$y.'],['.$w.','.$h.']');
+		$img_src_name = Input::get('cover_img_name');
+		Log::info('CutImg:'.$img_src_name.'['.$x.','.$y.'],['.$w.','.$h.']');
+		
 		$uploaddir = Constant::get_upload_img_dir();
-		$src_img_path = $uploaddir.$img_name;
-		$res = self::$img_pr->cut_image($src_img_path,$x,$y,$w,$h);
-		if( is_string($res) ){
-			$res_msg = array( 'error'=>$res );
+		$src_img_pathname = $uploaddir.$img_src_name;
+		$img_type = self::$img_pr->is_image_file( $src_img_pathname );
+		if( strlen($img_type) == 0 ) {
+			$res_msg = array('error'=>"非图片文件！");
 		}else{
-			$img_url = url().Constant::$UPLOAD_IMG_DIR.$img_name.'_cut';
-			$res_arr = self::$img_pr->get_width_height_size_nocheck($src_img_path.'_cut');
-			if( is_string($res_arr ) ){
-				$res_msg = array('error'=>$res_arr);
+			$res = self::$img_pr->cut_image( $uploaddir, $img_src_name, $img_type, $x,$y,$w,$h);
+			if(!$res[0]){
+				$res_msg = array('error'=>$res[1]);
 			}else{
-			
-			
+				$img_url = url().Constant::$UPLOAD_IMG_DIR.$res[1];
+				//$res_arr = self::$img_pr->get_width_height_size_nocheck($uploaddir.$res[1]);
 				$res_msg = array('msg'=>'上传成功！','url' => $img_url);
-				
-				
-				//PostImage::update($iid,$img_url,$src_img_path.'_cut' ,);
 				Log::info( 'Cutted Img URL:'.$img_url );
 			}
 		}
@@ -145,7 +143,7 @@ class ImgController extends BaseController {
 		}else{
 			$user_id = json_decode($sess_user_json)->uid;
 		}
-		$iid = Inpug::get('iid');
+		$iid = Input::get('iid');
 		if( PostImage::chk_exist($iid)!=1 ){
 			//图片不存在
 			$res_msg = '图片不存在';
@@ -154,15 +152,19 @@ class ImgController extends BaseController {
 			$img_path = Constant::get_upload_img_dir().$img_name;
 			//$img_url = url().Constant::$UPLOAD_IMG_DIR.$img_name;
 			$res_arr = self::$img_pr->get_width_height_size_nocheck( $img_path );
+			Log::info('Save Img:'.$img_path);
 			if( is_string($res_arr ) ){
 				$res_msg = array( 'error' => $res_arr );
 			}else{
-				$img_size = filesize( $upload_file_path );
+				$img_size = filesize( $img_path );
 				//update_cut_img($iid,$filename,$width,$height,$size)
 				PostImage::update_cut_img( $iid, $img_name, $res_arr[0], $res_arr[1], $img_size);
+				$res_msg = array('msg'=>'封面保存成功！');
 			}
 		}
-		$img_uid = $user_id;
+		$response = Response::make( json_encode( $res_msg ) );
+		$response->header('Content-Type', 'text/html');
+		return $response;
 		
 	}
 	

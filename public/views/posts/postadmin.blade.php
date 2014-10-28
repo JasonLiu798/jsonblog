@@ -36,7 +36,7 @@
     		<td>{{ $post->post_comment_count }}</td>
     		<td>
     			<a href="{{url()}}/post/update/{{$post->post_id}}">编辑</a>|
-    			<a href="{{url()}}/post/delete/{{$post->post_id}}">删除</a>
+    			<a href="{{url()}}/admin/post/delete/{{$post->post_id}}">删除</a>
     		</td>
     		</tr>	
     		@endforeach

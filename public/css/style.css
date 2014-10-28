@@ -145,7 +145,7 @@ body { padding-top: 60px;
 /* post comment */
 #commanchor {
     position: relative;
-    top: -44px; // 偏移值
+    top: -44px; /* 偏移值 */
     display: block;
     height: 0;
     overflow: hidden;

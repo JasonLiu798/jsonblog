@@ -33,7 +33,7 @@ group by posts.ID
 order by posts.post_date desc;
 */
 		$posts = DB::table('posts')
-			->select('users.user_login as post_author','posts.ID as post_id','post_title','post_date','post_content',DB::raw('count(comments.comment_ID) as post_comment_count'))
+			->select('users.user_login as post_author','posts.ID as post_id','post_title','post_date',DB::raw('count(comments.comment_ID) as post_comment_count'))
 			->leftJoin('comments','comments.comment_post_ID','=','posts.ID')
 			->leftJoin('users','users.ID','=','posts.post_author')
 			->where('posts.post_author','=',$user_id)
@@ -43,13 +43,18 @@ order by posts.post_date desc;
 		return $posts;
 	}
 	
+	/**
+	 * 获取所有posts 评论数，作者，
+	 * @param unknown $pagesize
+	 * @return NULL
+	 */
 	public static function get_posts($pagesize){
 		$posts = null;
 		if($pagesize>0){
 			$posts = DB::table('posts')
-				->join('users','users.ID','=','posts.post_author')
-				->select('posts.ID as post_id', 'post_title','post_content','post_date','users.user_login as post_author'
-						,DB::raw('count(comments.comment_ID) as comment_count'))
+				->leftJoin('users','users.ID','=','posts.post_author')
+				->leftJoin('postimages','postimages.iid','=','posts.post_cover_img')
+				->select('posts.ID as post_id', 'post_title','post_content','post_date','users.user_login as post_author','post_summary','postimages.filename as post_img_name',DB::raw('count(comments.comment_ID) as comment_count'))
 				->leftJoin('comments','comments.comment_post_ID','=','posts.ID')
 				->groupBy('posts.ID')
 				->orderBy('post_date','desc')
@@ -219,7 +224,7 @@ Log::info('NXT POST SQL:'.$last_query['query']);
 		return $res;
 	}
 	
-	public static function postAddMeta($posts,$cut_size){
+	public static function postAddMeta($posts){
 		foreach($posts as $post):
 			$terms = Term::getTermsByPostID($post->post_id);
 
@@ -230,11 +235,14 @@ Log::info('NXT POST SQL:'.$last_query['query']);
 			$tag = Term::getTag($terms);
 			$post->category = !empty($cat)?$cat:null;
 			$post->post_tag = !empty($tag)?$tag:null;
-			$post->post_content = Post::get_adjust_post($post->post_content,$cut_size);
 		endforeach;
 		return $posts;
 	} 
 	
+// 	public function comments()
+// 	{
+// 		return $this->hasMany('Comment');
+// 	}
 	
 	/**
 	 * get latest count posts
@@ -454,15 +462,15 @@ Log::info('Af add:'.$content);
 	 */
 	public static function get_summary($content,$length){
 		$res = "";
-		if( mb_strlen($content,'utf-8')<$length ){
-			$res = $content;
+		$short_content = self::remove_html_label($content);
+// 		if( mb_strlen($content,'utf-8')<$length ){
+// 			$res = $content;
+// 		}else{
+		
+		if( mb_strlen($short_content,'utf-8')<$length ){
+			$res = $short_content;
 		}else{
-			$short_content = self::remove_html_label($content);
-			if( mb_strlen($short_content,'utf-8')<$length ){
-				$res = $short_content;
-			}else{
-				$res = mb_substr($short_content ,0,$length, 'utf-8');//Constant::$UTF_8 );
-			}
+			$res = mb_substr($short_content ,0,$length, Constant::$UTF_8 );// );
 		}
 		return $res.'...';
 	}

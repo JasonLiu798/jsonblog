@@ -1,6 +1,38 @@
 <?php
 class PostController extends BaseController {
 	
+	
+	public function index(){
+		Log::info('IndexAction');
+		//get posts
+		$posts = Post::get_posts( Constant::$PAGESIZE );
+		//getPostsByTerm($term_id,Constant::$PAGESIZE);
+// 		$queries = DB::getQueryLog();
+// 			$last_query = end($queries);
+// 			Log::info('post date:'.$last_query['query']);
+//		$term4title = Term::getTermNameTaxonomy($term_id);
+				
+			//var_dump( $term4title );
+// 			Log::info($term4title[0]->name );//gettype($term4title));
+// 			if( is_null($term4title[0]->name ) ){
+// 				$err_msg = '分类/标签不存在';
+// 				App::abort(404);
+// 			}
+// 		}else{
+// 			$posts = Post::get_posts();
+// 		}
+		$posts = Post::postAddMeta($posts,Constant::$POST_INDEX_CUT_SIZE);
+		$sidebar = PostController::get_sidebar();
+		$username = User::get_name_from_session( Session::get('user') );
+		$view = View::make('index',
+				array('title'=>'ModlePark','username'=>$username,
+						'term4title'=>null,'date4title'=>null,'user4title'=>null,
+						'posts'=>$posts,
+						'sidebar'=>$sidebar));
+		return $view;
+	}
+	
+	
 	/**
 	 * get sidebar infos
 	 * @return stdClass
@@ -27,7 +59,7 @@ class PostController extends BaseController {
 	 * $term_id:0,all;1,unclassify;>1,classified
 	 * @return unknown
 	 */
-	public function index($term_id=0){
+	public function index_bak($term_id=0){
 Log::info('IndexAction');
 		//get posts
 		if($term_id>0){

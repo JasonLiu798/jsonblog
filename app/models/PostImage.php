@@ -82,6 +82,13 @@ class PostImage extends Eloquent  {
 		
 	}
 	
+	public static function delete_img($iid){
+		$img_path = DB::table('postimages')->select('filename')->where('iid',$iid)->get();
+		if ( file_exists( $img_path ) ) {
+			$result = unlink ($img_path );
+		}
+		return $result;
+	}
 	
 	
 	

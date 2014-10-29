@@ -27,7 +27,7 @@ Route::get('/{term_id?}', array('as'=>'index','uses' => 'PostController@index'))
 Route::get('/date/{date}', array('as'=>'dpost','uses' => 'PostController@posts_by_date'));
 Route::any('/author/{user_id}', array('as'=>'author','uses'=>'PostController@posts_by_author'));
 
-
+/*Route::resource('post', 'PostController');*/
 
 // default:show page post/create/page
 // add post  posts/create/do?post_title=p1&post_content=c1&term_id=1
@@ -37,6 +37,7 @@ Route::group(array('prefix' => 'admin'), function() {
 		Route::any('page','PostController@admin');// admin/post/page
 		Route::any('delete/{post_id}','PostController@delete_all');// admin/post/delete?post_id=
 		Route::get('delete_/{post_id}','PostController@delete_post');// admin/post/delete_?post_id=
+		
 	});
 	
 	
@@ -51,7 +52,7 @@ Route::group(array('prefix' => 'admin'), function() {
 
 
 Route::group(array('prefix' => 'post'), function() {
-	Route::any('admin','PostController@admin');
+	//Route::any('admin','PostController@admin');
 	Route::any('single/{post_id}',array('as' => 'singlepost','uses'=>'PostController@single')); // /{term_id}/{post_date?}',
 	// post/single/id
 	Route::any('create/{param}','PostController@create');

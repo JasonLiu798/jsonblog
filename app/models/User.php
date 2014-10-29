@@ -36,7 +36,7 @@ class User extends Eloquent implements UserInterface, RemindableInterface {
 		return $user;
 	}
 	
-	public static function getNameFromSession($sess_user_json){
+	public static function get_name_from_session($sess_user_json){
 		//$sess_user_json = Session::get('user');
 		if(! is_null($sess_user_json)){
 			$sess_user = json_decode($sess_user_json);

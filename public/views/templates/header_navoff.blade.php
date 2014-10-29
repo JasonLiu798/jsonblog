@@ -6,10 +6,10 @@
 	@section('title')
 	<title>{{ $title }}</title>
 	@show
-	{{ HTML::script('js/jquery-1.11.1.js') }}
-	{{ HTML::script('js/jquery-plugin.js') }}
+	{{ HTML::script('js/lib/jquery-1.11.1.js') }}
+	{{ HTML::script('js/lib/jquery-plugin.js') }}
 	{{ HTML::script('bootstrap/js/bootstrap.js') }}
-	{{ HTML::script('js/tool.js') }}
+	{{ HTML::script('js/lib/tool.js') }}
 	{{ HTML::style('bootstrap/css/bootstrap.css') }}
     {{ HTML::style('css/style.css') }}
     
@@ -24,6 +24,4 @@
 		{{ HTML::script('bootstrap/js/respond.min.js') }}
 	<![endif]-->
 </head>
-
 <body>
-	

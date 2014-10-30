@@ -93,13 +93,18 @@ body { padding-top: 60px;
 .logo{
 	margin:0 0 5% 0;
 }
-.logo_text { font-family: Arial, Helvetica, "黑体"; margin:4% 1% 1% 4%; font-size:40pt; font-weight:normal; line-height:100%; }
+.logo_text { font-family: Arial, Helvetica, "黑体";
+	margin:4% 1% 1% 4%; font-size:40pt; font-weight:normal; line-height:100%;
+	text-indent:1em;
+}
 .logo_text a { }
 .logo_text a:hover { text-decoration:none; }
 .site_description { 
 	font-size:13px; display:block;
 	border-top:1px solid #bbb; font-weight:normal;
 	margin:0 4%; padding:5px 0 0 0; color:#888;
+	text-align: right;
+	/*text-indent:25em;*/
 }
 
 /*

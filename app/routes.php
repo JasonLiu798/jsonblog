@@ -10,6 +10,11 @@
 | and give it the Closure to execute when that URI is requested.
 |
 */
+
+//Index
+Route::any('/', array('as'=>'index','uses' => 'PostController@index'));
+
+
 //User
 Route::any('/user/reg/{param}','UserController@register');
 // www.lblog.com/user/reg/action?username=sdddsfe&password=123456&email=asdfasfd@dfdee
@@ -23,7 +28,8 @@ Route::get('/user/chkparameter','UserController@chk_parameter');
 
 
 //Post
-Route::get('/{term_id?}', array('as'=>'index','uses' => 'PostController@index'));
+
+Route::get('/{term_id}', array('as'=>'term','uses' => 'PostController@index'));
 Route::get('/date/{date}', array('as'=>'dpost','uses' => 'PostController@posts_by_date'));
 Route::any('/author/{user_id}', array('as'=>'author','uses'=>'PostController@posts_by_author'));
 

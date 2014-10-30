@@ -6,22 +6,7 @@ class PostController extends BaseController {
 		Log::info('IndexAction');
 		//get posts
 		$posts = Post::get_posts( Constant::$PAGESIZE );
-		//getPostsByTerm($term_id,Constant::$PAGESIZE);
-// 		$queries = DB::getQueryLog();
-// 			$last_query = end($queries);
-// 			Log::info('post date:'.$last_query['query']);
-//		$term4title = Term::getTermNameTaxonomy($term_id);
-				
-			//var_dump( $term4title );
-// 			Log::info($term4title[0]->name );//gettype($term4title));
-// 			if( is_null($term4title[0]->name ) ){
-// 				$err_msg = '分类/标签不存在';
-// 				App::abort(404);
-// 			}
-// 		}else{
-// 			$posts = Post::get_posts();
-// 		}
-		$posts = Post::postAddMeta($posts,Constant::$POST_INDEX_CUT_SIZE);
+		$posts = Post::postAddMeta($posts);
 		$sidebar = PostController::get_sidebar();
 		$username = User::get_name_from_session( Session::get('user') );
 		$view = View::make('index',
@@ -29,8 +14,32 @@ class PostController extends BaseController {
 						'term4title'=>null,'date4title'=>null,'user4title'=>null,
 						'posts'=>$posts,
 						'sidebar'=>$sidebar));
+		if(count($posts[0]->post_tag)>0){
+			foreach($posts[0]->post_tag as $term)
+				Log::info('post term:'.$term->name.',TAX:'.$term->taxonomy);
+		}
 		return $view;
 	}
+	
+	public function get_posts($term_id){
+		/*
+		getPostsByTerm($term_id,Constant::$PAGESIZE);
+				$queries = DB::getQueryLog();
+					$last_query = end($queries);
+					Log::info('post date:'.$last_query['query']);
+				$term4title = Term::getTermNameTaxonomy($term_id);
+		
+		var_dump( $term4title );
+					Log::info($term4title[0]->name );//gettype($term4title));
+					if( is_null($term4title[0]->name ) ){
+						$err_msg = '分类/标签不存在';
+						App::abort(404);
+					}
+				}else{
+					$posts = Post::get_posts();
+				}*/
+	}
+	
 	
 	
 	/**

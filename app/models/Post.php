@@ -227,14 +227,18 @@ Log::info('NXT POST SQL:'.$last_query['query']);
 	public static function postAddMeta($posts){
 		foreach($posts as $post):
 			$terms = Term::getTermsByPostID($post->post_id);
-
+		
 			$cat = Term::getCategory($terms);
-// 			if(count($cat)>0){
-// 				Log::info('post'.$post->post_id.' cat:'.$cat[0]->term_id);
-// 			}
+			
 			$tag = Term::getTag($terms);
 			$post->category = !empty($cat)?$cat:null;
 			$post->post_tag = !empty($tag)?$tag:null;
+			
+// 			if(count($tag)>0){
+// 				foreach($terms as $term)
+// 					Log::info('post term:'.$term->name.',TAX:'.$term->taxonomy);
+// 			}
+			
 		endforeach;
 		return $posts;
 	} 

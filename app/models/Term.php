@@ -44,13 +44,13 @@ class Term extends Eloquent  {
 		select terms.name as name,term_taxonomy.taxonomy as taxonomy,terms.term_id as term_id
 		from term_taxonomy
 		join terms on terms.term_id=term_taxonomy.term_id
-		join term_relationships on term_relationships.term_taxonomy_id =term_taxonomy.term_taxonomy_id
-		where term_relationships.object_id=1;
+		join term_relationships on term_relationships.term_taxonomy_id =term_taxonomy.term_id
+		where term_relationships.object_id=30;
 		 */
 		$terms = DB::table('term_taxonomy')
 			->select('terms.name as name','term_taxonomy.taxonomy as taxonomy','terms.term_id as term_id')
 			->join('terms', 'terms.term_id', '=', 'term_taxonomy.term_id')
-			->join('term_relationships','term_relationships.term_taxonomy_id','=','term_taxonomy.term_taxonomy_id')
+			->join('term_relationships','term_relationships.term_taxonomy_id','=','term_taxonomy.term_id')
 			->where('term_relationships.object_id','=',$post_id)
 			->get();
 		return $terms;

@@ -6,18 +6,18 @@ class PostController extends BaseController {
 		Log::info('IndexAction');
 		//get posts
 		$posts = Post::get_posts( Constant::$PAGESIZE );
-		$posts = Post::postAddMeta($posts);
+		$posts = Post::add_meta($posts);
 		$sidebar = PostController::get_sidebar();
 		$username = User::get_name_from_session( Session::get('user') );
 		$view = View::make('index',
 				array('title'=>'AsyncBlog','username'=>$username,
-						'term4title'=>null,'date4title'=>null,'user4title'=>null,
+						'term4title'=>null,'date4title'=>null,//'user4title'=>null,
 						'posts'=>$posts,
 						'sidebar'=>$sidebar));
-		if(count($posts[0]->post_tag)>0){
-			foreach($posts[0]->post_tag as $term)
-				Log::info('post term:'.$term->name.',TAX:'.$term->taxonomy);
-		}
+// 		if(count($posts[0]->post_tag)>0){
+// 			foreach($posts[0]->post_tag as $term)
+// 				Log::info('post term:'.$term->name.',TAX:'.$term->taxonomy);
+// 		}
 		return $view;
 	}
 	
@@ -32,6 +32,7 @@ class PostController extends BaseController {
 			$msg = '分类编号格式错误';
 		}else{
 			$posts = Post::get_posts_by_term($term_id,Constant::$PAGESIZE);
+			$posts = Post::add_meta($posts);
 // 			$queries = DB::getQueryLog();
 // 			$last_query = end($queries);
 // 			Log::info('post date:'.$last_query['query']);
@@ -49,8 +50,7 @@ class PostController extends BaseController {
 			$view = View::make('index',
 					array('title'=>$term4title[0]->name.'|Async Blog','username'=>$username,
 							'date4title'=>null,
-							'term4title'=>$term4title,
-							'user4title'=>null,
+							'term4title'=>$term4title,//'user4title'=>null,
 							'posts'=>$posts,
 							'sidebar'=>$sidebar));
 			return $view;
@@ -63,31 +63,32 @@ class PostController extends BaseController {
 	 * @return unknown
 	 */
 	public function date_achive($date){
+		$msg='';
 		if(!preg_match(Constant::$REG_YEAR_MONTH,$date,$m)){
-			$err_msg = '参数格式错误';
-			App::abort(404);
+			$msg = '日期格式错误';
+		}else{
+			$date_arr = explode("-",$date);
+			$date4title['title'] = $date_arr[0].'年'.$date_arr[1].'月';
+			$date4title['link'] = $date;
+			$posts = Post::get_post_by_date($date,Constant::$PAGESIZE);
+			$posts = Post::add_meta($posts);
+// 			$queries = DB::getQueryLog();
+// 			$last_query = end($queries);
+// 			Log::info('post date:'.$last_query['query']);
 		}
-		$date_arr = explode("-",$date);
-		$date4title['title'] = $date_arr[0].'年'.$date_arr[1].'月';
-		$date4title['link'] = $date;
-		$posts = Post::getPostByDate($date,Constant::$PAGESIZE);
-	
-		$queries = DB::getQueryLog();
-		$last_query = end($queries);
-		Log::info('post date:'.$last_query['query']);
-	
-		$posts = Post::postAddMeta($posts,Constant::$POST_INDEX_CUT_SIZE);
-		$sidebar = PostController::get_sidebar();
-		$username = User::getNameFromSession( Session::get('user') );
-	
-		$view = View::make('index',
-				array('title'=>$date.'|Async Blog','username'=>$username,
-						'date4title'=>$date4title,
-						'term4title'=>null,
-						'user4title'=>null,
-						'posts'=>$posts,
-						'sidebar'=>$sidebar));
-		return $view;
+		if(strlen($msg)>0){
+			return Redirect::route('error', array($msg));
+		}else{
+			$username = User::get_name_from_session( Session::get('user') );
+			$sidebar = PostController::get_sidebar();
+			$view = View::make('index',
+					array('title'=>$date.'|Async Blog','username'=>$username,
+							'date4title'=>$date4title,
+							'term4title'=>null,//'user4title'=>null,
+							'posts'=>$posts,
+							'sidebar'=>$sidebar));
+			return $view;
+		}
 	}
 	
 	/**
@@ -111,70 +112,6 @@ class PostController extends BaseController {
 		$res->latest_comments = $latest_comments;
 		return $res;
 	}
-	
-	/**
-	 * index ,get all posts
-	 * $term_id:0,all;1,unclassify;>1,classified
-	 * @return unknown
-	 */
-	public function index_bak($term_id=0){
-Log::info('IndexAction');
-		//get posts
-		if($term_id>0){
-			$posts = Post::getPostsByTerm($term_id,Constant::$PAGESIZE);
-$queries = DB::getQueryLog();
-$last_query = end($queries);
-Log::info('post date:'.$last_query['query']);			
-			$term4title = Term::getTermNameTaxonomy($term_id);
-			
-			//var_dump( $term4title );
-			Log::info($term4title[0]->name );//gettype($term4title));
-			if( is_null($term4title[0]->name ) ){
-				$err_msg = '分类/标签不存在';
-				App::abort(404);
-			}
-		}else{
-			$posts = Post::get_posts(Constant::$PAGESIZE);
-		}
-		$posts = Post::postAddMeta($posts,Constant::$POST_INDEX_CUT_SIZE);
-		$sidebar = PostController::get_sidebar();
-		$username = User::getNameFromSession( Session::get('user') );
-		$view = View::make('index',
-			array('title'=>$term_id==0?'Async Blog':$term4title[0]->name.'|Async Blog','username'=>$username,
-				'term4title'=>$term_id==0?null:$term4title,'date4title'=>null,'user4title'=>null,
-				'posts'=>$posts,
-				'sidebar'=>$sidebar));
-		return $view;
-	}
-	
-	
-	
-	
-	/**
-	 * get post by user_id
-	 * @param unknown $user_id
-	 * @return unknown
-	 *
-	public function posts_by_author($user_id){
-		if(!preg_match('/[0-9]+/',$user_id)){
-			$err_msg = '参数格式错误';
-			App::abort(404);
-		}
-		$posts = Post::getPostByUser($user_id,Constant::$PAGESIZE);
-		$posts = Post::postAddMeta($posts ,Constant::$POST_INDEX_CUT_SIZE );
-		$sidebar = PostController::get_sidebar();
-		$user4title = User::find($user_id);
-		$username = User::getNameFromSession( Session::get('user') );
-		$view = View::make('index',
-				array('title'=>$user4title->user_login.'|Async Blog','username'=>$username,
-						'date4title'=>null,
-						'term4title'=>null,
-						'user4title'=>$user4title,
-						'posts'=>$posts,
-						'sidebar'=>$sidebar));
-		return $view;
-	}
-	*/
 	
 	/**
 	 * single，get post by ID,get post's comments by comment_post
@@ -295,24 +232,26 @@ Log::info('CREATE POST:'.$post_title.','.$post_content.','.$post_cover_img.','.$
 	}
 	
 	
-	
+	/**
+	 * 博文管理
+	 * @return unknown
+	 */
 	public function admin(){
 		$sess_user = Session::get('user');
 		if(is_null($sess_user) ){
 			return Redirect::action('PostController@index');
 		}
-		$username = User::getNameFromSession( $sess_user);
-		$user_id = User::getUserIDFromSession( $sess_user );
-		$title = '博文管理';
+		$username = User::get_name_from_session( $sess_user);
+		$user_id =  User::get_userid_from_session( $sess_user );
 		
-		$posts = Post::getPostsByUserID( $user_id, Constant::$ADMIN_PAGESIZE);
+		$posts = Post::get_posts_by_userid( $user_id, Constant::$ADMIN_PAGESIZE);
 		if(count($posts)<=0){
 			$posts = null;
 		}else{
-			$posts = Post::postAddMeta( $posts, Constant::$POST_ADMIN_CUT_SIZE);
+			$posts = Post::add_meta( $posts);
 		}
-		$view = View::make('posts/postadmin',
-				array('title'=>$title,'username'=>$username, 'posts'=>$posts,
+		$view = View::make('posts/post_admin',
+				array('title'=>'博文管理','username'=>$username, 'posts'=>$posts,
 				));
 		return $view;
 	}

@@ -4,6 +4,8 @@
 	@include('templates/header_login')
 @endif
 
+{{ HTML::style('css/post_admin.css') }}
+
 <div class="container">
 <div class="row">
 	<h3>{{ $title }}</h3>
@@ -12,24 +14,24 @@
     	<tr><th width="5%">编号</th> <th width="10%">作者</th>
     	<th width="10%">博文名称</th> <th width="10%">博文日期</th>
     	<th width="20%">内容概览</th>
-    	<th width="10%">分类</th> <th width="20%">标签</th>
+    	<th width="10%">分类</th> <th width="15%">标签</th>
     	<th width="10%">评论数量</th> <th width="10%">操作</th></tr>
     		@foreach($posts as $post)
     		<tr>
     		<td>{{ $post->post_id }}</td> <td>{{ $post->post_author }}</td> 
     		<td>{{ $post->post_title }}</td> <td>{{ $post->post_date }}</td> 
-    		<td>{{ $post->post_content }}</td>
+    		<td>{{ $post->post_summary }}</td>
     		<td>
     		@if(!empty($post->category))
     			@foreach ($post->category as $cat)
-    				<a href="{{url()}}/{{ $cat->term_id }}">{{ $cat->name }}</a>
+    				{{ $cat->name }}
     			@endforeach
     		@endif
     		</td>
     		<td>
     		@if(!empty($post->post_tag))
     			@foreach ($post->post_tag as $tag)
-   					<a href="{{url()}}/{{ $tag->term_id }}">{{ $tag->name }}</a>
+   					<span class="tag">{{ $tag->name}}</span>
    				@endforeach
    			@endif
     		</td>

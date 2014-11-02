@@ -30,7 +30,7 @@ body { padding-top: 60px;
 
 .blog-sidebar{
 	/**margin:0 0 0 0;*/
-	padding:0 0 0 20px;
+	padding:0 0 50px 20px;
 }
 .blog-sidebar li{
 	text-indent:1em;
@@ -97,6 +97,7 @@ body { padding-top: 60px;
 /**------------INDEX-----------**/
 /** logo  **/
 .logo{
+	padding:0 0 1% 0;
 	margin:0 0 5% 0;
 }
 .logo_text { font-family: Arial, Helvetica, "黑体";
@@ -190,8 +191,13 @@ body { padding-top: 60px;
 .clearfix {display:block;}
 /* end MacIE5 */
 
-
-
+.error_box{
+	padding:10px 0 10px 50px;
+}
+.error_msg{
+	color:red;
+	padding:0 0 0 20px;
+}
 
 
 /**-----------Term admin--------------**/

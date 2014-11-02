@@ -54,11 +54,11 @@
 	
 	
 	<div class="sidebar-module">
-	<h4>文章归档</h4>
+	<h4>日期归档</h4>
 	@if( is_array($sidebar->post_stats )&& count( $sidebar->post_stats  )>0 )
 	<ol class="list-unstyled">
 	@foreach($sidebar->post_stats  as $post_stat)
-		<li><a href="{{url()}}/date/{{ $post_stat->post_date_url }}">{{ $post_stat->post_date }}</a>({{ $post_stat->post_count }})</li>
+		<li><a href="{{url()}}/post/date/{{ $post_stat->post_date_url }}">{{ $post_stat->post_date }}</a>({{ $post_stat->post_count }})</li>
 	@endforeach
 	</ol>
 	@endif

@@ -1,0 +1,20 @@
+@CHARSET "UTF-8";
+
+
+/**
+ * FOR tags
+ */
+.tag{
+	display:inline-block;
+	/*line-height:150%;*/
+	color:white;
+	padding: 2px 4px;
+	margin: 2px;
+	font-size:10px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+	background: #0066CC; 
+	cursor: pointer;
+}
+
+

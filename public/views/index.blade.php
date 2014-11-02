@@ -14,19 +14,11 @@
 
 @if(!is_null($term4title))
 	<div class = "archive_title">
-		<h3>‘<a href="{{url()}}/{{$term4title[0]->term_id}}">{{ $term4title[0]->name }}</a>’ {{ $term4title[0]->taxonomy==='category'?'分类':'标签' }}归档 </h3>
+		<h3>‘<a href="{{url()}}/post/term/{{$term4title[0]->term_id}}">{{ $term4title[0]->name }}</a>’ {{ $term4title[0]->taxonomy==='category'?'分类':'标签' }}归档 </h3>
 	</div>
-@endif
-
 @elseif(!is_null($date4title))
 	<div class = "archive_title">
 		<h3>‘<a href="{{url()}}/date/{{$date4title['link'] }}">{{ $date4title['title'] }}</a>’归档 </h3>
-	</div>
-@endif
-
-@if(!is_null($user4title))
-	<div class = "archive_title">
-		<h3>作者‘<a href="{{url()}}/author/{{$user4title->ID}}">{{ $user4title->user_login }}</a>’归档</h3>
 	</div>
 @endif
 

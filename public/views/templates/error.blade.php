@@ -1,5 +1,11 @@
+@if( is_null( Session::get('user')) )
+	@include('templates/header_logout')
+@else
+	@include('templates/header_login')
+@endif
 
-<script type="text/javascript">   
+<script type="text/javascript">
+/*
 startclock();
 var timerID = null;   
 var timerRunning = false; 
@@ -30,9 +36,23 @@ function stopclock () {
 function startclock () {   
 	stopclock();
 	showtime();
-}
+}*/
 </script>   
 
-<div id="ttext" value="aa"></div>
+<div class="error_box">
+<h2>出错了o(&gt;﹏&lt;)o</h2>
+	<span class="error_msg">{{$msg}}</span>
 
-{{$err_msg}}
+</div>
+
+
+
+@include('templates/footer')
+
+
+
+
+
+
+
+

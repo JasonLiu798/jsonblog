@@ -69,7 +69,7 @@ Route::group(array('prefix' => 'admin'), function() {
 
 
 
-
+//图片
 Route::group(array('prefix' => 'img'), function() {
 	Route::any('post/content/upload','ImgController@post_img_upload');// img/post/content/upload
 	Route::any('post/cover/upload','ImgController@post_cover_upload');// img/post/cover/upload
@@ -131,7 +131,7 @@ Route::get('/test/push','TestController@push');
 Route::get('/test/mail','TestController@sendmail');
 
 //错误
-Route::get('/error','ErrorController@showerr');
+Route::any('/error/{msg}',array('as'=>'error','uses' => 'ErrorController@show'));
 
 
 //URL not exist

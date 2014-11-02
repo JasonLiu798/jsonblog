@@ -17,9 +17,12 @@
 
 
 .post_pane{
-	z-index:1;
+	z-index:9999;
 	border-top:1px solid #ddd;
 	border-bottom:1px solid #ddd;
+	width:600px;
+	height:auto;
+	padding:20px 0 20px 0;
 }
 
 .post_no_cover{
@@ -33,7 +36,7 @@
 }
 
 .post_with_cover{
-	margin:20px 0 20px 0;
+	/*margin:20px 0 20px 0;*/
 	width:600px;
 	height:300px;
 	z-index:2;
@@ -104,6 +107,7 @@
 	padding: 0 0 0 10px;
 	color:#777;
 }
+/**meta **/
 .blog-post-meta a{
 	color:#bbb;
 }
@@ -111,6 +115,7 @@
 	color:#bbb;
 	text-decoration:underline;
 }
+/* post tag */
 .blog-post-meta .post_tag{
 	margin:5px 3px 0 3px;
 	-moz-border-radius: 3px;

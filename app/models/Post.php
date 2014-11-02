@@ -22,7 +22,7 @@ class Post extends Eloquent  {
 	 * @param unknown $pagesize
 	 * @return unknown
 	 */
-	public static function getPostsByUserID($user_id,$pagesize){
+	public static function get_posts_by_userid($user_id,$pagesize){
 /**
 select users.user_login post_author,posts.ID post_id,post_date,post_content,count(comments.comment_ID) post_comment_count
 from posts 
@@ -33,7 +33,7 @@ group by posts.ID
 order by posts.post_date desc;
 */
 		$posts = DB::table('posts')
-			->select('users.user_login as post_author','posts.ID as post_id','post_title','post_date',DB::raw('count(comments.comment_ID) as post_comment_count'))
+			->select('users.user_login as post_author','posts.ID as post_id','post_title','post_date','post_summary',DB::raw('count(comments.comment_ID) as post_comment_count'))
 			->leftJoin('comments','comments.comment_post_ID','=','posts.ID')
 			->leftJoin('users','users.ID','=','posts.post_author')
 			->where('posts.post_author','=',$user_id)
@@ -101,7 +101,7 @@ order by posts.post_date desc;
 	 * @param unknown $month
 	 * @param unknown $pagesize
 	 */
-	public static function getPostByDate($date,$pagesize){
+	public static function get_post_by_date($date,$pagesize){
 		/**
 		  select posts.ID post_id,users.user_login post_author,users.ID as post_author_id,DATE_FORMAT(posts.post_date,'%Y-%m'),
 		  post_content,post_title,count(comments.comment_ID) comment_count
@@ -112,9 +112,10 @@ order by posts.post_date desc;
 		 */
 		//$search_date = $year.'-'.$month;
 		$posts = DB::table('posts')
-			->select('posts.ID as post_id','users.user_login as post_author','users.ID as post_author_id','post_date',
+			->select('posts.ID as post_id','users.user_login as post_author','users.ID as post_author_id','post_date','postimages.filename as post_img_name','post_summary',
 					'post_content','post_title',DB::raw('count(comments.comment_ID) as comment_count'))
 			->leftJoin('users','users.ID','=','posts.post_author')
+			->leftJoin('postimages','postimages.iid','=','posts.post_cover_img')
 			->leftJoin('comments','comments.comment_post_ID','=','posts.ID')
 			//->where("DATE_FORMAT( posts.post_date,'%Y-%m')",'=',$date)
 			->whereRaw("DATE_FORMAT( posts.post_date,'%Y-%m')='".$date."'")
@@ -224,7 +225,7 @@ Log::info('NXT POST SQL:'.$last_query['query']);
 		return $res;
 	}
 	
-	public static function postAddMeta($posts){
+	public static function add_meta($posts){
 		foreach($posts as $post):
 			$terms = Term::getTermsByPostID($post->post_id);
 		

@@ -3,7 +3,7 @@ class ErrorController extends BaseController {
 	
 	public function show($msg){
 		$view = View::make('templates/error',
-				array('title'=>'出错了！','err_msg'=>$msg,
+				array('title'=>'出错了！','msg'=>$msg,
 				));
 		return $view;
 	}

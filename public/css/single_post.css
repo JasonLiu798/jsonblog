@@ -1,11 +1,9 @@
 @CHARSET "UTF-8";
 
-
-/* 归档标题*/
-.archive_title{
-	margin:5px;
-	/*border-bottom: 1px solid #bbb;*/
+.blog-post-title{
+	
 }
+
 
 /* posts div */
 .posts_wrap {  
@@ -18,18 +16,14 @@
 
 .post_pane{
 	z-index:1;
-	border-top:1px solid #ddd;
-	border-bottom:1px solid #ddd;
+	margin:10px;
 }
 
 .post_no_cover{
 	width:600px;
 	height:auto;
-	/*border-top:1px solid #ddd;
-	border-bottom:1px solid #ddd;*/
+	border-top:1px solid #ddd;
 	z-index:2;
-	padding:0 0 15px 0;
-	margin:20px 0 20px 0;
 }
 
 .post_with_cover{
@@ -45,7 +39,6 @@
 	z-index:100;
 	width:600px;
 	height:300px;
-	
 }
 /**L2 黑色遮盖**/
 .cover_img_black{
@@ -55,6 +48,7 @@
 	height:300px;
 }
 .cover_bg{
+	
 	opacity:0.6;
 	filter:alpha(opacity=60);
 	max-width:600px;
@@ -73,7 +67,6 @@
 	padding:170px 10px 10px 10px;
 	display:block;
 	cursor:pointer;
-	
 }
 .post_with_cover .post_title_meta a{
 	text-decoration:none;
@@ -82,10 +75,6 @@
 .post_with_cover .post_title_meta a:hover{
 	text-decoration:underline;
 	color:white;
-}
-/**标题**/
-.post_no_cover .blog-post-title{
-	padding:0 0 0 8px;
 }
 .post_title_meta .blog-post-title{
 	-moz-border-radius: 4px;
@@ -97,11 +86,7 @@
 	margin:5px 5px 0 5px;
 }
 /**POST TAG 标签**/
-.post_with_cover .blog-post-meta{
-	color:white;
-}
-.post_no_cover .blog-post-meta{
-	padding: 0 0 0 10px;
+.blog-post-meta{
 	color:#777;
 }
 .blog-post-meta a{
@@ -130,8 +115,6 @@
 .post_meta ul.post-category { background:url(img/icon_category2.png) no-repeat left 5px; padding:0 0 0 10px; margin:0 0 0 20px; }
 */
 
-
-
 .post_no_cover .post_tag a{
 	text-decoration:none;
 	color:white;
@@ -146,14 +129,14 @@
 	background:#fff;  min-height:50pt; 
 	/*text-indent: 2em;*/
 }
-/*
+
 .blog-post-title a{
 	color:black;
 }
 .blog-post-title a:hover{
 	color:black;
 	text-decoration:underline;
-}*/
+}
 .read_more{
 	color:#aaa;
 }

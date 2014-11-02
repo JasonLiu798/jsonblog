@@ -21,7 +21,7 @@ class Term extends Eloquent  {
 	/**
 	 * 
 	 */
-	public static function getTermNameTaxonomy($term_id){
+	public static function get_name_taxonomy($term_id){
 		/*
 			SELECT name,terms.term_id term_id,taxonomy 
 			FROM terms join term_taxonomy on terms.term_id=term_taxonomy.term_id
@@ -88,8 +88,9 @@ class Term extends Eloquent  {
 	 */
 	public static function getTermsAndStat(){
 		/*
-		select terms.name term_name,count(*) term_count from terms
+		select terms.name term_name,term_taxonomy.taxonomy,count(*) term_count from terms
 		left join term_relationships on terms.term_id=term_taxonomy_id 
+		left join term_taxonomy on term_taxonomy.term_id=terms.term_id 
 		inner join posts on term_relationships.object_id=posts.ID
 		group by term_name order by term_count desc;
 		
@@ -98,6 +99,7 @@ class Term extends Eloquent  {
 			from posts
 		left join term_relationships on term_relationships.object_id=posts.ID
 		left join terms on terms.term_id=term_relationships.term_taxonomy_id 
+		left join term_taxonomy on term_taxonomy.term_id=terms.term_id 
 		group by term_name order by terms_count desc;
 		*/
 // 		$terms = DB::table('posts')
@@ -107,13 +109,24 @@ class Term extends Eloquent  {
 // 			->groupBy('term_name')->orderBy('term_count', 'desc')
 // 			->get();
 		$terms = DB::table('terms')
-		->select(DB::raw('count(*) term_count , terms.name as term_name,terms.term_id term_id'))
+		->select(DB::raw('count(*) term_count , terms.name as term_name,terms.term_id term_id,term_taxonomy.taxonomy'))
 		->leftJoin('term_relationships', 'term_relationships.term_taxonomy_id', '=', 'terms.term_id')
+		->leftJoin('term_taxonomy', 'term_taxonomy.term_id', '=', 'terms.term_id')
 		->join('posts','posts.ID','=','term_relationships.object_id')
 		->groupBy('term_name')->orderBy('term_count', 'desc')
 		->get();
 		return $terms;
 	}
+	/*
+	public static function getCategory($terms){
+		return is_null($terms)?null:array_filter($terms,function($v){ return $v->taxonomy==='category'; });
+	}
+	
+	public static function getTag($terms){
+		return is_null($terms)?null:array_filter($terms,function($v){ return $v->taxonomy==='post_tag'; });
+	}
+	*/
+	
 	
 	/**
 	 * create category async
@@ -184,7 +197,7 @@ class Term extends Eloquent  {
 	/**
 	 * get categories
 	 */
-	public static function get_category_by_userid($uid){
+	public static function get_category($uid){
 		/*
 		select terms.name as name,term_taxonomy.parent,terms.term_id as term_id
 			from term_taxonomy
@@ -194,7 +207,7 @@ class Term extends Eloquent  {
 		$category = DB::table('term_taxonomy')
 			->select('terms.name','term_taxonomy.parent','terms.term_id')
 			->join('terms','terms.term_id','=','term_taxonomy.term_id')
-			->where('terms.uid','=',$uid)
+			//->where('terms.uid','=',$uid)
 			->where('taxonomy','=','category')
 			->get();
 		return $category;

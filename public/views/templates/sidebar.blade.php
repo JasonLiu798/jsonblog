@@ -27,15 +27,31 @@
 	</div>
 	
 	<div class="sidebar-module">
-	<h4>分类目录</h4>
-	@if( is_array($sidebar->term_stats ) && count($sidebar->term_stats )>0 )
+	<h4>分类归档</h4>
+	@if( is_array($sidebar->cat_stats ) && count($sidebar->cat_stats )>0 )
 	<ol class="list-unstyled">
-		@foreach($sidebar->term_stats as $term_stat)
-			<li><a href="{{url()}}/{{ is_null($term_stat->term_id)?0:$term_stat->term_id }}">{{ is_null($term_stat->term_name)?'未分类':$term_stat->term_name }}</a>({{ $term_stat->term_count }})</li>
+		@foreach($sidebar->cat_stats as $cat_stat)
+			<li><a href="{{url()}}/post/term/{{ is_null($cat_stat->term_id)?0:$cat_stat->term_id }}">{{ is_null($cat_stat->term_name)?'未分类':$cat_stat->term_name }}</a>({{ $cat_stat->term_count }})</li>
 		@endforeach
 	</ol>
 	@endif
 	</div>
+	
+	<div class="sidebar-module">
+	<h4>标签归档</h4>
+	@if( is_array($sidebar->tag_stats ) && count($sidebar->tag_stats )>0 )
+	<ol class="list-unstyled">
+		@foreach($sidebar->tag_stats as $tag_stat)
+			<li><a href="{{url()}}/post/term/{{ is_null($tag_stat->term_id)?0:$tag_stat->term_id }}">
+			{{ is_null($tag_stat->term_name)?'未分类':$tag_stat->term_name }}</a>
+			({{ $tag_stat->term_count }})
+			</li>
+		@endforeach
+	</ol>
+	@endif
+	</div>
+	
+	
 	
 	<div class="sidebar-module">
 	<h4>文章归档</h4>

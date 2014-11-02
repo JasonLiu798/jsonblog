@@ -28,16 +28,22 @@ body { padding-top: 60px;
 	z-index:99;
 }
 
-
-/**	sidebar	**/
+.blog-sidebar{
+	/**margin:0 0 0 0;*/
+	padding:0 0 0 20px;
+}
+.blog-sidebar li{
+	text-indent:1em;
+}
+/**	sidebar	**
 .sidebar{
-	/*color: #f60;*/
+	
 	background: #EEE; padding: 20px; 
 	border-top:1px solid #ccc;
 	border-bottom:1px solid #ccc; 
 	margin:0 -5pt 0 0;
 	z-index: 4;
-}
+}**/
 /*** back2top ***/
 /*默认样式，主要是position:fixed实现屏幕绝对定位*/
 #gotoTop{
@@ -97,8 +103,8 @@ body { padding-top: 60px;
 	margin:4% 1% 1% 4%; font-size:40pt; font-weight:normal; line-height:100%;
 	text-indent:1em;
 }
-.logo_text a { }
-.logo_text a:hover { text-decoration:none; }
+.logo_text a {  }
+.logo_text a:hover {  text-decoration:none; }
 .site_description { 
 	font-size:13px; display:block;
 	border-top:1px solid #bbb; font-weight:normal;
@@ -110,10 +116,7 @@ body { padding-top: 60px;
 /*
 #logo_image { position:absolute; margin:0; padding:0; line-height:100%; }
 */
-.term_title{
-	margin:5px;
-	border-bottom: 1px solid #bbb;
-}
+
 
 
 /* post of each one */
@@ -134,10 +137,7 @@ body { padding-top: 60px;
 }
 .post .title a:hover { text-decoration:underline; }
 /* post content */
-.post_content { 
-	padding:0 0 0 4%;
-	background:#fff;  min-height:50pt; text-indent: 2em;
-}
+
 .post_readmore { padding:3pt 0 2pt 0; }
 
 /* post comment */

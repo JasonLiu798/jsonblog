@@ -13,19 +13,19 @@
 <div class="col-md-6 col-md-offset-1 posts_wrap">
 
 @if(!is_null($term4title))
-	<div class = "post term_title">
+	<div class = "archive_title">
 		<h3>‘<a href="{{url()}}/{{$term4title[0]->term_id}}">{{ $term4title[0]->name }}</a>’ {{ $term4title[0]->taxonomy==='category'?'分类':'标签' }}归档 </h3>
 	</div>
 @endif
 
-@if(!is_null($date4title))
-	<div class = "post term_title">
+@elseif(!is_null($date4title))
+	<div class = "archive_title">
 		<h3>‘<a href="{{url()}}/date/{{$date4title['link'] }}">{{ $date4title['title'] }}</a>’归档 </h3>
 	</div>
 @endif
 
 @if(!is_null($user4title))
-	<div class = "post term_title">
+	<div class = "archive_title">
 		<h3>作者‘<a href="{{url()}}/author/{{$user4title->ID}}">{{ $user4title->user_login }}</a>’归档</h3>
 	</div>
 @endif
@@ -84,28 +84,30 @@
 	    		<a href="{{url('post/single/'.$posts_item->post_id)}}">{{date ( "Y年m月d日", strtotime ( $posts_item->post_date ) ) }}</a>/
 	    		@if(!empty($posts_item->category))
 	    			@foreach ($posts_item->category as $cat)
-	    				<a href="{{url()}}/{{ $cat->term_id }}">{{ $cat->name }}</a>
+	    				<a href="{{url()}}/{{ $cat->term_id }}">{{ $cat->name }}</a>/
 	    			@endforeach
 	    		@endif
-				/
 				@if( $posts_item->comment_count >0)
-					<a href="{{url('post/single/'.$posts_item->post_id)}}/#commanchor">评论{{$posts_item->comment_count}}条</a>
+					<a href="{{url('post/single/'.$posts_item->post_id)}}/#commanchor">{{$posts_item->comment_count}}条评论</a>
 				@else
 					<a href="{{url('post/single/'.$posts_item->post_id)}}/#commanchor">添加评论</a>
 				@endif
 				
 				@if(!empty($posts_item->post_tag))
+				<div class="post_tags">
 		    		@foreach ($posts_item->post_tag as $tag)
 		   				<span class="post_tag"><!-- 标签 -->
 		   					<a href="{{url()}}/{{ $tag->term_id }}">{{ $tag->name }}</a>
 		   				</span>
 		   			@endforeach
+		   		</div>
 	   			@endif
 	    	</div><!-- end of blog-post-meta -->
 	    	<!-- end of meta -->
 	    	<!-- 摘要 -->
 				<div class="post_content">
-					{{ $posts_item->post_summary }}<a href="{{url('post/single/'.$posts_item->post_id) }}" >继续阅读</a>
+					{{ $posts_item->post_summary }}<a class="read_more" href="{{url('post/single/'.$posts_item->post_id) }}" >
+						继续阅读&nbsp;<span class="glyphicon glyphicon-arrow-right"></span></a>
 			    </div><!-- post content -->
 		</div><!-- post_no_cover -->
 		@endif

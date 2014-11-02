@@ -13,6 +13,24 @@
 
 //Index
 Route::any('/', array('as'=>'index','uses' => 'PostController@index'));
+//Post
+Route::group(array('prefix' => 'post'), function() {
+	//分类浏览	/post/term/xxx
+	Route::get('/term/{term_id}', array('as'=>'idx_term','uses' => 'PostController@term_achive'));
+	//日期浏览	 /post/date/2014-10
+	Route::get('/date/{date}', array('as'=>'idx_date','uses' => 'PostController@date_achive'));
+	
+	//Route::any('/author/{user_id}', array('as'=>'author','uses'=>'PostController@posts_by_author'));
+	
+	//Route::any('admin','PostController@admin');
+	Route::any('single/{post_id}',array('as' => 'singlepost','uses'=>'PostController@single')); // /{term_id}/{post_date?}',
+	// post/single/id
+	Route::any('create/{param}','PostController@create');
+	// /post/create/do?post_title=testposttitle1&post_content=testcontent&category=1&post_tag_ids=46,44,47
+	Route::get('delete','PostController@delete_with_term_comment');// post/delete?post_id=
+	Route::get('delete_','PostController@delete_only_post');// post/delete_?post_id=
+
+});
 
 
 //User
@@ -27,17 +45,10 @@ Route::get('/user/chkparameter','UserController@chk_parameter');
 //Route::post('/user/register_','UserController@register');/
 
 
-//Post
-
-Route::get('/{term_id}', array('as'=>'term','uses' => 'PostController@index'));
-Route::get('/date/{date}', array('as'=>'dpost','uses' => 'PostController@posts_by_date'));
-Route::any('/author/{user_id}', array('as'=>'author','uses'=>'PostController@posts_by_author'));
-
-/*Route::resource('post', 'PostController');*/
-
 // default:show page post/create/page
 // add post  posts/create/do?post_title=p1&post_content=c1&term_id=1
 
+//管理
 Route::group(array('prefix' => 'admin'), function() {
 	Route::group(array('prefix' => 'post'), function() {
 		Route::any('page','PostController@admin');// admin/post/page
@@ -57,16 +68,7 @@ Route::group(array('prefix' => 'admin'), function() {
 });
 
 
-Route::group(array('prefix' => 'post'), function() {
-	//Route::any('admin','PostController@admin');
-	Route::any('single/{post_id}',array('as' => 'singlepost','uses'=>'PostController@single')); // /{term_id}/{post_date?}',
-	// post/single/id
-	Route::any('create/{param}','PostController@create');
-	// /post/create/do?post_title=testposttitle1&post_content=testcontent&category=1&post_tag_ids=46,44,47
-	Route::get('delete','PostController@delete_with_term_comment');// post/delete?post_id=
-	Route::get('delete_','PostController@delete_only_post');// post/delete_?post_id=
-	
-});
+
 
 Route::group(array('prefix' => 'img'), function() {
 	Route::any('post/content/upload','ImgController@post_img_upload');// img/post/content/upload

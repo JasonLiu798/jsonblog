@@ -3,7 +3,7 @@
 {{ HTML::script('js/validate/formValidator-4.0.1.min.js') }}
 {{ HTML::script('js/validate/formValidatorRegex.js') }}
 {{ HTML::script('js/validate/comment_chk.js') }}
-
+{{ HTML::style('css/single_comm.css') }}
 
 <script type="text/javascript">
 $().ready(function(){
@@ -36,7 +36,6 @@ function moveCommentForm(thisID,isBack){
 	<div class="col-sm-8 blog-main">
 		<div class="blog-post">
 			<p class="blog-post-meta">
-			
 			</p>
             <h2 class="blog-post-title">{{$post->post_title }}</h2>
             <p class="blog-post-meta">{{date ( "Y-m-d", strtotime ( $post->post_date ) )}} by <a href="#">{{$post->post_author }}</a>

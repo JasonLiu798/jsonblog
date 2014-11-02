@@ -30,7 +30,7 @@ function stopclock () {
 function startclock () {   
 	stopclock();
 	showtime();
-}   
+}
 </script>   
 
 <div id="ttext" value="aa"></div>

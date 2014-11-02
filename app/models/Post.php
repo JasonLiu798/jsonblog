@@ -69,7 +69,7 @@ order by posts.post_date desc;
 	 * @param unknown $pagesize
 	 * @return NULL
 	 */
-	public static function getPostsByTerm($term_id,$pagesize){
+	public static function get_posts_by_term($term_id,$pagesize){
 		/**
 			select posts.ID post_id,users.user_login post_author,post_date,post_content,users.ID as post_author_id,
 			post_title,count(comments.comment_ID) comment_count
@@ -82,15 +82,15 @@ order by posts.post_date desc;
 		$posts = null;
 		if($pagesize>0){
 			$posts = DB::table('posts')
-			->select('posts.ID as post_id', 'post_title','post_content','post_date','users.user_login as post_author'
+			->select('posts.ID as post_id', 'post_title','post_content','post_date','users.user_login as post_author','postimages.filename as post_img_name','post_summary'
 					,DB::raw('count(comments.comment_ID) as comment_count'))
-			->join('users','users.ID','=','posts.post_author')
-			->join('term_relationships','posts.ID','=','term_relationships.object_id')
+			->leftJoin('users','users.ID','=','posts.post_author')
+			->leftJoin('term_relationships','posts.ID','=','term_relationships.object_id')
+			->leftJoin('postimages','postimages.iid','=','posts.post_cover_img')
 			->leftJoin('comments','comments.comment_post_ID','=','posts.ID')
 			->where('term_relationships.term_taxonomy_id','=',$term_id)
 			->groupBy('posts.ID')
 			->paginate($pagesize);
-			
 		}
 		return $posts;
 	}

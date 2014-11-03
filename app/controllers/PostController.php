@@ -99,8 +99,8 @@ class PostController extends BaseController {
 		$res = new stdClass;
 		//get terms
 		$term_stats = Term::getTermsAndStat();
-		$res->cat_stats =Term::getCategory($term_stats);
-		$res->tag_stats =Term::getTag($term_stats);
+		$res->cat_stats =Term::get_category($term_stats);
+		$res->tag_stats =Term::get_tag($term_stats);
 		//get post archive
 		$post_stats = Post::getPostsStat();
 		$res->post_stats = $post_stats;
@@ -122,97 +122,173 @@ class PostController extends BaseController {
 	 * @param unknown $post_id,term_id=0,date=1990-01
 	 * @return void|unknown
 	 */
-	public function single($post_id){//,$term_id,$post_date='1900-01'){
+	public function single($post_id){
 //Log::info("Single,post_id:".$post_id);
-		$post = Post::getPostById($post_id);
+		$post = Post::get_post_by_id($post_id);
+		$msg = '';
 		if(empty($post)){
-			App::abort(404);
-			return ;
+			$msg = '博文不存在';
+		}else{
+			$post = Post::add_meta($post);
+			$post = $post[0];
+			$post->cover_img_url = PostImage::get_img_url_by_name($post->post_img_name);
+			$comments = Comment::getCommentsByPostID($post_id);
+			$pre_next_post = Post::get_pre_next_post( $post_id );
 		}
-		
-		$comments = Comment::getCommentsByPostID($post_id);
-		$sidebar = PostController::get_sidebar();
-		$pre_next_post = Post::getPreNextPost( $post_id );
-		$view = View::make('posts/single_comm_r',array(
-				'post'=>$post,'comments'=>$comments,
-				'title'=>$post->post_title.'|'.Lang::get('posts.TITLE'),
-				'pre_next_post'=>$pre_next_post,
-				'sidebar'=>$sidebar));
-		return $view;
+		if(strlen($msg)>0){
+			return Redirect::route('error', array($msg));
+		}else{
+			$username = User::get_name_from_session( Session::get('user') );
+			$sidebar = PostController::get_sidebar();
+			$view = View::make('posts/single_comm_r',
+					array('post'=>$post,'comments'=>$comments,'username'=>$username,
+					'title'=>$post->post_title.'|'.Lang::get('posts.TITLE'),
+					'pre_next_post'=>$pre_next_post,
+					'sidebar'=>$sidebar));
+			return $view;
+		}
 	}
 	
 	public function create($param='page'){
 		$sess_user_json = Session::get('user','default');
-		//login can create post
-		//Log::info('CREATE POST:'.strcmp($sess_user_json, 'default') );
 		$user = json_decode($sess_user_json);
-		$sidebar = PostController::get_sidebar();
-		if($param === 'page'){
-			if( strcmp($sess_user_json, 'default') == 0 ){
-				// to error page
-				return Redirect::action('PostController@index');
-			}
-			//$terms = Term::getTermsByUserID($user->uid);
-			$category = Term::get_category($user->uid);
-			//Term::format_category2tree($category);
-			$term = new Term();
-			$category_tree = $term->format_category2tree($category);
-			//$category = Term::getCategory($terms);
-			//$post_tag = Term::getTag($terms);
-			$top5post_tag = Term::get_top5_post_tag();
-			$view = View::make('posts/create_post',array(
-					'title'=>Lang::get('post.TITLE'),'username'=>$user->username,
-					'category'=>$category_tree,
-					'post_tag'=>$top5post_tag,
-					'sidebar'=>$sidebar));
-			return $view;
-		}else if($param === 'draft_page'){
-			
-		}else if($param === 'do'){
-Log::info('Create Post do');
-			if( is_null( $user ) ){
-				return 'error';//ADD
-			}
-			$post_title = Input::get('post_title');//urldecode(urldecode());
-			$post_content = Input::get('post_content');//urldecode(urldecode(Input::get('post_content')));
-			$set_cover = Input::get('set_cover');
-			$cover_img_id = Input::get('cover_img_id');
-			if( $set_cover === 'true' ){
-				//有封面图片，只显示 标题+图片
-				//$post_img_id = Input::get('cover_img_id');//封面
-				$post_cover_img = $cover_img_id;//url().Constant::$UPLOAD_IMG_DIR.$post_cover_img_name;
-				$post_summary = '';
-			}else{
-				//无封面图片，显示 标题+summary
-				$post_cover_img = 0;
-				$post_summary = Post::get_summary($post_content,Constant::$POST_INDEX_CUT_SIZE);
-			}
-			
-			//$post_cover_img_name = Input::get('cover_img_name');
-Log::info('CREATE POST:'.$post_title.','.$post_content.','.$post_cover_img.','.$post_summary );
-			
-			$post_id = Post::create_post($user->uid,$post_title,$post_content,$post_cover_img,$post_summary);
-			if($post_id<0){
-				//error
-				return Response::make('创建博文失败!', 500 );
-			}
-			$category_id = Input::get('category');
-			$post_tag_ids = Input::get('post_tag_ids');
-			if( strlen($post_tag_ids) > 0 ){
-				$termid_arr = explode(',',$post_tag_ids);
-				array_push( $termid_arr, $category_id);
-			}else{
-				$termid_arr = array();
-				array_push( $termid_arr, $category_id);
-			}
-			Post::create_post_term( $post_id, $termid_arr );
-			
-			Log::info("POST TAGS:".$post_tag_ids.",CAT:".$category_id);
-			return Redirect::route('singlepost',array($post_id));
+		$msg = '';
+		if( is_null( $user ) ){
+			$msg = "未登录";
 		}else{
-			App::abort(404);
+			if($param === 'page'){
+				$category = Term::get_all_categories();
+				$term = new Term();
+				$category_tree = $term->format_category2tree($category);
+				$top5post_tag = Term::get_top5_post_tag();
+				$sidebar = self::get_sidebar();
+				$view = View::make('posts/create_post',array(
+						'title'=>Lang::get('post.TITLE'),'username'=>$user->username,
+						'category'=>$category_tree,
+						'post_tag'=>$top5post_tag,
+						'sidebar'=>$sidebar));
+			}else if($param === 'draft_page'){
+				
+			}else if($param === 'save'){
+				$post_title = Input::get('post_title');//urldecode(urldecode());
+				$post_content = Input::get('post_content');//urldecode(urldecode(Input::get('post_content')));
+				$set_cover = (string)Input::get('set_cover');
+				$cover_img_id = Input::get('cover_img_id');
+Log::info('Post Save:set_cover'.$set_cover.' ,iid:'.$cover_img_id);
+				if( $set_cover === 'true' ){
+					//有封面图片，只显示 标题+图片
+					$post_cover_img = (int)$cover_img_id;//url().Constant::$UPLOAD_IMG_DIR.$post_cover_img_name;
+				}else{
+					//无封面图片，显示 标题+summary
+					$post_cover_img = 0;
+				}
+				$post_summary = Post::get_summary($post_content,Constant::$POST_INDEX_CUT_SIZE);
+				
+				//$post_cover_img_name = Input::get('cover_img_name');
+Log::info('CREATE POST:'.$post_title.','.$post_cover_img.','.$post_summary );
+				$post_id = Post::create_post($user->uid,$post_title,$post_content,$post_cover_img,$post_summary);
+				if($post_id<0){
+					$msg = '创建博文失败!';
+				}else{
+					$category_id = Input::get('category');
+					$post_tag_ids = Input::get('post_tag_ids');
+					
+					if( strlen($post_tag_ids) > 0 ){
+						$termid_arr = explode(',',$post_tag_ids);
+						array_push( $termid_arr, $category_id);
+					}else{
+						$termid_arr = array();
+						array_push( $termid_arr, $category_id);
+					}
+					Post::create_post_term( $post_id, $termid_arr );						
+Log::info("POST TAGS:".$post_tag_ids.",CAT:".$category_id);
+					$view = Redirect::route('singlepost',array($post_id));
+				}
+			}else{//App::abort(404);
+				$msg='未定义操作！';
+			}
+		}
+		if(strlen($msg)>0){
+			return Redirect::route('error', array($msg));
+		}else{
+			return $view;
 		}
 	}
+	
+	public function pre_update( $post_id ){
+		$sess_user_json = Session::get('user','default');
+		$user = json_decode($sess_user_json);
+		$msg = '';
+		if( is_null( $user ) ){
+			$msg = "未登录";
+		}else{
+			$post = Post::get_post_by_id( $post_id);
+			if(empty($post)){
+				$msg = "博文不存在";
+			}else{
+				$post = Post::add_meta($post);
+				
+				$post = $post[0];
+				$post_tag_id = '';
+				$i=0;
+				$len = count($post->post_tag);
+				foreach($post->post_tag as $tag){
+					if($i==0){
+						$post_tag_id = $tag->term_id;
+					}else{//else if($i== $len-1){
+						$post_tag_id =$post_tag_id . ','.$tag->term_id;
+					}
+					$i++;
+				}
+				$post->post_tag_id = $post_tag_id;
+				$post->cover_img_url = PostImage::get_img_url_by_name($post->post_img_name);
+				$category = Term::get_all_categories();
+				$term = new Term();
+				$category_tree = $term->format_category2tree($category);
+				$top5post_tag = Term::get_top5_post_tag();
+				$sidebar = self::get_sidebar();
+				$view = View::make('posts/update_post',array(
+						'title'=>'修改博文','username'=>$user->username,
+						'post'=>$post,
+						'category'=>$category_tree,
+						'post_tag'=>$top5post_tag,
+						'sidebar'=>$sidebar));
+			}
+		}
+		if(strlen($msg)>0){
+			return Redirect::route('error', array($msg));
+		}else{
+			return $view;
+		}
+	}
+	
+	public function update(){
+		$sess_user_json = Session::get('user','default');
+		$user = json_decode($sess_user_json);
+		$msg = '';
+		if( is_null( $user ) ){
+			$msg = "未登录";
+		}else{
+			
+				$category = Term::get_all_categories();
+				$term = new Term();
+				$category_tree = $term->format_category2tree($category);
+				$top5post_tag = Term::get_top5_post_tag();
+				$sidebar = self::get_sidebar();
+				$view = View::make('posts/create_post',array(
+						'title'=>Lang::get('post.TITLE'),'username'=>$user->username,
+						'category'=>$category_tree,
+						'post_tag'=>$top5post_tag,
+						'sidebar'=>$sidebar));
+			
+		}
+		if(strlen($msg)>0){
+			return Redirect::route('error', array($msg));
+		}else{
+			return $view;
+		}
+	}
+	
 	
 	/**
 	 * delete post relate comments,terms,post_image

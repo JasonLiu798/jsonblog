@@ -12,7 +12,12 @@
 */
 
 //Index
-Route::any('/', array('as'=>'index','uses' => 'PostController@index'));
+Route::any('/', function(){
+	//return Redirect::action('PostController@index');
+	//return Redirect::route('index');
+	return Redirect::to('index');
+});
+Route::any('/index', array('as'=>'index','uses' => 'PostController@index'));
 //Post
 Route::group(array('prefix' => 'post'), function() {
 	//分类浏览	/post/term/xxx
@@ -26,7 +31,9 @@ Route::group(array('prefix' => 'post'), function() {
 	Route::any('single/{post_id}',array('as' => 'singlepost','uses'=>'PostController@single')); // /{term_id}/{post_date?}',
 	// post/single/id
 	Route::any('create/{param}','PostController@create');
-	// /post/create/do?post_title=testposttitle1&post_content=testcontent&category=1&post_tag_ids=46,44,47
+	Route::any('update/page/{post_id}','PostController@pre_update');
+	Route::any('update/save','PostController@update');
+	// /post/create/save?post_title=testposttitle1&post_content=testcontent&category=1&post_tag_ids=46,44,47
 	Route::get('delete','PostController@delete_with_term_comment');// post/delete?post_id=
 	Route::get('delete_','PostController@delete_only_post');// post/delete_?post_id=
 
@@ -135,9 +142,9 @@ Route::any('/error/{msg}',array('as'=>'error','uses' => 'ErrorController@show'))
 
 
 //URL not exist
-App::missing(function($exception)
-{
+App::missing(function($exception){
 	return Redirect::route('index');
+	//return Redirect::action('PostController@index');
 });
 
 

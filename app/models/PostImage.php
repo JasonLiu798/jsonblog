@@ -74,6 +74,11 @@ class PostImage extends Eloquent  {
 		return Constant::get_upload_img_dir().$img[0]->filename;
 	}
 	
+	public static function get_img_url_by_name($name){
+		//$img = DB::table('postimages')->select('filename')->where('iid',$iid)->get();
+		return url().Constant::$UPLOAD_IMG_DIR.$name;
+	}
+	
 	/**
 	 * 
 	 * @param unknown $iid

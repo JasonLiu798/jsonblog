@@ -45,7 +45,7 @@ class TermsController extends BaseController {
 	 */
 	public function create_category_api(){
 		$sess_user = Session::get('user');
-		$user_id = User::getUserIDFromSession( $sess_user );
+		$user_id = User::get_userid_from_session( $sess_user );
 		if(is_null($sess_user )) {
 			return Rresponse::json(array('success' => 'false', 'msg' => 'nologin'));
 		}
@@ -55,7 +55,7 @@ class TermsController extends BaseController {
 		}
 		
 		$new_category_parent = Input::get('new_category_parent');
-		$term_id = Term::create_category_api($user_id,$category_name,$new_category_parent);
+		$term_id = Term::create_category_api($category_name,$new_category_parent);
 		if($term_id<=0){
 			return Rresponse::json(array('success' => 'false', 'msg' =>'failed'));
 		}
@@ -76,7 +76,7 @@ class TermsController extends BaseController {
 	 */
 	public function create_tag_api(){
 		$sess_user = Session::get('user');
-		$user_id = User::getUserIDFromSession( $sess_user );
+		$user_id = User::get_userid_from_session( $sess_user );
 		if(is_null($sess_user )) {
 			//return Response::json(array('success' => 'false', 'msg' => 'nologin'));
 			return Response::make('未登录', 500 );//$statusCode);
@@ -86,7 +86,7 @@ class TermsController extends BaseController {
 			return Response::make('标签名已经存在!', 500 );//$statusCode);
 			//return Response::json(array('success' => 'false', 'msg' => '标签名已经存在!'));
 		}
-		$term_id = Term::create_tag_api($user_id,$tag_name);
+		$term_id = Term::create_tag_api($tag_name);
 		if($term_id<=0){
 			return Response::json(array('success' => 'false', 'msg' =>'failed'));
 		}

@@ -147,7 +147,6 @@ $(document).ready(function(){
         }
     });
     
-    
     /**
      * enter not submit form
      */
@@ -156,7 +155,6 @@ $(document).ready(function(){
 		var keyNum = e.which || e.keyCode;
 		return keyNum==13 ? false : true;
     });
-    
     
     $('#save_new_category').click(function(){
     	var new_category_name = $('#new_category_name').val();
@@ -395,7 +393,7 @@ $(document).ready(function(){
     	}
     	var final_img_url='';
     	var cut='no';
-    	$('set_cover').val("true");
+    	$('#set_cover').val("true");
     	if(is_cut){
     		//已裁切
     		final_img_url = img_name_after_cut_url;
@@ -569,7 +567,7 @@ $(document).ready(function(){
                     	jcrop_api = add_img_processor();
                 	},500);
                     iid = data.iid;
-                    $('cover_img_id').val(iid);
+                    $('#cover_img_id').val(iid);
                     if (typeof (data.error) != 'undefined') {
                         if (data.error != '') {
                             alert("出错了:"+data.error);

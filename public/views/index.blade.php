@@ -41,7 +41,7 @@
 		    		<a href="{{url('post/single/'.$posts_item->post_id)}}">{{date ( "Y年m月d日", strtotime ( $posts_item->post_date ) ) }}</a>/
 		    		@if(!empty($posts_item->category))
 		    			@foreach ($posts_item->category as $cat)
-		    				<a href="{{url()}}/{{ $cat->term_id }}">{{ $cat->name }}</a>/
+		    				<a href="{{url()}}/post/term/{{ $cat->term_id }}">{{ $cat->name }}</a>/
 		    			@endforeach
 		    		@endif
 					
@@ -56,7 +56,7 @@
 					<div class="post_tags">
 			    		@foreach ($posts_item->post_tag as $tag)
 			   				<span class="post_tag"><!-- 标签 -->
-			   					<a href="{{url()}}/{{ $tag->term_id }}">{{ $tag->name }}</a>
+			   					<a href="{{url()}}/post/term/{{ $tag->term_id }}">{{ $tag->name }}</a>
 			   				</span>
 			   			@endforeach
 					</div>
@@ -76,7 +76,7 @@
 	    		<a href="{{url('post/single/'.$posts_item->post_id)}}">{{date ( "Y年m月d日", strtotime ( $posts_item->post_date ) ) }}</a>/
 	    		@if(!empty($posts_item->category))
 	    			@foreach ($posts_item->category as $cat)
-	    				<a href="{{url()}}/{{ $cat->term_id }}">{{ $cat->name }}</a>/
+	    				<a href="{{url()}}/post/term/{{ $cat->term_id }}">{{ $cat->name }}</a>/
 	    			@endforeach
 	    		@endif
 				@if( $posts_item->comment_count >0)
@@ -89,7 +89,7 @@
 				<div class="post_tags">
 		    		@foreach ($posts_item->post_tag as $tag)
 		   				<span class="post_tag"><!-- 标签 -->
-		   					<a href="{{url()}}/{{ $tag->term_id }}">{{ $tag->name }}</a>
+		   					<a href="{{url()}}/post/term/{{ $tag->term_id }}">{{ $tag->name }}</a>
 		   				</span>
 		   			@endforeach
 		   		</div>

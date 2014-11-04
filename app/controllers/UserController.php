@@ -43,13 +43,12 @@ class UserController extends BaseController {
 	 * @return unknown
 	 */
 	public function register($param){
+		$msg = '';
 		if($param === 'page'){
-			Log::info('Register show page');
+Log::info('Register show page');
 			$checked = Lang::get('tools.NO');
-			$view = View::make( 'user/reg_login',
-					array('title'=>Lang::get('user.REGISTER'),
-							'hide_div'=>'login_div','checked'=>$checked ) );
-			return $view;
+			$view = View::make( 'user/regist',
+				array('title'=>Lang::get('user.REGISTER') ));//'checked'=>$checked));//'hide_div'='login_div', ) );//return $view;
 		}else if($param === 'action'){
 			$username =  Input::get('reg_username');
 			$password = Input::get('reg_password');
@@ -64,52 +63,49 @@ class UserController extends BaseController {
 							'密码' => 'required|between:6,16',
 							'Email'=> 'required|between:6,100|unique:users,user_email')
 			);
-			
-			$user = new User;
-			$user->user_login =$username;
-			$user->user_email = $email;
-			$user->user_pass = md5($password);
-			
-			date_default_timezone_set("Asia/Shanghai");
-			$user->user_registered = date('Y-m-d H:i:s',time());
-			$user->is_admin = 'f';
-			
-			$checked = Lang::get('tools.NO');
-			/**
-			 * retrun to the register page
-			 */
 			if( $validator->fails() ){
-				$view = View::make( 'user/reg_login',
+				$view = View::make( 'user/regist',
 						array('title'=>Lang::get('user.REGISTER'),
 								'msgs'=>$validator->messages(),
 								'reg_email_save'=>$email,
-								'reg_username_save'=>$username,
-								'hide_div'=>'login_div',
-								'checked'=>$checked ) );
-				return $view;
-			}
-			
-			/**
-			 * check pass,reg user save
-			 */
-			if($user->save()>0){
-				$get_last_user_id_sql = "SELECT LAST_INSERT_ID() ID";
-				$uid = DB::select($get_last_user_id_sql);
-Log::info('Uid:'.$uid[0]->ID);
-				$sess_user = new stdClass();
-				$sess_user->uid=$uid[0]->ID;
-				$sess_user->is_admin=$user->is_admin;
-				$sess_user->username=$username;
-				Session::put('user', json_encode($sess_user) );
-// 				Session::put('is_admin',$user->is_admin);
-// 				Session::put('user',$username );
-				return Redirect::action('PostController@index');
+								'reg_username_save'=>$username));
+							//'hide_div'=>'login_div',//'checked'=>$checked ) );//return $view;
 			}else{
-				//user save failed
-				return Redirect::route('/error'.'服务器错误');
+				$user = new User;
+				$user->user_login =$username;
+				$user->user_email = $email;
+				$user->user_pass = md5($password);
+				
+				date_default_timezone_set("Asia/Shanghai");
+				$user->user_registered = date('Y-m-d H:i:s',time());
+				$user->is_admin = 'f';
+				/**
+				 * check pass,reg user save
+				 */
+				if($user->save()>0){
+					$get_last_user_id_sql = "SELECT LAST_INSERT_ID() ID";
+					$uid = DB::select($get_last_user_id_sql);
+	Log::info('User registed Uid:'.$uid[0]->ID);
+					$sess_user = new stdClass();
+					$sess_user->uid=$uid[0]->ID;
+					$sess_user->is_admin=$user->is_admin;
+					$sess_user->username=$username;
+					Session::put('user', json_encode($sess_user) );
+	// 				Session::put('is_admin',$user->is_admin);
+	// 				Session::put('user',$username );
+					$view = Redirect::action('PostController@index');
+				}else{
+					$msg = '注册失败';//user save failed
+					//return Redirect::route('/error'.'服务器错误');
+				}
 			}
 		}else{
-			App::abort(404);
+			$msg = '未定义操作';//App::abort(404);
+		}
+		if(strlen($msg)>0){
+			return Redirect::route('error', array($msg));
+		}else{
+			return $view;
 		}
 	}
 	
@@ -152,15 +148,15 @@ Log::info('Uid:'.$uid[0]->ID);
 	 */
 	public function login($param)
 	{
-		$sess_user_json = Session::get('user');
-		if(! is_null($sess_user_json)){
-			Redirect::action('PostController@index');
-		}
-		
+		$msg = '';
+//		$sess_user_json = Session::get('user');
+// 		if(! is_null($sess_user_json)){
+// 			$msg = '未登录';
+// 			//Redirect::action('PostController@index');
+// 		}
 		if($param === 'page'){
-			
 			$cookie_user_json = Cookie::get('user');
-			Log::info('LOGIN PAGE,Cooke get:'.$cookie_user_json);
+Log::info('LOGIN PAGE,Cooke get:'.$cookie_user_json);
 			if(!is_null($cookie_user_json)){
 				
 				$cookie_user = json_decode($cookie_user_json);
@@ -172,22 +168,20 @@ Log::info('Uid:'.$uid[0]->ID);
 				$pass = null;
 				$checked = Lang::get('tools.NO');
 			}
-			$view = View::make( 'user/reg_login',
+			$view = View::make( 'user/login',
 					array('title'=>Lang::get('user.LOGIN') ,
 							'hide_div'=>'reg_div',
 							'checked'=>$checked,
 							'login_email_save'=>$email ,
 							'login_pass_save'=>$pass
 				) );
-			return $view;
 		}else if($param ==='action'){
-			
 			$email =  Input::get('login_email');
 			$password = Input::get('login_password');
 			$remeber = Input::get('remember');
 			
 			$cookie_user_json = Cookie::get('user');
-			Log::info('LOGIN ACTION,Cooke get:'.$cookie_user_json);
+Log::info('LOGIN ACTION,Cooke get:'.$cookie_user_json);
 			if(!is_null($cookie_user_json)){
 				$checked = Lang::get('tools.YES');
 			}else{
@@ -203,52 +197,56 @@ Log::info('Uid:'.$uid[0]->ID);
 							'Email'=> 'required|between:6,100|exists:users,user_email')
 			);
 			if( $validator->fails() ){
-				$view = View::make( 'user/reg_login',
+				$view = View::make( 'user/login',
 						array('title'=>Lang::get('user.LOGIN'),
 								'msgs'=>$validator->messages(),
 								'login_email_save'=>$email,
-								'checked'=>$checked,
-								'hide_div'=>'reg_div' ) ); 
-				return $view;
-			}
-			if($remeber === 'remember'){
-				//$minutes = 60*24*7;// 7 days
-				$minutes = 10;//测试  10minutes
-				$cookie_user = new stdClass;
-				$cookie_user->email = $email;
-				$cookie_user->pass = $password;
-				$cookie_user_json = json_encode($cookie_user);
-				$cookie = Cookie::make('user', $cookie_user_json, $minutes);
-Log::info('LOGIN-COOKIE MAKED'.$cookie_user_json);
-			}else{
-				$cookie = null;
-			}
-			$users = User::login($email,$password);
-			if(!empty($users) && count($users)==1 ){
-				$user = $users[0];
-				$sess_user = new stdClass();
-				$sess_user->uid=$user->ID;
-				$sess_user->is_admin=$user->is_admin;
-				$sess_user->username=$user->user_login;
-				Session::put('user', json_encode($sess_user) );
-				$post_controller = new PostController();
-				if(is_null($cookie)){
-					return Redirect::route('index');//->withCookie($cookie);
+								'checked'=>$checked ));//'hide_div'=>'reg_div' ) ); 
+			}else{//表单验证pass
+				if($remeber === 'remember'){
+					//$minutes = 60*24*7;// 7 days
+					$minutes = 60*24*7;//测试  10minutes
+					$cookie_user = new stdClass;
+					$cookie_user->email = $email;
+					$cookie_user->pass = $password;
+					$cookie_user_json = json_encode($cookie_user);
+					$cookie = Cookie::make('user', $cookie_user_json, $minutes);
+					Log::info('LOGIN-COOKIE MAKED'.$cookie_user_json);
+				}else{
+					$cookie = null;
 				}
-				return Redirect::route('index')->withCookie($cookie);
-				
-			}else{//pass wrong
-				$user_msgs = array();
-				array_push($user_msgs,Lang::get('validation.PASS_WRONG'));
-				$view = View::make( 'user/reg_login',
-						array('title'=>Lang::get('user.LOGIN'),
-								'user_msgs'=>$user_msgs,
-								'login_email_save'=>$email,
-								'hide_div'=>'reg_div' ) );
-				return $view;
+				$users = User::login($email,$password);
+				if(!empty($users) && count($users)==1 ){
+					$user = $users[0];
+					$sess_user = new stdClass();
+					$sess_user->uid=$user->ID;
+					$sess_user->is_admin=$user->is_admin;
+					$sess_user->username=$user->user_login;
+					Session::put('user', json_encode($sess_user) );
+					//$post_controller = new PostController();
+					if(is_null($cookie)){
+						$view = Redirect::route('index');//->withCookie($cookie);
+					}else{
+						$view = Redirect::route('index')->withCookie($cookie);						
+					}
+				}else{//pass wrong
+					$user_msgs = array();
+					array_push($user_msgs,Lang::get('validation.PASS_WRONG'));
+					$view = View::make( 'user/login',
+							array('title'=>Lang::get('user.LOGIN'),
+									'user_msgs'=>$user_msgs,
+									'login_email_save'=>$email,
+									'checked'=>$checked ));//'hide_div'=>'reg_div' ) );
+				}
 			}
+			
 		}else{
-			App::abort(404);
+			$msg = '未定义操作';
+		}
+		if(strlen($msg)>0){
+			return Redirect::route('error', array($msg));
+		}else{
+			return $view;
 		}
 	}
 	

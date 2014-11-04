@@ -1,9 +1,13 @@
-@include('templates/header')
+@if( is_null( Session::get('user')) )
+	@include('templates/header_logout')
+@else
+	@include('templates/header_login')
+@endif
 
 {{ HTML::script('js/validate/formValidator-4.0.1.min.js') }}
 {{ HTML::script('js/validate/formValidatorRegex.js') }}
 {{ HTML::script('js/validate/comment_chk.js') }}
-{{ HTML::style('css/single_comm.css') }}
+{{ HTML::style('css/single_post.css') }}
 
 <script type="text/javascript">
 $().ready(function(){
@@ -54,7 +58,7 @@ function moveCommentForm(thisID,isBack){
 			@if(!empty($post->post_tag))
    				<p class = "blog-post-meta">
 	    		@foreach ($post->post_tag as $tag)
-	   				<span class="label label-default">
+	   				<span class="tag">
 	   					{{ $tag->name }}
 	   				</span>    
 	   			@endforeach

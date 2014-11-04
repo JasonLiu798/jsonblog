@@ -30,6 +30,8 @@ tinymce.init({
 	
  });
 
+//tinymce.getInstanceById('post_content').getBody().innerHTML= ""; 
+
 //data = ({"msg":"\u4e0a\u4f20\u6210\u529f\uff01","url":"http:\/\/www.lblog.com\/upload\/img\/d094fd36b80aa2b3c8163581c74dcbfc"});
 //console.log("data.msg:"+data.msg);
 
@@ -38,21 +40,22 @@ tinymce.init({
 <div class="container">
 <div class="row">
 <div class="col-sm-8">
-	<h2>{{Lang::get('post.NEW_POST') }}</h2>
+	<h2>{{$title}}</h2>
 	
-<form method="post" action="{{url()}}/post/create/save" accept-charset="utf-8" role="form" id="create_post_form">
-	<input type="hidden" name="post_tag_ids" id="post_tag_ids" value="" />
+<form method="post" action="{{url()}}/post/update/save" accept-charset="utf-8" role="form" id="update_post_form">
+	<input type="hidden" name="post_tag_ids" id="post_tag_ids" value="{{ $post->post_tag_id }}" />
 	<input type="hidden" id="set_cover" name="set_cover" value="false" />
-	<!-- <input type="hidden" id="cutted" name="cutted" value="false" /> -->
 	<!--<input type="hidden" id="cover_img_name" name="cover_img_name" value="false"/> 生成摘要url用 -->
-	<input type="hidden" id="cover_img_id" name="cover_img_id" value=""/><!-- 保存用 -->
+	<input type="hidden" id="cover_img_id" name="cover_img_id" value="{{$post->post_cover_img }}"/><!-- 保存用 -->
 	<div class="form-group">
-		{{ Form::label('post_title', Lang::get('post.POST_TITLE')) }}
-		{{ Form::text('post_title', '', array('class' => 'form-control')) }}
+		<label for="post_title">标题</label>
+		<input class="form-control" value="{{$post->post_title}}" name="post_title" type="text" id="post_title">
 	</div>
 	
 	<div class="form-group">
-		<textarea rows="15" id="post_content" name="post_content" class="form-control"></textarea>
+		<textarea rows="15" id="post_content" name="post_content" class="form-control">
+		{{$post->post_content}}
+		</textarea>
 	</div>
 	
 	<div class="form-group">
@@ -60,7 +63,7 @@ tinymce.init({
 		
 		<select class="form-control" name="category" id="category">
 			@foreach($category as $cat)
-			  <option id="category{{$cat->term_id}}" value="{{$cat->term_id }}">{{ $cat->name }}</option>
+			  <option id="category{{$cat->term_id}}" value="{{$cat->term_id }}" @if($post->category[0]->term_id==$cat->term_id) selected="selected" @endif>{{ $cat->name }}</option>
 			@endforeach
 		</select>
 	</div>
@@ -76,7 +79,11 @@ tinymce.init({
 		<h5>{{Lang::get('post.POST_TAG')}}&nbsp;<small>{{ Lang::get('post.POST_TAG_ADD_INFO')}}</small></h5>
 		<div class="clearfix"></div>
 		<!-- added tags -->
-        <div id="newtags"></div>
+        <div id="newtags">
+        	@foreach($post->post_tag as $tag)
+        		<span name="{{$tag->name}}" class="tag tag_new" value="{{$tag->term_id}}">{{$tag->name}}&nbsp;X</span>
+        	@endforeach
+        </div>
         <div class="clearfix"></div>
         <!-- input new tag -->
 		<input type="text"  name="post_tag" id="post_tag" value="" class="form-control"/>
@@ -89,8 +96,8 @@ tinymce.init({
             	<span class="tag tag_old" value="{{$tag->term_id}}" id="tag{{$tag->term_id}}" name="{{$tag->name}}">{{$tag->name}}</span>
             @endforeach
         </div>
-    </div>
-    </div>
+    </div><!-- tag box -->
+    </div><!-- form-group -->
 	<!-- 
 	<div class="row">
 		<div class="col-xs-6">
@@ -105,7 +112,10 @@ tinymce.init({
 	<div class="form-group"></div> -->
 	<div class="form-group">
 		<!-- 设置博文封面图片 -->
-		<input type="button" class="btn btn-default" id="submit_button" data-toggle="modal" data-target="#cover_img_diag" value="设置摘要图片"/>
+		<input type="button" class="btn btn-default" id="submit_button" data-toggle="modal" data-target="#cover_img_diag" value="修改摘要图片"/>
+		<div>
+		<img id="old_cover_img" src="{{$post->cover_img_url}}"/>
+		</div>
 	</div>
 	
 	<div class="form-group col-sm-offset-5 col-sm-12">

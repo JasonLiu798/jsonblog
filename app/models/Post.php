@@ -127,7 +127,7 @@ order by posts.post_date desc;
 	/**
 	 * get posts by user id
 	 * @param unknown $pagesize
-	 */
+	 *
 	public static function getPostByUser($user_id,$pagesize){
 		/**
 		 select posts.ID post_id,users.user_login post_author,posts.post_date,
@@ -136,7 +136,7 @@ order by posts.post_date desc;
 		 join users on users.ID = posts.post_author
 		 left join comments on comments.comment_post_ID=posts.ID
 		 where post_author=1 group by posts.ID;
-		 */
+		 *
 		$posts = DB::table('posts')
 			->select('posts.ID as post_id','users.user_login as post_author','users.ID as post_author_id','post_date',
 				'post_content','post_title',DB::raw('count(comments.comment_ID) as comment_count'))
@@ -147,6 +147,9 @@ order by posts.post_date desc;
 			->paginate($pagesize);
 		return $posts;
 	}
+	*/
+	
+	
 	
 	public static function getPostCommentStat($post_id){
 		$comm_stat = DB::table('posts')
@@ -158,7 +161,7 @@ order by posts.post_date desc;
 	
 	//public static function getNextPost($post_id)
 	
-	public static function getPreNextPost($post_id){
+	public static function get_pre_next_post($post_id){
 		/*
 		Pre:
 		[use date]
@@ -227,11 +230,11 @@ Log::info('NXT POST SQL:'.$last_query['query']);
 	
 	public static function add_meta($posts){
 		foreach($posts as $post):
-			$terms = Term::getTermsByPostID($post->post_id);
+			$terms = Term::get_terms_by_post($post->post_id);
 		
-			$cat = Term::getCategory($terms);
+			$cat = Term::get_category($terms);
 			
-			$tag = Term::getTag($terms);
+			$tag = Term::get_tag($terms);
 			$post->category = !empty($cat)?$cat:null;
 			$post->post_tag = !empty($tag)?$tag:null;
 			
@@ -278,29 +281,31 @@ Log::info('NXT POST SQL:'.$last_query['query']);
 	 * @param unknown $post_id
 	 * @return NULL|unknown
 	 */
-	public static function getPostById($post_id){
+	public static function get_post_by_id($post_id){
 		/*
-select posts.ID as ID,post_title,post_content,post_date,users.user_login as post_author,
+select posts.ID as post_id,post_title,post_content,post_date,users.user_login as post_author,
 posts.post_author as post_author_id 
 from posts 
-left join users on users.ID= posts.post_author 
-where posts.ID=17;
+left join users on users.ID= posts.post_author
+left join postimages on postimages.iid = posts.post_cover_img 
+where posts.ID=31;
 		 */
 		$post = DB::table('posts')
-			->select('posts.ID as post_id', 'post_title','post_content','post_date','users.user_login as post_author','posts.post_author as post_author_id')
+			->select('posts.ID as post_id', 'post_title','post_content','post_date','users.user_login as post_author','posts.post_author as post_author_id','posts.post_cover_img','postimages.filename as post_img_name','post_summary')
 			->leftJoin('users','users.ID','=','posts.post_author')
+			->leftJoin('postimages','postimages.iid','=','posts.post_cover_img')
 			->where('posts.ID', '=', $post_id)
 			->get();
 		if(count($post)<=0){
 			return null;
 		}
-		$terms = Term::getTermsByPostID($post_id);
-		$cat = count($terms)>0?Term::getCategory($terms):array();
-		$tag = count($terms)>0?Term::getTag($terms):array();
-		$post[0]->category = $cat;
-		$post[0]->post_tag = $tag;
+// 		$terms = Term::getTermsByPostID($post_id);
+// 		$cat = count($terms)>0?Term::getCategory($terms):array();
+// 		$tag = count($terms)>0?Term::getTag($terms):array();
+// 		$post[0]->category = $cat;
+// 		$post[0]->post_tag = $tag;
 		
-		return $post[0];
+		return $post;
 	}
 	
 	/**

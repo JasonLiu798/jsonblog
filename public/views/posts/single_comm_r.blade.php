@@ -7,7 +7,7 @@
 {{ HTML::script('js/validate/formValidator-4.0.1.min.js') }}
 {{ HTML::script('js/validate/formValidatorRegex.js') }}
 {{ HTML::script('js/validate/comment_chk.js') }}
-
+{{ HTML::style('css/single_post.css') }}
 
 <script type="text/javascript">
 $().ready(function(){
@@ -42,11 +42,16 @@ function moveCommentForm(thisID,isBack){
 			<p class="blog-post-meta">
 			
 			</p>
+			@if(!empty($post->post_img_name))
+				<div class="post_cover">
+					<img class="post_cover_img" src="{{ $post->cover_img_url }}"/>
+				</div>
+			@endif
             <h2 class="blog-post-title">{{$post->post_title }}</h2>
-            <p class="blog-post-meta"><a href="{{url()}}/post/single/{{$post->post_id}}">{{date ( "Y-m-d", strtotime ( $post->post_date ) )}}</a> by <a href="{{url()}}/author/{{$post->post_author_id}}">{{$post->post_author }}</a>
+            <p class="blog-post-meta"><a href="{{url()}}/post/single/{{$post->post_id}}">{{date ( "Y-m-d", strtotime ( $post->post_date ) )}}</a> by <a href="{{url()}}/index">{{$post->post_author }}</a>
             @if(!empty($post->category))
     			@foreach ($post->category as $cat)
-    				{{ $cat->name }}
+    				<a href="{{url()}}/post/term/{{ $cat->term_id }}">{{ $cat->name }}</a>
     			@endforeach
     		@else
     			{{{'未分类'}}}
@@ -59,9 +64,9 @@ function moveCommentForm(thisID,isBack){
 			@if(!empty($post->post_tag))
    				<p class = "blog-post-meta">
 	    		@foreach ($post->post_tag as $tag)
-	   				<span class="label label-default">
-	   					{{ $tag->name }}
-	   				</span>    
+	   				<span class="tag">
+	   					<a href="{{url()}}/post/term/{{ $tag->term_id}}">{{ $tag->name }}</a>
+	   				</span>
 	   			@endforeach
 	   			</p>
    			@endif

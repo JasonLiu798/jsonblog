@@ -109,13 +109,13 @@ console.log('user:'+{{Session::get('user')}});
 					<span class="sr-only">Async Blog</span> <span class="icon-bar"></span>
 					<span class="icon-bar"></span> <span class="icon-bar"></span>
 				</button>
-				<a class="navbar-brand" href="{{url()}}">Async Blog</a>
+				<a class="navbar-brand" href="{{url()}}/index">Async Blog</a>
 			</div>
 			<!-- end of navbar-header -->
 
 			<div class="navbar-collapse collapse">
 				<ul class="nav navbar-nav">
-					<li class="active"><a href="{{url()}}">主页</a></li>
+					<li class="active"><a href="{{url()}}/index">主页</a></li>
 					<li><a href="#">关于</a></li>
 					
 					@if( !empty( $username ) )

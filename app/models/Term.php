@@ -39,7 +39,7 @@ class Term extends Eloquent  {
 	 * @param unknown $post_id
 	 * @return unknown
 	 */
-	public static function getTermsByPostID($post_id){
+	public static function get_terms_by_post($post_id){
 		/**
 		select terms.name as name,term_taxonomy.taxonomy as taxonomy,terms.term_id as term_id
 		from term_taxonomy
@@ -75,11 +75,11 @@ class Term extends Eloquent  {
 		return $terms;
 	}
 	
-	public static function getCategory($terms){
+	public static function get_category($terms){
 		return is_null($terms)?null:array_filter($terms,function($v){ return $v->taxonomy==='category'; });
 	}
 	
-	public static function getTag($terms){
+	public static function get_tag($terms){
 		return is_null($terms)?null:array_filter($terms,function($v){ return $v->taxonomy==='post_tag'; });
 	}
 	
@@ -132,14 +132,14 @@ class Term extends Eloquent  {
 	 * create category async
 	 * used in the post create
 	 */
-	public static function create_category_api($user_id,$category_name,$parent_id){
+	public static function create_category_api($category_name,$parent_id){
 		$term_id = 0;
 		DB::transaction(
-		 function() use(&$term_id,$user_id,$category_name,$parent_id)
+		 function() use(&$term_id,$category_name,$parent_id)
 		{
 			$term  = new Term;
 			DB::table('terms')->insert(
-				array('name'=>$category_name,'uid'=>$user_id)
+				array('name'=>$category_name)//,'uid'=>$user_id)
 			);
 			
 			$get_last_term_id_sql = "SELECT LAST_INSERT_ID() term_id";
@@ -164,14 +164,14 @@ class Term extends Eloquent  {
 	 * @param unknown $tag_name
 	 * @return unknown
 	 */
-	public static function create_tag_api($user_id,$tag_name){
+	public static function create_tag_api($tag_name){
 		$term_id = 0;
 		DB::transaction(
-		function() use(&$term_id,$user_id,$tag_name)
+		function() use(&$term_id,$tag_name)
 		{
 			$term  = new Term;
 			DB::table('terms')->insert(
-				array('name'=>$tag_name,'uid'=>$user_id)
+				array('name'=>$tag_name)//,'uid'=>$user_id)
 			);
 				
 			$get_last_term_id_sql = "SELECT LAST_INSERT_ID() term_id";
@@ -197,7 +197,7 @@ class Term extends Eloquent  {
 	/**
 	 * get categories
 	 */
-	public static function get_category($uid){
+	public static function get_all_categories(){
 		/*
 		select terms.name as name,term_taxonomy.parent,terms.term_id as term_id
 			from term_taxonomy

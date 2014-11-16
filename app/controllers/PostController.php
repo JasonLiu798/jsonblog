@@ -142,7 +142,7 @@ class PostController extends BaseController {
 			$sidebar = PostController::get_sidebar();
 			$view = View::make('posts/single_comm_r',
 					array('post'=>$post,'comments'=>$comments,'username'=>$username,
-					'title'=>$post->post_title.'|'.Lang::get('posts.TITLE'),
+					'title'=>$post->post_title,//.'|'.Lang::get('posts.TITLE'),
 					'pre_next_post'=>$pre_next_post,
 					'sidebar'=>$sidebar));
 			return $view;

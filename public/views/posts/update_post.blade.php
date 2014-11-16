@@ -96,8 +96,13 @@ tinymce.init({
             	<span class="tag tag_old" value="{{$tag->term_id}}" id="tag{{$tag->term_id}}" name="{{$tag->name}}">{{$tag->name}}</span>
             @endforeach
         </div>
+<<<<<<< HEAD
     </div><!-- tag box -->
     </div><!-- form-group -->
+=======
+    </div>
+    </div>
+>>>>>>> FETCH_HEAD
 	<!-- 
 	<div class="row">
 		<div class="col-xs-6">
@@ -112,10 +117,14 @@ tinymce.init({
 	<div class="form-group"></div> -->
 	<div class="form-group">
 		<!-- 设置博文封面图片 -->
+<<<<<<< HEAD
 		<input type="button" class="btn btn-default" id="submit_button" data-toggle="modal" data-target="#cover_img_diag" value="修改摘要图片"/>
 		<div>
 		<img id="old_cover_img" src="{{$post->cover_img_url}}"/>
 		</div>
+=======
+		<input type="button" class="btn btn-default" id="submit_button" data-toggle="modal" data-target="#cover_img_diag" value="设置摘要图片"/>
+>>>>>>> FETCH_HEAD
 	</div>
 	
 	<div class="form-group col-sm-offset-5 col-sm-12">

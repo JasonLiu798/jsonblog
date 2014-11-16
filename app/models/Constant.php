@@ -1,6 +1,8 @@
 <?php
 class Constant {
-	public static $PAGESIZE = 5; 
+	
+	public static $PAGESIZE = 5;
+
 	public static $ADMIN_PAGESIZE = 5;
 	public static $REG_YEAR_MONTH = '/[0-9]{4}-((0[1-9]|(10|11|12)))/';
 	public static $DIGIT = '/[0-9]+/';

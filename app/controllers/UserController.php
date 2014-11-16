@@ -5,6 +5,11 @@
  *
  */
 class UserController extends BaseController {
+
+	public function admin(){
+		
+	}
+
 	/*
 	public function processor($type,$param='page'){
 		Log::info("UserCon,T:".$type.",P:".$param);
@@ -255,7 +260,7 @@ Log::info('LOGIN ACTION,Cooke get:'.$cookie_user_json);
 		//Log::info('Logout user:'.$uid);
 		Session::forget('user');
 		//$sess_user_json = Session::get($uid);
-		return Redirect::action('PostController@index');
+		return Redirect::route('index');
 		//$sess_user_json = json_decode($sess_user);
 	}
 

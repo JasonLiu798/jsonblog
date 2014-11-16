@@ -29,6 +29,10 @@ class User extends Eloquent implements UserInterface, RemindableInterface {
 // 			->select('')
 // 	}
 	
+	public static function get_all_user(){
+		$user = DB::table('users')->select('ID','user_login','is_admin','user_email','is_admin');
+		return $user;
+	}
 	
 	public static function login($username,$password){
 		$user = DB::table('users')->select('ID','user_login','is_admin')
@@ -57,10 +61,7 @@ class User extends Eloquent implements UserInterface, RemindableInterface {
 		return $user_id;
 	}
 	
-	public static function register(){
-		
-			
-	}
+	
 	
 	public static function username_exist($username){
 		return DB::table('users')->where('user_login',$username)->count();

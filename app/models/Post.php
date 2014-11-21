@@ -23,7 +23,7 @@ class Post extends Eloquent  {
 	 * @return unknown
 	 */
 	public static function get_posts_by_userid($user_id,$pagesize){
-/**
+/*
 select users.user_login post_author,posts.ID post_id,post_date,post_content,count(comments.comment_ID) post_comment_count
 from posts 
 left join comments on comments.comment_post_ID = posts.ID
@@ -337,7 +337,38 @@ where posts.ID=31;
 		Log::info('CreatePost:'.$post_id);
 		return $post_id; 
 	}
+
+	/**
+	 * 创建post
+	 */
+	public static function update_post($post_id,$user_id,$post_title,$post_content,$post_cover_img_id,$post_summary){
+			//$post = new Post;
+		date_default_timezone_set("Europe/London");
+		$post_date_gmt = date('Y-m-d H:i:s',time());
+		date_default_timezone_set("Asia/Shanghai");
+		$post_date = date('Y-m-d H:i:s',time());
+		
+		DB::table( 'posts' )
+			->where( 'ID', $post_id)
+            ->update(
+			array(
+				'post_author'		=>$user_id,
+				'post_title'		=>$post_title,
+				'post_content'		=>$post_content,
+				'post_modified'		=>$post_date,
+				'post_modified_gmt'	=>$post_date_gmt,
+				'post_summary' 		=> $post_summary,
+				'post_cover_img'	=> $post_cover_img_id
+			)
+		);
+		//$get_last_post_id_sql = "SELECT LAST_INSERT_ID() ID";
+		//$post_id = DB::select($get_last_post_id_sql)[0]->ID;
+		Log::info('Update Post:'.$post_id);
+		//return $post_id;
+	}
 	
+
+
 	/**
 	 * 删除相关评论，标签
 	 */

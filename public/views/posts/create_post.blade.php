@@ -106,6 +106,9 @@ tinymce.init({
 	<div class="form-group">
 		<!-- 设置博文封面图片 -->
 		<input type="button" class="btn btn-default" id="submit_button" data-toggle="modal" data-target="#cover_img_diag" value="设置摘要图片"/>
+		<div>
+			<img id="cover_img_preview_inpage" src=""/>
+		</div>
 	</div>
 	
 	<div class="form-group col-sm-offset-5 col-sm-12">

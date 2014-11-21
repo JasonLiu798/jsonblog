@@ -261,7 +261,7 @@ $(document).ready(function(){
     		alert('正在上传！');
     		return;
     	}
-    	uploading = true;
+    	
     	if(jcrop_api!=null){
     		console.log('upload destory jcrop!');
     		jcrop_api.destroy();
@@ -274,7 +274,9 @@ $(document).ready(function(){
     	//check file type by extend name
     	if( check_file_type(upfile)<0 ){
     		alert('图片类型不符合要求，只能上传jpg,gif,png,bmp类型图片！');
+            return;
     	}
+        uploading = true;
     	img_name_before_cut_url=null;
     	img_name_after_cut_url=null;
     	iid=null;
@@ -409,6 +411,8 @@ $(document).ready(function(){
     		cut = 'yes';
     	}
     	final_img_name = final_img_url.substring( final_img_url.lastIndexOf('/')+1 );
+        //主页面设置图片
+        $("#cover_img_preview_inpage").attr("src",final_img_url);
     	//异步保存
     	$.ajax({
             url: "http://"+window.location.host+"/img/post/cover/save",
@@ -426,18 +430,16 @@ $(document).ready(function(){
                         alert("出错了" +data.msg);
                     }
                 }
-                alert(data.msg);
+                //alert(data.msg);
             	$("#up_cover_img").attr("src", main_space );
                 $("#img_preview").attr("src",  prev_space );
+
             },
             error: function (msg) {
                 alert(msg.responseText);
             }
         });
-    	
-    	//清空所有变量
-//    	img_name_before_cut_url='';
-//    	img_name_after_cut_url='';
+    	 
     	var main_space = "http://"+window.location.host+"/img/space450x250.jpg";
     	var prev_space = "http://"+window.location.host+"/img/space250x150.jpg";
     	$("#up_cover_img").attr("src", main_space );

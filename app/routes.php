@@ -13,24 +13,32 @@
 
 //Index
 Route::any('/', function(){
-	//return Redirect::action('PostController@index');
-	//return Redirect::route('index');
 	return Redirect::to('index');
 });
-Route::any('/index', array('as'=>'index','uses' => 'PostController@index'));
+	//return Redirect::action('PostController@index');
+	//return Redirect::route('index');
+	// return Redirect::to('index');
+// });
+// Route::any('/index', function(){
+// 	return Redirect::to('index');
+// });
+Route::any('/index',array('as'=>'index','uses' => 'PostController@index'));
 //Post
 Route::group(array('prefix' => 'post'), function() {
+	//浏览
 	//分类浏览	/post/term/xxx
 	Route::get('/term/{term_id}', array('as'=>'idx_term','uses' => 'PostController@term_achive'));
 	//日期浏览	 /post/date/2014-10
 	Route::get('/date/{date}', array('as'=>'idx_date','uses' => 'PostController@date_achive'));
-	
+	//ID浏览
+	Route::any('single/{post_id}',array('as' => 'singlepost','uses'=>'PostController@single')); // 
 	//Route::any('/author/{user_id}', array('as'=>'author','uses'=>'PostController@posts_by_author'));
-	
-	//Route::any('admin','PostController@admin');
-	Route::any('single/{post_id}',array('as' => 'singlepost','uses'=>'PostController@single')); // /{term_id}/{post_date?}',
+	//--------管理-----------
+	//管理页面
+	Route::any('admin','PostController@admin');
+	//{term_id}/{post_date?}',
 	// post/single/id
-	Route::any('create/{param}','PostController@create');
+	Route::any('create','PostController@create');
 	Route::any('update/page/{post_id}','PostController@pre_update');
 	Route::any('update/save','PostController@update');
 	// /post/create/save?post_title=testposttitle1&post_content=testcontent&category=1&post_tag_ids=46,44,47
@@ -38,7 +46,6 @@ Route::group(array('prefix' => 'post'), function() {
 	Route::get('delete_','PostController@delete_only_post');// post/delete_?post_id=
 
 });
-
 
 //User
 Route::group(array('prefix' => 'user'), function() {
@@ -62,14 +69,39 @@ Route::get('/user/chkparameter','UserController@chk_parameter');
 
 //管理
 Route::group(array('prefix' => 'admin'), function() {
+	Route::any('index','AdminController@index');
+	// Route::any('post','PostController@admin');//  admin/post
+	
 	Route::group(array('prefix' => 'post'), function() {
-		Route::any('page','PostController@admin');// admin/post/page
+		Route::any('/','PostController@admin');//
 		Route::any('delete/{post_id}','PostController@delete_all');// admin/post/delete?post_id=
 		Route::get('delete_/{post_id}','PostController@delete_post');// admin/post/delete_?post_id=
+	});
+
+	Route::group(array('prefix' => 'comment'), function() {
+		Route::any('/','CommentController@admin');//	admin/comment
+		Route::any('delete/{cid}','CommentController@delete');// admin/comment/delete?post_id=
+		// Route::get('deleteonly/{cid}','PostController@delete_comment');// admin/post/delete_?post_id=
 		
 	});
 	
-	
+	Route::group(array('prefix' => 'category'), function() {
+		// array('as'=>'index','uses' => 'PostController@index')
+		Route::any('/', array('as'=>'cat_admin','uses' => 'TermsController@cat_admin'));//	admin/category
+		Route::any('delete/{tid}','TermsController@cat_delete');// admin/category/delete/tid
+		Route::any('create','TermsController@cat_create');// admin/category/create
+		Route::any('update/{tid}','TermsController@cat_update');// admin/category/create
+		// Route::get('deleteonly/{cid}','PostController@delete_comment');// admin/post/delete_?post_id=
+		
+	});
+
+	Route::group(array('prefix' => 'tag'), function() {
+		Route::any('/','TermsController@tag_admin');//	admin/category
+		Route::any('delete/{tid}','TermsController@tag_delete');// admin/category/delete/tid
+
+		// Route::get('deleteonly/{cid}','PostController@delete_comment');// admin/post/delete_?post_id=
+		
+	});
 // 	Route::any('single/{post_id}',array('as' => 'singlepost','uses'=>'PostController@single')); // /{term_id}/{post_date?}',
 // 	// post/single/id
 // 	Route::any('create/{param}','PostController@create');
@@ -89,6 +121,7 @@ Route::group(array('prefix' => 'img'), function() {
 	Route::any('post/cover/save','ImgController@post_cover_save');// img/post/cover/save
 	
 });
+
 //Comment index
 Route::any('/comment/admin','CommentController@admin');
 Route::any('/comment/delete/{cid}','CommentController@delete');// /comment/delete/
@@ -113,6 +146,7 @@ Route::group(array('prefix' => 'term'), function() {
 	
 	});
 });
+
 Route::group(array('prefix' => 'category'), function() {
 	//API
 	Route::group(array('prefix' => 'api'), function() {

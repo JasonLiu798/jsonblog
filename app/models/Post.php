@@ -23,7 +23,7 @@ class Post extends Eloquent  {
 	 * @return unknown
 	 */
 	public static function get_posts_by_userid($user_id,$pagesize){
-/**
+/*
 select users.user_login post_author,posts.ID post_id,post_date,post_content,count(comments.comment_ID) post_comment_count
 from posts 
 left join comments on comments.comment_post_ID = posts.ID
@@ -40,6 +40,9 @@ order by posts.post_date desc;
 			->groupBy('posts.ID')
 			->orderBy('posts.post_date','desc')
 			->paginate($pagesize);
+		// $totla_cnt = DB::table('posts')->where('posts.post_author','=',$user_id)->count();
+		// $paginator = Paginator::make($posts,$totla_cnt,$pagesize);
+			// 
 		return $posts;
 	}
 	
@@ -49,17 +52,17 @@ order by posts.post_date desc;
 	 * @return NULL
 	 */
 	public static function get_posts($pagesize){
-		$posts = null;
-		if($pagesize>0){
-			$posts = DB::table('posts')
-				->leftJoin('users','users.ID','=','posts.post_author')
-				->leftJoin('postimages','postimages.iid','=','posts.post_cover_img')
-				->select('posts.ID as post_id', 'post_title','post_content','post_date','users.user_login as post_author','post_summary','postimages.filename as post_img_name',DB::raw('count(comments.comment_ID) as comment_count'))
-				->leftJoin('comments','comments.comment_post_ID','=','posts.ID')
-				->groupBy('posts.ID')
-				->orderBy('post_date','desc')
-				->paginate($pagesize);
-		}
+		$posts = DB::table('posts')
+			->leftJoin('users','users.ID','=','posts.post_author')
+			->leftJoin('postimages','postimages.iid','=','posts.post_cover_img')
+			->select('posts.ID as post_id', 'post_title','post_content','post_date','users.user_login as post_author','post_summary','postimages.filename as post_img_name',DB::raw('count(comments.comment_ID) as comment_count'))
+			->leftJoin('comments','comments.comment_post_ID','=','posts.ID')
+			->groupBy('posts.ID')
+			->orderBy('post_date','desc')
+			// ->select();
+			->paginate($pagesize);
+		// $totla_cnt = DB::table('posts')->count();
+		// $paginator = Paginator::make($posts,$totla_cnt,$pagesize);
 		return $posts;
 	}
 	
@@ -70,7 +73,7 @@ order by posts.post_date desc;
 	 * @return NULL
 	 */
 	public static function get_posts_by_term($term_id,$pagesize){
-		/**
+		/*
 			select posts.ID post_id,users.user_login post_author,post_date,post_content,users.ID as post_author_id,
 			post_title,count(comments.comment_ID) comment_count
 			from posts 
@@ -102,7 +105,7 @@ order by posts.post_date desc;
 	 * @param unknown $pagesize
 	 */
 	public static function get_post_by_date($date,$pagesize){
-		/**
+		/*
 		  select posts.ID post_id,users.user_login post_author,users.ID as post_author_id,DATE_FORMAT(posts.post_date,'%Y-%m'),
 		  post_content,post_title,count(comments.comment_ID) comment_count
 		  from posts 
@@ -124,7 +127,7 @@ order by posts.post_date desc;
 		return $posts;
 	}
 	
-	/**
+	/* 
 	 * get posts by user id
 	 * @param unknown $pagesize
 	 *
@@ -337,7 +340,38 @@ where posts.ID=31;
 		Log::info('CreatePost:'.$post_id);
 		return $post_id; 
 	}
+
+	/**
+	 * 创建post
+	 */
+	public static function update_post($post_id,$user_id,$post_title,$post_content,$post_cover_img_id,$post_summary){
+			//$post = new Post;
+		date_default_timezone_set("Europe/London");
+		$post_date_gmt = date('Y-m-d H:i:s',time());
+		date_default_timezone_set("Asia/Shanghai");
+		$post_date = date('Y-m-d H:i:s',time());
+		
+		DB::table( 'posts' )
+			->where( 'ID', $post_id)
+            ->update(
+			array(
+				'post_author'		=>$user_id,
+				'post_title'		=>$post_title,
+				'post_content'		=>$post_content,
+				'post_modified'		=>$post_date,
+				'post_modified_gmt'	=>$post_date_gmt,
+				'post_summary' 		=> $post_summary,
+				'post_cover_img'	=> $post_cover_img_id
+			)
+		);
+		//$get_last_post_id_sql = "SELECT LAST_INSERT_ID() ID";
+		//$post_id = DB::select($get_last_post_id_sql)[0]->ID;
+		Log::info('Update Post:'.$post_id);
+		//return $post_id;
+	}
 	
+
+
 	/**
 	 * 删除相关评论，标签
 	 */

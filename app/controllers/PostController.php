@@ -3,17 +3,33 @@ class PostController extends BaseController {
 	
 	
 	public function index(){
-		Log::info('IndexAction');
+		//Log::info('IndexAction');
 		//get posts
-		$posts = Post::get_posts( Constant::$PAGESIZE );
-		$posts = Post::add_meta($posts);
+		// $page = Input::get('page', 1);
+		// Log::info('Index Page'.$page);
+
+		$posts = Post::get_posts(  Constant::$PAGESIZE );
+		//print_r($posts);
+		// return ;
+		// $queries = DB::getQueryLog();
+		// $last_query = end($queries);
+
+		// Log::info('INDEX POSTS:'.$last_query['query']);
+
+		if( $posts){
+			$posts = Post::add_meta($posts);
+		}else{
+			$posts = null;
+		}
 		$sidebar = PostController::get_sidebar();
 		$username = User::get_name_from_session( Session::get('user') );
 		$view = View::make('index',
-				array('title'=>'AsyncBlog','username'=>$username,
-						'term4title'=>null,'date4title'=>null,//'user4title'=>null,
-						'posts'=>$posts,
-						'sidebar'=>$sidebar));
+				array('title'=>'AsyncBlog',
+					'username'=>$username,
+					'term4title'=>null,
+					'date4title'=>null,
+					'posts'=>$posts,
+					'sidebar'=>$sidebar));
 // 		if(count($posts[0]->post_tag)>0){
 // 			foreach($posts[0]->post_tag as $term)
 // 				Log::info('post term:'.$term->name.',TAX:'.$term->taxonomy);
@@ -149,17 +165,18 @@ class PostController extends BaseController {
 		}
 	}
 	
-	public function create($param='page'){
+	public function create(){
 		$sess_user_json = Session::get('user','default');
 		$user = json_decode($sess_user_json);
 		$msg = '';
 		if( is_null( $user ) ){
 			$msg = "未登录";
 		}else{
-			if($param === 'page'){
+			$method = Input::get('method');
+			if(is_null($method)){
 				$category = Term::get_all_categories();
 				$term = new Term();
-				$category_tree = $term->format_category2tree($category);
+				$category_tree = $term->format_category2tree($category,'&nbsp;&nbsp;');
 				$top5post_tag = Term::get_top5_post_tag();
 				$sidebar = self::get_sidebar();
 				$view = View::make('posts/create_post',array(
@@ -167,9 +184,9 @@ class PostController extends BaseController {
 						'category'=>$category_tree,
 						'post_tag'=>$top5post_tag,
 						'sidebar'=>$sidebar));
-			}else if($param === 'draft_page'){
+			}else if($method === 'savedraft'){
 				
-			}else if($param === 'save'){
+			}else if($method === 'save'){
 				$post_title = Input::get('post_title');//urldecode(urldecode());
 				$post_content = Input::get('post_content');//urldecode(urldecode(Input::get('post_content')));
 				$set_cover = (string)Input::get('set_cover');
@@ -269,18 +286,39 @@ Log::info("POST TAGS:".$post_tag_ids.",CAT:".$category_id);
 		if( is_null( $user ) ){
 			$msg = "未登录";
 		}else{
+			$post_id = Input::get('post_id');
+			$post_title = Input::get('post_title');//urldecode(urldecode());
+			$post_content = Input::get('post_content');//urldecode(urldecode(Input::get('post_content')));
+			$set_cover = (string)Input::get('set_cover');
+			$cover_img_id = Input::get('cover_img_id');
+Log::info('Post Update:set_cover'.$set_cover.' ,iid:'.$cover_img_id);
+			if( $set_cover === 'true' ){
+				//有封面图片，只显示 标题+图片
+				$post_cover_img = (int)$cover_img_id;//url().Constant::$UPLOAD_IMG_DIR.$post_cover_img_name;
+			}else{
+				//无封面图片，显示 标题+summary
+				$post_cover_img = 0;
+			}
+			$post_summary = Post::get_summary($post_content,Constant::$POST_INDEX_CUT_SIZE);
 			
-				$category = Term::get_all_categories();
-				$term = new Term();
-				$category_tree = $term->format_category2tree($category);
-				$top5post_tag = Term::get_top5_post_tag();
-				$sidebar = self::get_sidebar();
-				$view = View::make('posts/create_post',array(
-						'title'=>Lang::get('post.TITLE'),'username'=>$user->username,
-						'category'=>$category_tree,
-						'post_tag'=>$top5post_tag,
-						'sidebar'=>$sidebar));
-			
+			//$post_cover_img_name = Input::get('cover_img_name');
+Log::info('UPDATE POST:'.$post_title.','.$post_cover_img.','.$post_summary );
+			Post::update_post($post_id ,$user->uid,$post_title,$post_content,$post_cover_img,$post_summary);
+			//delete all
+			Term::delete_term_relationship($post_id);
+			//add new 
+			$category_id = Input::get('category');
+			$post_tag_ids = Input::get('post_tag_ids');
+			if( strlen($post_tag_ids) > 0 ){
+				$termid_arr = explode(',',$post_tag_ids);
+				array_push( $termid_arr, $category_id);
+			}else{
+				$termid_arr = array();
+				array_push( $termid_arr, $category_id);
+			}
+			Post::create_post_term( $post_id, $termid_arr );
+Log::info("POST TAGS:".$post_tag_ids.",CAT:".$category_id);
+			$view = Redirect::route('singlepost',array($post_id));
 		}
 		if(strlen($msg)>0){
 			return Redirect::route('error', array($msg));
@@ -326,9 +364,10 @@ Log::info("POST TAGS:".$post_tag_ids.",CAT:".$category_id);
 		}else{
 			$posts = Post::add_meta( $posts);
 		}
+
 		$view = View::make('posts/post_admin',
-				array('title'=>'博文管理','username'=>$username, 'posts'=>$posts,
-				));
+			array('title'=>'博文管理','username'=>$username, 'posts'=>$posts,'menu'=>'post')
+		);
 		return $view;
 	}
 	

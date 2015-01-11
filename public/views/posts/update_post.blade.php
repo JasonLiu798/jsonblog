@@ -43,8 +43,9 @@ tinymce.init({
 	<h2>{{$title}}</h2>
 	
 <form method="post" action="{{url()}}/post/update/save" accept-charset="utf-8" role="form" id="update_post_form">
+	<input type="hidden" name="post_id" id="post_id" value="{{ $post->post_id }}" />
 	<input type="hidden" name="post_tag_ids" id="post_tag_ids" value="{{ $post->post_tag_id }}" />
-	<input type="hidden" id="set_cover" name="set_cover" value="false" />
+	<input type="hidden" id="set_cover" name="set_cover" value="{{ $post->post_cover_img==0?"false":"true" }}" />
 	<!--<input type="hidden" id="cover_img_name" name="cover_img_name" value="false"/> 生成摘要url用 -->
 	<input type="hidden" id="cover_img_id" name="cover_img_id" value="{{$post->post_cover_img }}"/><!-- 保存用 -->
 	<div class="form-group">
@@ -96,13 +97,10 @@ tinymce.init({
             	<span class="tag tag_old" value="{{$tag->term_id}}" id="tag{{$tag->term_id}}" name="{{$tag->name}}">{{$tag->name}}</span>
             @endforeach
         </div>
-<<<<<<< HEAD
     </div><!-- tag box -->
     </div><!-- form-group -->
-=======
-    </div>
-    </div>
->>>>>>> FETCH_HEAD
+
+
 	<!-- 
 	<div class="row">
 		<div class="col-xs-6">
@@ -117,14 +115,10 @@ tinymce.init({
 	<div class="form-group"></div> -->
 	<div class="form-group">
 		<!-- 设置博文封面图片 -->
-<<<<<<< HEAD
-		<input type="button" class="btn btn-default" id="submit_button" data-toggle="modal" data-target="#cover_img_diag" value="修改摘要图片"/>
+		<input type="button" class="btn btn-default" id="submit_button" data-toggle="modal" data-target="#cover_img_diag" value="重设摘要图片"/>
 		<div>
-		<img id="old_cover_img" src="{{$post->cover_img_url}}"/>
+			<img id="cover_img_preview_inpage" src="{{$post->cover_img_url}}"/>
 		</div>
-=======
-		<input type="button" class="btn btn-default" id="submit_button" data-toggle="modal" data-target="#cover_img_diag" value="设置摘要图片"/>
->>>>>>> FETCH_HEAD
 	</div>
 	
 	<div class="form-group col-sm-offset-5 col-sm-12">

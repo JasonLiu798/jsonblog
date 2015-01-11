@@ -2,14 +2,16 @@
 
 class CommentController extends BaseController {
 	
+
 	public function admin(){
 		$sess_user = Session::get('user');
-		$username = User::getNameFromSession( $sess_user);
-		$user_id = User::getUserIDFromSession( $sess_user );
-		$title = '评论管理';
-		$comments = Comment::getCommentsByUserID($user_id, Constant::$ADMIN_PAGESIZE);
-		$view = View::make('comments/comment',
-				array('title'=>$title,'username'=>$username, 'comments'=>$comments,
+		$username = User::get_name_from_session( $sess_user);
+		$user_id = User::get_userid_from_session( $sess_user );
+		
+		$comments = Comment::get_comments_uid($user_id, Constant::$ADMIN_PAGESIZE);
+
+		$view = View::make('comments/comment_admin',
+				array('title'=>'评论管理','username'=>$username, 'comments'=>$comments,'menu'=>'comment'
 						));
 		return $view;
 	}

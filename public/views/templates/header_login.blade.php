@@ -13,7 +13,7 @@
 	{{ HTML::style('bootstrap/css/bootstrap.css') }}
     {{ HTML::style('css/style.css') }}
     
-    <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+    <script src="{{url()}}:3000/socket.io/socket.io.js"></script>
 	@if (! empty ( $next_url ))
 		<META HTTP-EQUIV="REFRESH" CONTENT="100;URL={{$next_url}}?>" />
 	@endif
@@ -31,15 +31,15 @@
 			var msgs_y = $('#msgs_item').offset().left;
 			var msgs_height = $('#msgs_item').outerHeight();
 			var msgs_width = $('#msgs_item').outerWidth();
-			console.log("x:"+msgs_x+",y:"+msgs_y);
-			console.log("oh:"+msgs_height+",ow:"+msgs_width);
+			// console.log("x:"+msgs_x+",y:"+msgs_y);
+			// console.log("oh:"+msgs_height+",ow:"+msgs_width);
 			var msgbox_width = $('#msgbox').outerWidth();
 			//msgbox位置
 			var msgbox_X = msgs_y+msgs_width*5/8-msgbox_width/2;
 			var msgbox_Y = msgs_height*7/8;
 			$('#msgbox').css("left",msgbox_X);
 			$('#msgbox').css("top",msgbox_Y);
-			console.log('box x:'+msgbox_X+',y:'+msgbox_Y);
+			// console.log('box x:'+msgbox_X+',y:'+msgbox_Y);
 			
 			var msgbox_head_height = $('#msgbox_head').outerHeight();
 			var msgbox_head_width = $('#msgbox_head').outerWidth();
@@ -71,9 +71,10 @@
 			$('#msgbox').bind('click',function(e){
 	            stopPropagation(e);
 	        });
-
-			var socket = io('http://localhost:3000');
-console.log('user:'+{{Session::get('user')}});
+			var node_url = "http://"+window.location.hostname+":3000";
+// console.log(node_url);
+			var socket = io(node_url);
+// console.log('user:'+{{Session::get('user')}});
 			socket.emit('reguser', {{ Session::get('user') }});
 			socket.on('newcomm',function(data){
 				console.log('NewComm:'+data.cnt );
@@ -157,7 +158,7 @@ console.log('user:'+{{Session::get('user')}});
 					@else
 						<a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ $username }}<b class="caret"></b></a>
 						<ul class="dropdown-menu">
-							<li><a href="{{url()}}">主页</a></li>
+							<li><a href="{{url()}}">文章管理</a></li>
 							<li><a href="#">设置</a></li>
 							<li class="divider"></li>
 							<li><a href="{{url()}}/user/logout">退出</a></li>

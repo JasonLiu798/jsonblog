@@ -15,8 +15,8 @@ class Comment extends Eloquent  {
 	protected $softDelete = true;
 	
 	
-	public static function getCommentsByUserID($uid,$pagesize){
-/**
+	public static function get_comments_uid($uid,$pagesize){
+/*
 select comments.comment_ID,
 	users.user_login comment_author_reg,comments.comment_author,
 	comments.comment_content,comments.comment_date,

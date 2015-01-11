@@ -21,6 +21,14 @@ class Term extends Eloquent {
 		//DB::table('terms')
 		DB::table('term_relationships')->where('object_id', '=', $post_id)->delete();
 	}
+<<<<<<< HEAD
+=======
+	
+	public static function delete_term_relationship($post_id){
+		//DB::table('terms')
+		DB::table('term_relationships')->where('object_id', '=', $post_id )->delete();
+	}
+>>>>>>> FETCH_HEAD
 
 	/**
 	 *

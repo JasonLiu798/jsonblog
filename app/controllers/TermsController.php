@@ -98,12 +98,43 @@ class TermsController extends BaseController {
 	 */
 	public function cat_delete($tid) {
 		$err = '';
-		if (Term::chk_category_name_exist($category_name) <= 0) {
-			$err = '分类名不存在';
+		if (Term::chk_cat_exist_tid($tid) <= 0) {
+			$err = '分类不存在';
 		} else {
-			Term::delete_cat_tid($tid);
+			Log::info('DELETE TID:' . $tid);
+			Term::delete_with_child($tid);
+			//Term::delete_term_tid($tid);
+		}
+		if (strlen($err) > 0) {
+			return Redirect::route('error', array($err)); //,array($post_id));
+		} else {
+			return Redirect::route('cat_admin'); //,array($post_id));
+		}
+	}
+
+	public function cat_batch_delete() {
+		$err = '';
+		$ids = Input::get('delete_ids');
+		Log::info('Delete ids:' . $ids);
+		if (is_null($ids) || strlen($ids) <= 0) {
+			$err = '参数错误';
+		} else {
+			$id_arr = explode(',', $ids);
+			if (count($id_arr) > 0) {
+				foreach ($id_arr as $tid) {
+					Term::delete_with_child($tid);
+				}
+			} else {
+				$err = '参数错误';
+			}
 		}
 
+		if (strlen($err) > 0) {
+			return Redirect::route('error', array($err)); //,array($post_id));
+		} else {
+			return Redirect::route('cat_admin'); //,array($post_id));
+		}
+		// return Redirect::route('cat_admin'); //,array($post_id));
 	}
 
 	public function cat_admin() {
@@ -123,6 +154,86 @@ class TermsController extends BaseController {
 				'categories' => $categories,
 				'menu' => 'category'));
 		return $view;
+	}
+
+	public function tag_admin() {
+		$sess_user = Session::get('user');
+		$username = User::get_name_from_session($sess_user);
+		$user_id = User::get_userid_from_session($sess_user);
+
+		$tags = Term::get_admin_tag(); //Constant::$ADMIN_PAGESIZE);
+
+		//$category = Term::get_all_categories();
+		// $term = new Term();
+		// $categories = $term->format_category2tree($cats, '——');
+
+		$view = View::make('term/tag_admin',
+			array('title' => '标签管理',
+				'username' => $username,
+				'tags' => $tags,
+				'menu' => 'tag'));
+		return $view;
+	}
+
+	public function tag_create() {
+		$err = '';
+		$tag_name = Input::get('new_tag_name'); //urldecode(urldecode(Input::get('new_catagory_name')));
+		if (Term::chk_tag_name_exist($tag_name) > 0) {
+			$err = '标签名已经存在';
+			//return Response::make('分类名已经存在!', 500 );
+		} else {
+			//$new_category_parent = Input::get('new_category_parent');
+			$term_id = Term::create_tag_api($tag_name);
+			if ($term_id <= 0) {
+				//add success
+				$err = '分类添加失败';
+			}
+		}
+		if (strlen($err) > 0) {
+			return Redirect::route('error', array($err)); //,array($post_id));
+		} else {
+			return Redirect::route('tag_admin');
+		}
+	}
+
+	public function tag_delete($tid) {
+		$err = '';
+		if (Term::chk_tag_exist_tid($tid) <= 0) {
+			$err = '标签不存在';
+		} else {
+			Log::info('DELETE TID:' . $tid);
+			Term::delete_term_tid($tid);
+		}
+		if (strlen($err) > 0) {
+			return Redirect::route('error', array($err)); //,array($post_id));
+		} else {
+			return Redirect::route('tag_admin'); //,array($post_id));
+		}
+	}
+
+	public function tag_batch_delete() {
+		$err = '';
+		$ids = Input::get('delete_ids');
+		Log::info('Delete ids:' . $ids);
+		if (is_null($ids) || strlen($ids) <= 0) {
+			$err = '参数错误';
+		} else {
+			$id_arr = explode(',', $ids);
+			if (count($id_arr) > 0) {
+				foreach ($id_arr as $tid) {
+					Term::delete_term_tid($tid);
+				}
+			} else {
+				$err = '参数错误';
+			}
+		}
+
+		if (strlen($err) > 0) {
+			return Redirect::route('error', array($err)); //,array($post_id));
+		} else {
+			return Redirect::route('tag_admin'); //,array($post_id));
+		}
+		// return Redirect::route('cat_admin'); //,array($post_id));
 	}
 
 	public function cat_create() {
@@ -150,7 +261,7 @@ class TermsController extends BaseController {
 		if (strlen($err) > 0) {
 			return Redirect::route('error', array($err)); //,array($post_id));
 		} else {
-			return Redirect::route('cat_admin'); //,array($post_id));
+			return Redirect::route('cat_admin');
 		}
 		// return Response::json(array('success' => 'true', 'term_id' => $term_id));
 	}
@@ -166,52 +277,133 @@ class TermsController extends BaseController {
 			$username = User::get_name_from_session($sess_user);
 			$user_id = User::get_userid_from_session($sess_user);
 
-			if (is_null($method)) {
-				if (Term::chk_cat_exist_tid($tid) != 1) {
-					$err = '分类不存在';
-				}
-				//show pre update page
-				$cat = Term::get_cat_tid($tid);
-
-				$queries = DB::getQueryLog();
-				$last_query = end($queries);
-				Log::info('Term:' . $last_query['query']);
-
-				$cats = Term::get_admin_category(); //Constant::$ADMIN_PAGESIZE);
-				$term = new Term();
-				$categories = $term->format_category2tree($cats, '——');
-				foreach ($categories as $cate) {
-					if ($cate->parent == $cat->term_id) {
-						$cate->select = 1;
-					} else {
-						$cate->select = 0;
-					}
-				}
-				$resp = View::make('term/category_update',
-					array('title' => '分类修改',
-						'username' => $username,
-						'cat' => $cat,
-						'categories' => $categories,
-						'menu' => 'category'));
-			} else if ($method === 'update') {
-
+			if (Term::chk_cat_exist_tid($tid) != 1) {
+				$err = '分类不存在';
 			} else {
-				$err = '无效操作';
-			}
+				if (is_null($method)) {
+					//update page,show pre update page
+					$cat = Term::get_cat_tid($tid);
 
-			// $category_name = Input::get('new_category_name');//urldecode(urldecode(Input::get('new_catagory_name')));
-			// if(Term::chk_category_name_exist($category_name) > 0){
-			// 	$err = '分类名已经存在';
-			// 	//return Response::make('分类名已经存在!', 500 );
-			// }else{
-			// 	$new_category_parent = Input::get('new_category_parent');
-			// 	$term_id = Term::create_category_api($category_name,$new_category_parent);
-			// 	if($term_id<=0){//add success
-			// 		$err = '分类添加失败';
-			// 		// Redirect::route('cat_admin');//,array($post_id));
-			// 		//return Rresponse::json(array('success' => 'false', 'msg' =>'添加分类失败'));
-			// 	}
-			// }
+					$queries = DB::getQueryLog();
+					$last_query = end($queries);
+					Log::info('Term:' . $last_query['query']);
+
+					$cats = Term::get_admin_category(); //Constant::$ADMIN_PAGESIZE);
+					$term = new Term();
+					$categories = $term->format_category2tree($cats, '——');
+					foreach ($categories as $cate) {
+						if ($cate->term_id == $cat->parent) {
+							$cate->select = 1;
+						} else {
+							$cate->select = 0;
+						}
+						if ($cate->term_id == $cat->term_id) {
+							$cate->delete = 1;
+						} else {
+							$cate->delete = 0;
+						}
+					}
+					$resp = View::make('term/category_update',
+						array('title' => '分类修改',
+							'username' => $username,
+							'cat' => $cat,
+							'categories' => $categories,
+							'menu' => 'category'));
+				} else if ($method === 'update') {
+					// $tid = Input::get('term_id');
+					$pid = Input::get('category_parent');
+					$name = Input::get('category_name');
+
+					Log::info('Update Catid:' . $tid . ',pid:' . $pid . ',name:' . $name);
+					$old_name = Term::get_cat_name($tid);
+					if ($old_name !== $name && Term::chk_category_name_exist($name) > 0) {
+						$err = '修改的分类名已经存在';
+					} else if ($old_name === $name || Term::chk_category_name_exist($name) <= 0) {
+						$cnt = Term::chk_cat_exist_tid($pid);
+						if ($pid === $tid) {
+							$err = '父分类不能为自己';
+						} else {
+							if ($pid != 0 && $cnt <= 0) {
+								$err = '父分类不存在';
+							} else {
+								Term::update_term($tid, $name, $pid);
+								$resp = Redirect::route('cat_admin');
+							}
+						}
+					} else {
+						$err = '参数错误';
+					}
+				} else {
+					$err = '无效操作';
+				}
+			}
+		}
+
+		if (strlen($err) > 0) {
+			return Redirect::route('error', array($err)); //,array($post_id));
+		} else {
+			return $resp;
+		}
+	}
+
+	/**
+	 * [cat_update description]
+	 * @param  [type] $tid [description]
+	 * @return [type]      [description]
+	 */
+	public function tag_update($tid) {
+		$err = '';
+		$method = Input::get('method');
+		$resp = null;
+		$sess_user = Session::get('user');
+		if (is_null($sess_user)) {
+			$err = '未登录';
+		} else {
+			$username = User::get_name_from_session($sess_user);
+			$user_id = User::get_userid_from_session($sess_user);
+
+			if (Term::chk_tag_exist_tid($tid) != 1) {
+				$err = '标签不存在';
+			} else {
+				if (is_null($method)) {
+					//update page,show pre update page
+					$tag = Term::get_tag_tid($tid);
+
+					// $queries = DB::getQueryLog();
+					// $last_query = end($queries);
+					// Log::info('Term:' . $last_query['query']);
+
+					// $cats = Term::get_admin_category(); //Constant::$ADMIN_PAGESIZE);
+					// $term = new Term();
+					// $categories = $term->format_category2tree($cats, '——');
+					// foreach ($categories as $cate) {
+					// 	if ($cate->term_id == $cat->parent) {
+					// 		$cate->select = 1;
+					// 	} else {
+					// 		$cate->select = 0;
+					// 	}
+					// }
+					$resp = View::make('term/tag_update',
+						array('title' => '标签修改',
+							'username' => $username,
+							'tag' => $tag,
+							// 'categories' => $categories,
+							'menu' => 'tag'));
+				} else if ($method === 'update') {
+					// $tid = Input::get('term_id');
+					// $pid = Input::get('category_parent');
+					$name = Input::get('tag_name');
+					if (Term::chk_tag_name_exist($name) > 0) {
+						$err = '修改的标签名已经存在';
+					} else {
+						Log::info('Update Catid:' . $tid . ',name:' . $name);
+						Term::update_tag($tid, $name);
+						$resp = Redirect::route('tag_admin');
+					}
+				} else {
+					$err = '无效操作';
+				}
+			}
 		}
 
 		if (strlen($err) > 0) {

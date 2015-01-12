@@ -30,6 +30,11 @@ class Term extends Eloquent {
 	}
 >>>>>>> FETCH_HEAD
 
+	// public static function delete_term_relationship($post_id){
+	// 	//DB::table('terms')
+	// 	DB::table('term_relationships')->where('object_id', '=', $post_id )->delete();
+	// }
+
 	/**
 	 *
 	 */
@@ -45,9 +50,11 @@ class Term extends Eloquent {
 		return $term;
 	}
 
-	public static function delete_cat_tid($tid) {
+	// public static function delete_cat_tid($tid) {
 
-	}
+	// 	DB::table('terms')->where('term_id', '=', $tid)->delete();
+	// 	DB::table('term_taxonomy')->where('term_id', '=', $tid)->delete();
+	// }
 
 	/**
 	 *
@@ -105,6 +112,17 @@ class Term extends Eloquent {
 			->join('terms', 'terms.term_id', '=', 'term_taxonomy.term_id')
 			->leftjoin('term_relationships', 'term_relationships.term_taxonomy_id', '=', 'term_taxonomy.term_id')
 			->where('term_taxonomy.taxonomy', '=', 'category')
+			->groupby('terms.term_id')
+			->get(); //paginate($pagesize);
+		return $terms;
+	}
+
+	public static function get_admin_tag() {
+		$terms = DB::table('term_taxonomy')
+			->select('terms.name', 'terms.term_id', DB::raw('count(term_relationships.object_id) post_cnt'))
+			->join('terms', 'terms.term_id', '=', 'term_taxonomy.term_id')
+			->leftjoin('term_relationships', 'term_relationships.term_taxonomy_id', '=', 'term_taxonomy.term_id')
+			->where('term_taxonomy.taxonomy', '=', 'post_tag')
 			->groupby('terms.term_id')
 			->get(); //paginate($pagesize);
 		return $terms;
@@ -198,7 +216,27 @@ class Term extends Eloquent {
 			->where('terms.term_id', '=', $tid)
 			->take(1)
 			->get();
-		return $cat[0];
+		if (is_array($cat) && count($cat) > 0) {
+			return $cat[0];
+		} else {
+			return null;
+		}
+		// return $cat[0];
+	}
+
+	public static function get_tag_tid($tid) {
+		$tag = DB::table('terms')
+			->select('terms.term_id', 'terms.name')
+			->leftJoin('term_taxonomy', 'term_taxonomy.term_id', '=', 'terms.term_id')
+			->where('terms.term_id', '=', $tid)
+			->where('term_taxonomy.taxonomy', '=', 'post_tag')
+			->take(1)
+			->get();
+		if (is_array($tag) && count($tag) > 0) {
+			return $tag[0];
+		} else {
+			return null;
+		}
 	}
 
 	/**
@@ -371,16 +409,56 @@ class Term extends Eloquent {
 		return $terms;
 	}
 
-	public static function delete_by_tid() {
-//$tid){
-		//$tid_ = $tid;
-		DB::transaction(function () {
-			$tid = Input::get('tid');
+	public static function get_child($tid) {
+		$childs = DB::table('term_taxonomy')->select('term_id')->where('parent', '=', $tid)->get();
+		return $childs;
+	}
+
+	public static function delete_with_child($tid) {
+		$childs = self::get_child($tid);
+		if (count($childs) > 0) {
+			foreach ($childs as $child) {
+				self::delete_with_child($child->term_id);
+			}
+		}
+		self::delete_term_tid($tid);
+	}
+
+	public static function delete_term_tid($tid) {
+		DB::transaction(function () use ($tid) {
 			Log::info('-----------------------DELETE TID:' . $tid);
 			DB::table('terms')->where('term_id', '=', $tid)->delete();
 			DB::table('term_taxonomy')->where('term_id', '=', $tid)->delete();
 			DB::table('term_relationships')->where('term_taxonomy_id', '=', $tid)->delete();
 		});
+	}
+
+	public static function update_term($tid, $name, $pid) {
+		DB::transaction(function () use ($tid, $name, $pid) {
+			Log::info('-----------------------UPDATE TID:' . $tid);
+			DB::table('terms')->where('term_id', '=', $tid)->update(array('name' => $name));
+			DB::table('term_taxonomy')->where('term_id', '=', $tid)->update(array('parent' => $pid));
+			//DB::table('term_relationships')->where('term_taxonomy_id', '=', $tid)->delete();
+		});
+	}
+
+	public static function update_tag($tid, $name) {
+		Log::info('-----------------------UPDATE TID:' . $tid);
+		DB::table('terms')->where('term_id', '=', $tid)->update(array('name' => $name));
+
+		// DB::transaction(function () use ($tid, $name, $pid) {
+		// 	DB::table('term_taxonomy')->where('term_id', '=', $tid)->update(array('parent' => $pid));
+		// 	//DB::table('term_relationships')->where('term_taxonomy_id', '=', $tid)->delete();
+		// });
+	}
+
+	public static function get_cat_name($tid) {
+		$cat = DB::table('terms')->where('term_id', '=', $tid)->select('terms.name')->get();
+		if (is_array($cat) && count($cat) > 0) {
+			return $cat[0]->name;
+		} else {
+			return null;
+		}
 	}
 
 }

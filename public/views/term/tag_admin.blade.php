@@ -3,53 +3,8 @@
 @else
     @include('templates/header_login')
 @endif
-<script>
-$().ready(function(){
 
-    $('#selectall').click(function(){
-        if( $(this).prop("checked") == true){
-            $('[name=tid]:checkbox').each(function(){
-                $(this).prop("checked",true);
-            });
-        }else{
-            $('[name=tid]:checkbox').each(function(){
-                $(this).prop("checked",false);
-            });
-        }
-
-    });
-
-    $('#batchdelete').click(function(){
-        var delete_ids = "";
-        var got = false;
-        $('input:checkbox[name=tid]:checked').each(function(){
-            if( $(this).prop("checked")==true ){
-                got = true;
-                if(delete_ids.length ==0)
-                    delete_ids = $(this).val();
-                else{
-                    delete_ids += ","+$(this).val();
-                }
-            }
-        });
-
-        $('#delete_ids').val(delete_ids);
-        console.log('delete:'+delete_ids);
-        if(!got){
-            alert('请选择至少一个标签');
-            return false;
-        }else{
-            if (!confirm("确认删除？")) {
-                return false;
-            }else{
-                $('#batch_delete_form').submit();
-                return true;
-            }
-        }
-    });
-});
-
-</script>
+{{ HTML::script('js/admin/admin.js') }}
 
 <div class="container">
 <div class="row">
@@ -74,7 +29,7 @@ $().ready(function(){
             </tr>
                 @foreach($tags as $tag)
             <tr>
-                <td><input type="checkbox" name="tid" value="{{ $tag->term_id }}"/></td>
+                <td><input type="checkbox" name="id" value="{{ $tag->term_id }}"/></td>
 
                 <td>{{ $tag->name }}</td>
                 <td>{{ $tag->post_cnt }}</td>

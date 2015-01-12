@@ -1,8 +1,4 @@
-@if( is_null( Session::get('user')) )
-	@include('templates/header_logout')
-@else
-	@include('templates/header_login')
-@endif
+@include('templates/header')
 
 @include('templates/logo')
 {{ HTML::style('css/index.css') }}
@@ -22,11 +18,11 @@
 	</div>
 @endif
 
-@foreach ($posts as $posts_item) 
+@foreach ($posts as $posts_item)
 	<div class="post_pane">
-	
+
 		@if(!is_null( $posts_item->post_img_name ) )
-		<!-- 有封面，无摘要 --> 
+		<!-- 有封面，无摘要 -->
 		<div class="post_with_cover" >
 			<div class="cover_img">
 				<img src="{{url().Constant::$UPLOAD_IMG_DIR.$posts_item->post_img_name }}" />
@@ -39,19 +35,17 @@
 				<div class="blog-post-meta">
 					<a href="#">{{$posts_item->post_author }}</a>/
 		    		<a href="{{url('post/single/'.$posts_item->post_id)}}">{{date ( "Y年m月d日", strtotime ( $posts_item->post_date ) ) }}</a>/
-		    		@if(!empty($posts_item->category))
-		    			@foreach ($posts_item->category as $cat)
-		    				<a href="{{url()}}/post/term/{{ $cat->term_id }}">{{ $cat->name }}</a>/
-		    			@endforeach
+		    		@if(!is_null($posts_item->category))
+		    			<a href="{{url()}}/post/term/{{ $posts_item->category->term_id }}">{{ $posts_item->category->name }}</a>/
 		    		@endif
-					
+
 					@if( $posts_item->comment_count >0)
 						<a href="{{url('post/single/'.$posts_item->post_id)}}/#commanchor">{{$posts_item->comment_count}}条评论</a>
 					@else
 						<a href="{{url('post/single/'.$posts_item->post_id)}}/#commanchor">添加评论</a>
 					@endif
-				
-				
+
+
 					@if( !empty($posts_item->post_tag) )
 					<div class="post_tags">
 			    		@foreach ($posts_item->post_tag as $tag)
@@ -62,10 +56,10 @@
 					</div>
 		   			@endif
 		    	</div>
-				
+
 			</div>
 		</div><!-- end of post_with_cover -->
-		
+
 		@elseif( !is_null($posts_item->post_summary) )
 		<!-- 无封面，有摘要 -->
 		<div class="post_no_cover">
@@ -75,16 +69,14 @@
 				<a href="#">{{$posts_item->post_author }}</a>/
 	    		<a href="{{url('post/single/'.$posts_item->post_id)}}">{{date ( "Y年m月d日", strtotime ( $posts_item->post_date ) ) }}</a>/
 	    		@if(!empty($posts_item->category))
-	    			@foreach ($posts_item->category as $cat)
-	    				<a href="{{url()}}/post/term/{{ $cat->term_id }}">{{ $cat->name }}</a>/
-	    			@endforeach
+	    			<a href="{{url()}}/post/term/{{ $posts_item->category->term_id }}">{{ $posts_item->category->name }}</a>/
 	    		@endif
 				@if( $posts_item->comment_count >0)
 					<a href="{{url('post/single/'.$posts_item->post_id)}}/#commanchor">{{$posts_item->comment_count}}条评论</a>
 				@else
 					<a href="{{url('post/single/'.$posts_item->post_id)}}/#commanchor">添加评论</a>
 				@endif
-				
+
 				@if(!empty($posts_item->post_tag))
 				<div class="post_tags">
 		    		@foreach ($posts_item->post_tag as $tag)
@@ -103,14 +95,14 @@
 			    </div><!-- post content -->
 		</div><!-- post_no_cover -->
 		@endif
-		
+
    </div><!-- post_pane -->
-   
+
 @endforeach
-<!-- 
+<!--
 	<ul class="pagination">
 		<li><a href="#">&laquo;</a></li>
-		
+
 		<li class="active" ><a href="#">1 <span class="sr-only">(current)</span> </a></li>
 		<li><a href="#">2</a></li>
   		<li><a href="#">&raquo;</a></li>

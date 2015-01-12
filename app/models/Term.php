@@ -21,14 +21,6 @@ class Term extends Eloquent {
 		//DB::table('terms')
 		DB::table('term_relationships')->where('object_id', '=', $post_id)->delete();
 	}
-<<<<<<< HEAD
-=======
-	
-	public static function delete_term_relationship($post_id){
-		//DB::table('terms')
-		DB::table('term_relationships')->where('object_id', '=', $post_id )->delete();
-	}
->>>>>>> FETCH_HEAD
 
 	// public static function delete_term_relationship($post_id){
 	// 	//DB::table('terms')
@@ -316,7 +308,6 @@ class Term extends Eloquent {
 		$category = DB::table('term_taxonomy')
 			->select('terms.name', 'term_taxonomy.parent', 'terms.term_id')
 			->join('terms', 'terms.term_id', '=', 'term_taxonomy.term_id')
-			//->where('terms.uid','=',$uid)
 			->where('taxonomy', '=', 'category')
 			->get();
 		return $category;

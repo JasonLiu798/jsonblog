@@ -1,8 +1,4 @@
-@if( is_null( Session::get('user')) )
-	@include('templates/header_logout')
-@else
-	@include('templates/header_login')
-@endif
+@include('templates/header')
 
 {{ HTML::script('js/validate/formValidator-4.0.1.min.js') }}
 {{ HTML::script('js/validate/formValidatorRegex.js') }}
@@ -40,7 +36,7 @@ function moveCommentForm(thisID,isBack){
 	<div class="col-sm-8 blog-main">
 		<div class="blog-post">
 			<p class="blog-post-meta">
-			
+
 			</p>
 			@if(!empty($post->post_img_name))
 				<div class="post_cover">
@@ -49,10 +45,8 @@ function moveCommentForm(thisID,isBack){
 			@endif
             <h2 class="blog-post-title">{{$post->post_title }}</h2>
             <p class="blog-post-meta"><a href="{{url()}}/post/single/{{$post->post_id}}">{{date ( "Y-m-d", strtotime ( $post->post_date ) )}}</a> by <a href="{{url()}}/index">{{$post->post_author }}</a>
-            @if(!empty($post->category))
-    			@foreach ($post->category as $cat)
-    				<a href="{{url()}}/post/term/{{ $cat->term_id }}">{{ $cat->name }}</a>
-    			@endforeach
+            @if(!is_null($post->category))
+    			<a href="{{url()}}/post/term/{{ $post->category->term_id }}">{{ $post->category->name }}</a>
     		@else
     			{{{'未分类'}}}
     		@endif
@@ -75,20 +69,20 @@ function moveCommentForm(thisID,isBack){
 			@if(count($pre_next_post['pre_post'])>0)
 			上一文章: <a href="{{url()}}/post/single/{{$pre_next_post['pre_post'][0]->post_id}}">{{ $pre_next_post['pre_post'][0]->post_title }}</a>
 			@endif
-			
+
 			@if(count($pre_next_post['next_post'])>0)
 			下一文章: <a href="{{url()}}/post/single/{{$pre_next_post['next_post'][0]->post_id}}">{{ $pre_next_post['next_post'][0]->post_title }}</a>
 			@endif
 			</div>
 		</div><!-- end of blog-post -->
 
-<?php  
+<?php
 $root = new stdClass();
-$root->comment_parent=-1;
-$root->comment_ID=0;
+$root->comment_parent = -1;
+$root->comment_ID = 0;
 ?>
-<?php function print_comments($node, $comments){?>
-	@if($node->comment_ID!=0 )
+<?php function print_comments($node, $comments) {?>
+@if($node->comment_ID!=0 )
 		<div class="comment" id="comment-{{$node->comment_ID}}">
 			<div class="comemnt_meta">
 				<div class="comment_title">
@@ -113,60 +107,58 @@ $root->comment_ID=0;
 	@endif
 	@foreach($comments as $comm)
 		@if($comm->comment_parent == $node->comment_ID)
-			<?php print_comments($comm,$comments); ?>
-		@endif
+<?php print_comments($comm, $comments);?>
+@endif
 	@endforeach
 	@if($node->comment_ID!=0)
 		</div><!-- end of comment -->
 	@endif
 <?php }?>
+<div id="commanchor"></div>
 
-	<div id="commanchor"></div>
-	
-	<div class="comments" id="comments">
-	@if(count($comments)>0)
-		<h4>共{{ count($comments) }}条评论</h4>
-		<?php print_comments($root,$comments);?>
-	@else
-		<h4>还没有评论~~</h4>
-	@endif
-	</div><!-- comments -->	
-	
-	
-	
+		<div class="comments" id="comments">
+		@if(count($comments)>0)
+			<h4>共{{ count($comments) }}条评论</h4>
+<?php print_comments($root, $comments);?>
+@else
+			<h4>还没有评论~~</h4>
+		@endif
+		</div><!-- comments -->
 
-	<div id="commentNew">
-		<div id="replay_comment" class="replay_comment">
-			<span id="errorlist"></span>
-			{{ Form::open(array('url' => 'comment/create', 'method' => 'post','id'=> 'comment_add_form')) }}
-				<a href="#" id="cancleReplay" onclick="moveCommentForm(this.id,true)">取消回复</a>
-				<input type="hidden" name="post_id" id="post_id" value="{{ $post->post_id}}" />
-				<input type="hidden" name="post_author_id" id="post_author_id" value="{{ $post->post_author_id }}" />
-				<input type="hidden" name="comment_parent" id="comment_parent" value="0" />
-				<div class="form-group">
-				    {{Form::label('comment_author', '姓名')}}
-				    {{Form::text('comment_author','',array('class' => 'form-control','id'=>'comment_author')) }}
-				    <span id="comment_authorTip" class="help-block"></span>
-				</div>
-				<div class="form-group">
-					{{Form::label('comment_author_email', 'E-Mail')}}
-					{{Form::text('comment_author_email', '',array('class' => 'form-control','id'=>'comment_author_email') ) }}
-					<span id="comment_emailTip" class="help-block"></span>
-				</div>
 
-				<div class="form-group">
-					{{Form::label('comment_content', '评论')}}
-				    {{Form::textarea('comment_content','', array('class' => 'form-control','rows'=>3,'id'=>'comment_content') ) }}
-				    <span id="comment_contentTip" class="help-block"></span>
-			  	</div>
-			  	{{Form::submit('发表评论',array('class' => 'btn btn-default'))}}
-			  	{{Form::reset('重置',array('class' => 'btn btn-default'))}}
-			{{ Form::close() }}
-		</div><!-- end of replay_comment -->
-	</div>
-		<!-- </div><!-- end of addcomment -->
-	
-	
+
+
+		<div id="commentNew">
+			<div id="replay_comment" class="replay_comment">
+				<span id="errorlist"></span>
+				{{ Form::open(array('url' => 'comment/create', 'method' => 'post','id'=> 'comment_add_form')) }}
+					<a href="#" id="cancleReplay" onclick="moveCommentForm(this.id,true)">取消回复</a>
+					<input type="hidden" name="post_id" id="post_id" value="{{ $post->post_id}}" />
+					<input type="hidden" name="post_author_id" id="post_author_id" value="{{ $post->post_author_id }}" />
+					<input type="hidden" name="comment_parent" id="comment_parent" value="0" />
+					<div class="form-group">
+					    {{Form::label('comment_author', '姓名')}}
+					    {{Form::text('comment_author','',array('class' => 'form-control','id'=>'comment_author')) }}
+					    <span id="comment_authorTip" class="help-block"></span>
+					</div>
+					<div class="form-group">
+						{{Form::label('comment_author_email', 'E-Mail')}}
+						{{Form::text('comment_author_email', '',array('class' => 'form-control','id'=>'comment_author_email') ) }}
+						<span id="comment_emailTip" class="help-block"></span>
+					</div>
+
+					<div class="form-group">
+						{{Form::label('comment_content', '评论')}}
+					    {{Form::textarea('comment_content','', array('class' => 'form-control','rows'=>3,'id'=>'comment_content') ) }}
+					    <span id="comment_contentTip" class="help-block"></span>
+				  	</div>
+				  	{{Form::submit('发表评论',array('class' => 'btn btn-default'))}}
+				  	{{Form::reset('重置',array('class' => 'btn btn-default'))}}
+				{{ Form::close() }}
+			</div><!-- end of replay_comment -->
+		</div><!-- end of commentNew -->
+
+
 	</div><!-- col-sm-8 blog-main -->
 	@include('templates/sidebar')
 </div><!-- end of row -->

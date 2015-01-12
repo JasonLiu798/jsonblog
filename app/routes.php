@@ -38,9 +38,7 @@ Route::group(array('prefix' => 'post'), function () {
 	Route::any('admin', 'PostController@admin');
 	//{term_id}/{post_date?}',
 	// post/single/id
-	Route::any('create', 'PostController@create');
-	Route::any('update/page/{post_id}', 'PostController@pre_update');
-	Route::any('update/save', 'PostController@update');
+
 	// /post/create/save?post_title=testposttitle1&post_content=testcontent&category=1&post_tag_ids=46,44,47
 	Route::get('delete', 'PostController@delete_with_term_comment'); // post/delete?post_id=
 	Route::get('delete_', 'PostController@delete_only_post'); // post/delete_?post_id=
@@ -70,14 +68,24 @@ Route::group(array('prefix' => 'admin'), function () {
 	// Route::any('post','PostController@admin');//  admin/post
 
 	Route::group(array('prefix' => 'post'), function () {
-		Route::any('/', 'PostController@admin'); //
+		// Route::any('/', 'PostController@admin'); //
+		Route::any('/', array('as' => 'post_admin', 'uses' => 'PostController@admin')); //	admin/post
+
+		Route::any('create', 'PostController@create');
+
 		Route::any('delete/{post_id}', 'PostController@delete_all'); // admin/post/delete?post_id=
-		Route::get('delete_/{post_id}', 'PostController@delete_post'); // admin/post/delete_?post_id=
+		// Route::get('delete_/{post_id}', 'PostController@delete_post'); // admin/post/delete_?post_id=
+		Route::any('batchdelete', 'PostController@batch_delete');
+
+		Route::any('update/{post_id}', 'PostController@update');
+		// Route::any('update/save', 'PostController@update');
 	});
 
 	Route::group(array('prefix' => 'comment'), function () {
-		Route::any('/', 'CommentController@admin'); //	admin/comment
+		// Route::any('/', 'CommentController@admin'); //	admin/comment
+		Route::any('/', array('as' => 'comment_admin', 'uses' => 'CommentController@admin')); //	admin/comment
 		Route::any('delete/{cid}', 'CommentController@delete'); // admin/comment/delete?post_id=
+		Route::any('batchdelete', 'CommentController@batch_delete');
 
 		// Route::get('deleteonly/{cid}','PostController@delete_comment');// admin/post/delete_?post_id=
 

@@ -3,53 +3,8 @@
 @else
     @include('templates/header_login')
 @endif
-<script>
-$().ready(function(){
 
-    $('#selectall').click(function(){
-        if( $(this).prop("checked") == true){
-            $('[name=tid]:checkbox').each(function(){
-                $(this).prop("checked",true);
-            });
-        }else{
-            $('[name=tid]:checkbox').each(function(){
-                $(this).prop("checked",false);
-            });
-        }
-
-    });
-
-    $('#batchdelete').click(function(){
-        var delete_ids = "";
-        var got = false;
-        $('input:checkbox[name=tid]:checked').each(function(){
-            if( $(this).prop("checked")==true ){
-                got = true;
-                if(delete_ids.length ==0)
-                    delete_ids = $(this).val();
-                else{
-                    delete_ids += ","+$(this).val();
-                }
-            }
-        });
-
-        $('#delete_ids').val(delete_ids);
-        console.log('delete:'+delete_ids);
-        if(!got){
-            alert('请选择至少一个分类');
-            return false;
-        }else{
-            if (!confirm("确认删除？")) {
-                return false;
-            }else{
-                $('#batch_delete_form').submit();
-                return true;
-            }
-        }
-    });
-});
-
-</script>
+{{ HTML::script('js/admin/admin.js') }}
 
 <div class="container">
 <div class="row">
@@ -62,6 +17,7 @@ $().ready(function(){
                 <button class="btn btn-default" name="batchdelete" id="batchdelete">批量删除</button>
             </form>
         </div>
+
         <table class="table table-striped" >
             <tbody>
             <tr>
@@ -74,7 +30,7 @@ $().ready(function(){
             </tr>
                 @foreach($categories as $cat)
             <tr>
-                <td>@if( $cat->term_id!=1 )<input type="checkbox" name="tid" value="{{ $cat->term_id }}"/>@endif </td>
+                <td>@if( $cat->term_id!=1 )<input type="checkbox" name="id" value="{{ $cat->term_id }}"/>@endif </td>
 
                 <td>{{ $cat->name }}</td>
                 <td>{{ $cat->post_cnt }}</td>

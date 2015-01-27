@@ -2,7 +2,10 @@
 use Illuminate\Redis\Database as Redis;
 class TestController extends BaseController {
 	
-	
+	public function test(){
+		$view = View::make('test');
+		return $view;
+	}
 	public function put(){
 		//Session::put('key1', 'put a value');
 		//$redis = Redis::db();

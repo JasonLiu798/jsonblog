@@ -1,5 +1,4 @@
 <?php
-
 class TermsController extends BaseController {
 
 	public function create($param = 'page') {
@@ -38,34 +37,40 @@ class TermsController extends BaseController {
 
 	/**
 	 * new Post,dynamic add category
-	 *
 	 * http://www.lblog.com/category/api/create?new_catagory_name=cat&new_category_parent=23
 	 */
-	public function create_category_api() {
+	public function api_create_category() {
 		$sess_user = Session::get('user');
-		$user_id = User::get_userid_from_session($sess_user);
+		$err = '';
+		$errcode = 0;
 		if (is_null($sess_user)) {
-			return Rresponse::json(array('success' => 'false', 'msg' => 'nologin'));
+			$err = '未登录';
+			$errcode = Constant::$NOLOGIN;
+		} else {
+			$category_name = trim(urldecode(urldecode(Input::get('new_catagory_name'))));
+			if (strlen($category_name) <= 0) {
+				$err = '分类名为空';
+			} else {
+				if (Term::chk_category_name_exist($category_name) > 0) {
+					$err = '分类名已经存在';
+				} else {
+					$new_cat_parent_id = Input::get('new_category_parent');
+					if (Term::chk_cat_exist($new_cat_parent_id) > 0) {
+						try {
+							$term_id = Term::create_category_api($category_name, $new_cat_parent_id);
+						} catch (Exception $e) {
+							$err = '添加分类失败';
+							Log::error('添加分类失败：' . $e->getMessage());
+						}
+						$resp = Response::json(array('success' => 'true', 'term_id' => $term_id));
+					}
+				}
+			}
 		}
-		$category_name = urldecode(urldecode(Input::get('new_catagory_name')));
-		if (Term::chk_term_name_exist($category_name) > 0) {
-			return Response::make('分类名已经存在!', 500);
+		if (strlen($err) > 0) {
+			$resp = Response::json(array('status' => 'fail', 'error' => $err, 'error' => $errcode));
 		}
-
-		$new_category_parent = Input::get('new_category_parent');
-		$term_id = Term::create_category_api($category_name, $new_category_parent);
-		if ($term_id <= 0) {
-			return Rresponse::json(array('success' => 'false', 'msg' => 'failed'));
-		}
-		return Response::json(array('success' => 'true', 'term_id' => $term_id));
-	}
-
-	public function chk_term_name_exist() {
-		$term_name = urldecode(urldecode(Input::get('term_name')));
-		if (Term::chk_term_name_exist($term_name) > 0) {
-			return Response::make('标签名已经存在!', 500); //$statusCode);
-			//return Response::json(array('success' => 'false', 'msg' => '标签名已经存在!'));
-		}
+		return $resp;
 	}
 
 	/**
@@ -73,22 +78,75 @@ class TermsController extends BaseController {
 	 * http://www.lblog.com/tag/api/create?new_tag_name=cat
 	 */
 	public function create_tag_api() {
-		// $sess_user = Session::get('user');
-		// $user_id = User::get_userid_from_session( $sess_user );
-		// if(is_null($sess_user )) {
-		// 	//return Response::json(array('success' => 'false', 'msg' => 'nologin'));
-		// 	return Response::make('未登录', 500 );//$statusCode);
-		// }
-		$tag_name = urldecode(urldecode(Input::get('new_tag_name')));
-		if (Term::chk_term_name_exist($tag_name) > 0) {
-			return Response::make('标签名已经存在!', 500); //$statusCode);
-			//return Response::json(array('success' => 'false', 'msg' => '标签名已经存在!'));
+		$sess_user = Session::get('user');
+		$err = '';
+		$errcode = 0;
+		if (is_null($sess_user)) {
+			$err = '未登录';
+			$errcode = Constant::$NOLOGIN;
+		} else {
+			$tag_name = urldecode(urldecode(Input::get('new_tag_name')));
+			if (strlen(trim($tag_name)) <= 0) {
+				$err = '标签名为空';
+			} else {
+				if ( Term::chk_tag_name_exist($tag_name) > 0) {
+					try{
+						$err = Term::get_tag_id_by_name($tag_name);
+						if($err>0 ){
+							$errcode = Constant::$TAG_EXIST;
+						}else{
+							$err = '获取已存在标签ID失败';
+							Log::error("获取已存在标签ID失败 $tag_name ");
+						}
+					}catch(Exception $e){
+						$err = '获取已存在标签ID失败';
+						Log::error("获取已存在标签ID失败 $tag_name :" . $e->getMessage());
+					}
+				} else {
+					try {
+						$term_id = Term::create_tag_api($tag_name);
+					} catch (Exception $e) {
+						$err = '创建标签失败';
+						Log::error("$err $tag_name :" . $e->getMessage());
+					}
+					$resp = Response::json(array('status' => true, 'term_id' => $term_id));
+				}
+			}
 		}
-		$term_id = Term::create_tag_api($tag_name);
-		if ($term_id <= 0) {
-			return Response::json(array('success' => 'false', 'msg' => 'failed'));
+
+		if (strlen($err) > 0) {
+			$resp = Response::json(array('status' => false , 'error' => $err, 'errorcode' =>
+				$errcode));
 		}
-		return Response::json(array('success' => 'true', 'term_id' => $term_id));
+		return $resp;
+	}
+
+	/**
+	 * 分类名校验api
+	 * @return [type] [description]
+	 */
+	public function api_chk_cat_name_exist() {
+		$term_name = urldecode(urldecode(Input::get('term_name')));
+		if (Term::chk_category_name_exist($term_name) > 0) {
+			$resp = Response::json(array('status' => 'fail', 'error' => '标签名已经存在'));
+		} else {
+			$resp = Response::json(array('status' => 'success'));
+		}
+		return $resp;
+	}
+
+	/**
+	 * 标签名校验api
+	 * @return [type] [description]
+	 */
+	public function api_chk_tag_name_exist() {
+		$term_name = urldecode(urldecode(Input::get('term_name')));
+		if (Term::chk_category_name_exist($term_name) > 0) {
+			$resp = Response::json(array('status' => 'fail', 'error' => '分类名已经存在'));
+		} else {
+			$resp = Response::json(array('status' => 'success'));
+		}
+		return $resp;
 	}
 
 	/**
@@ -152,6 +210,7 @@ class TermsController extends BaseController {
 			array('title' => '分类管理',
 				'username' => $username,
 				'categories' => $categories,
+				'nav' => Constant::$NAV_ADMIN,
 				'menu' => 'category'));
 		return $view;
 	}
@@ -170,6 +229,7 @@ class TermsController extends BaseController {
 		$view = View::make('term/tag_admin',
 			array('title' => '标签管理',
 				'username' => $username,
+				'nav' => Constant::$NAV_ADMIN,
 				'tags' => $tags,
 				'menu' => 'tag'));
 		return $view;
@@ -307,6 +367,7 @@ class TermsController extends BaseController {
 						array('title' => '分类修改',
 							'username' => $username,
 							'cat' => $cat,
+							'nav' => Constant::$NAV_ADMIN,
 							'categories' => $categories,
 							'menu' => 'category'));
 				} else if ($method === 'update') {
@@ -386,6 +447,7 @@ class TermsController extends BaseController {
 					$resp = View::make('term/tag_update',
 						array('title' => '标签修改',
 							'username' => $username,
+							'nav' => Constant::$NAV_ADMIN,
 							'tag' => $tag,
 							// 'categories' => $categories,
 							'menu' => 'tag'));

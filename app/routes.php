@@ -22,9 +22,23 @@ Route::any('/', function () {
 // Route::any('/index', function(){
 // 	return Redirect::to('index');
 // });
+
+/**
+ * check user login for admin
+ */
+Route::filter('chkstatus', function () {
+	$sess_user = Session::get('user');
+	if (is_null($sess_user)) {
+		return Redirect::action('PostController@index');
+	}
+});
+
 Route::any('/index', array('as' => 'index', 'uses' => 'PostController@index'));
+
+Route::any('about', 'BaseController@about');
 //Post
 Route::group(array('prefix' => 'post'), function () {
+	Route::any('test', 'PostController@test');
 	//浏览
 	//分类浏览	/post/term/xxx
 	Route::get('/term/{term_id}', array('as' => 'idx_term', 'uses' => 'PostController@term_achive'));
@@ -42,6 +56,11 @@ Route::group(array('prefix' => 'post'), function () {
 	// /post/create/save?post_title=testposttitle1&post_content=testcontent&category=1&post_tag_ids=46,44,47
 	Route::get('delete', 'PostController@delete_with_term_comment'); // post/delete?post_id=
 	Route::get('delete_', 'PostController@delete_only_post'); // post/delete_?post_id=
+	Route::any('search', 'PostController@search');
+});
+
+Route::group(array('prefix' => 'message'), function () {
+	Route::any('/', array('as' => 'messages', 'uses' => 'CommentController@messages'));
 
 });
 
@@ -64,21 +83,20 @@ Route::get('/user/chkparameter', 'UserController@chk_parameter');
 
 //管理
 Route::group(array('prefix' => 'admin'), function () {
-	Route::any('index', 'AdminController@index');
-	// Route::any('post','PostController@admin');//  admin/post
-
+	Route::any('index', 'AdminController@index');//admin index
 	Route::group(array('prefix' => 'post'), function () {
-		// Route::any('/', 'PostController@admin'); //
 		Route::any('/', array('as' => 'post_admin', 'uses' => 'PostController@admin')); //	admin/post
-
-		Route::any('create', 'PostController@create');
+		Route::any('create', 'PostController@create');// admin/post/create
+		Route::any('update/{post_id}', 'PostController@update');// admin/post/update/pid
 
 		Route::any('delete/{post_id}', 'PostController@delete_all'); // admin/post/delete?post_id=
 		// Route::get('delete_/{post_id}', 'PostController@delete_post'); // admin/post/delete_?post_id=
-		Route::any('batchdelete', 'PostController@batch_delete');
+		Route::any('batchdelete', 'PostController@batch_delete');// admin/post/batchdelete
+		Route::group(array('prefix' => 'api'), function () {
+			Route::any('save/{post_id}','PostController@save');//	admin/post/api/save/pid
 
-		Route::any('update/{post_id}', 'PostController@update');
-		// Route::any('update/save', 'PostController@update');
+		});
+
 	});
 
 	Route::group(array('prefix' => 'comment'), function () {
@@ -86,9 +104,7 @@ Route::group(array('prefix' => 'admin'), function () {
 		Route::any('/', array('as' => 'comment_admin', 'uses' => 'CommentController@admin')); //	admin/comment
 		Route::any('delete/{cid}', 'CommentController@delete'); // admin/comment/delete?post_id=
 		Route::any('batchdelete', 'CommentController@batch_delete');
-
 		// Route::get('deleteonly/{cid}','PostController@delete_comment');// admin/post/delete_?post_id=
-
 	});
 
 	Route::group(array('prefix' => 'category'), function () {
@@ -109,6 +125,13 @@ Route::group(array('prefix' => 'admin'), function () {
 		Route::any('batchdelete', 'TermsController@tag_batch_delete');
 		Route::any('update/{tid}', 'TermsController@tag_update'); // admin/category/create
 	});
+
+	Route::group(array('prefix' => 'image'), function () {
+		Route::any('/', array('as' => 'img_admin', 'uses' => 'ImgController@admin')); //	admin/category
+		Route::any('upload', 'ImgController@post_img_upload'); // admin/image/upload
+		Route::any('delete/{iid}', 'ImgController@delete'); // admin/tag/delete/tid
+	});
+
 // 	Route::any('single/{post_id}',array('as' => 'singlepost','uses'=>'PostController@single')); // /{term_id}/{post_date?}',
 	// 	// post/single/id
 	// 	Route::any('create/{param}','PostController@create');
@@ -133,14 +156,14 @@ Route::any('/comment/delete/{cid}', 'CommentController@delete'); // /comment/del
 // function(){ return View::make('comments/comment',array('title'=>'评论管理')); });
 
 //Comment CRUD API
-Route::group(array('prefix' => 'api'), function () {
-	Route::resource('comments', 'CommentController',
-		array('only' => array('index', 'store', 'destroy')));
-});
+//Route::group(array('prefix' => 'api'), function () {
+//	Route::resource('comments', 'CommentController',
+//		array('only' => array('index', 'store', 'destroy')));
+//});
 
-Route::post('/comment/create', 'CommentController@create');
-Route::get('/comment/delete', 'CommentController@delete');
-Route::get('/term/unreadcmtcnt/{uid}', 'CommentController@get_unread_comment_cnt');
+Route::any('/comment/create', 'CommentController@create');
+Route::any('/comment/delete', 'CommentController@delete');
+Route::any('/term/unreadcmtcnt/{uid}', 'CommentController@get_unread_comment_cnt');
 // /term/unreadcmtcnt/1
 
 //Terms
@@ -155,29 +178,39 @@ Route::group(array('prefix' => 'term'), function () {
 Route::group(array('prefix' => 'category'), function () {
 	//API
 	Route::group(array('prefix' => 'api'), function () {
-		Route::any('create', 'TermsController@create_category_api');
 		// http://www.lblog.com/category/api/create?new_catagory_name=cat&new_category_parent=23
+		Route::any('create', 'TermsController@create_category_api');
+
 
 	});
 	//
 	Route::any('create/{param}', 'TermsController@create');
 });
+
+/**
+ * Tag api
+ */
 Route::group(array('prefix' => 'tag'), function () {
 	//API
 	Route::group(array('prefix' => 'api'), function () {
-		Route::any('create', 'TermsController@create_tag_api');
 		// http://www.lblog.com/tag/api/create?new_tag_name=cat
+		Route::any('create', 'TermsController@create_tag_api');
+
 	});
 });
+
 
 Route::get('term/admin', 'TermsController@admin');
 Route::get('/term/delete', 'TermsController@delete'); //term/delete?tid=
 
+Route::get('test', 'TestController@test');
+/*
 //测试用
 Route::get('/test/put', 'TestController@put');
 Route::get('/test/get', 'TestController@get');
 Route::get('/test/push', 'TestController@push');
 Route::get('/test/mail', 'TestController@sendmail');
+*/
 
 //错误
 Route::any('/error/{msg}', array('as' => 'error', 'uses' => 'ErrorController@show'));

@@ -10,11 +10,93 @@ class Post extends Eloquent {
 	protected $table = 'posts';
 	protected $primaryKey = 'ID';
 
+	public $timestamps = false;
+
+
+	public function get_new_pk( $init=false){
+		$redis = LRedis::connection();
+		$pre_pk = $redis->get( $this->primaryKey );
+		$pk = 0;
+		if(is_null( $this->primaryKey)){
+			return false;
+		}
+		if(is_null($pre_pk) || $init){
+			//init pid
+			if( !$this->init_redis_pk($redis)){
+				Log::error( "init $this->table PK $this->primaryKey in redis failed" );
+				return false;
+			}
+		}
+		$pk = $redis->incr( $this->primaryKey );
+		if($pk){
+			return $pk;
+		}else{
+			return false;
+		}
+	}
+
+	public function init_redis_pk($redis=null){
+		if(is_null($redis)){
+			$redis = LRedis::connection();
+		}
+		$max_pid = DB::table( $this->table )->max( $this->primaryKey ) ;
+		if($max_pid){
+			$res_set = $redis->set($this->primaryKey ,$max_pid);//如无acid,get max acid 设置
+			if(!$res_set){
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * 验证是否有效PK
+	 * 0<$pid<max pk+1
+	 * @param $pid
+	 */
+	public function chk_pk_format($pid){
+		if(!is_numeric($pid)) {
+			return false;
+		}
+		$redis = LRedis::connection();
+		$max_pk = $redis->get( $this->primaryKey );
+		if( is_null($max_pk) ){
+			//初始化 redis pk
+			if( !$this->init_redis_pk($redis)){
+				Log::error( "init $this->table PK $this->primaryKey in redis failed" );
+				return false;
+			}
+		}else{
+			if($pid > $max_pk || $pid<0){
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public static function chk_pid_exist($pid){
+		$post = Post::find($pid);
+		if(is_null($post)){
+			return false;
+		}
+		return true;
+	}
+
+
+	// protected $softDelete = true;
+
 // 	public function get()
 	// 	{
 	// 		return $this->hasMany('Comment');
 	// 	}
-
+	//
+	//
+	public function comments() {
+		return $this->hasMany('Comment', 'comment_post_ID');
+	}
+	// public function category() {
+	// 	return $this->hasMany('Comment', 'comment_post_ID');
+	// }
 	/**
 	 *
 	 * @param unknown $user_id
@@ -32,7 +114,9 @@ group by posts.ID
 order by posts.post_date desc;
  */
 		$posts = DB::table('posts')
-			->select('users.user_login as post_author', 'posts.ID as post_id', 'post_title', 'post_date', 'post_summary', DB::raw('count(comments.comment_ID) as post_comment_count'))
+			->select('users.user_login as post_author',
+				'posts.ID as post_id', 'post_title', 'post_status','post_date', 'post_summary',
+				DB::raw('count(comments.comment_ID) as post_comment_count'))
 			->leftJoin('comments', 'comments.comment_post_ID', '=', 'posts.ID')
 			->leftJoin('users', 'users.ID', '=', 'posts.post_author')
 			->where('posts.post_author', '=', $user_id)
@@ -56,6 +140,7 @@ order by posts.post_date desc;
 			->leftJoin('postimages', 'postimages.iid', '=', 'posts.post_cover_img')
 			->select('posts.ID as post_id', 'post_title', 'post_content', 'post_date', 'users.user_login as post_author', 'post_summary', 'postimages.filename as post_img_name', DB::raw('count(comments.comment_ID) as comment_count'))
 			->leftJoin('comments', 'comments.comment_post_ID', '=', 'posts.ID')
+			->where('post_status','=',Constant::$POST_PUBLISH)
 			->groupBy('posts.ID')
 			->orderBy('post_date', 'desc')
 			// ->select();
@@ -228,23 +313,28 @@ $query->select('post_date')
 		return $res;
 	}
 
-	public static function add_meta($posts) {
+	public static function add_meta(&$posts) {
 		foreach ($posts as $post):
-			$terms = Term::get_terms_by_post($post->post_id);
-
-			$cat = Term::get_category($terms);
-
-			$tag = Term::get_tag($terms);
-			$post->category = !empty($cat) ? $cat[0] : null;
-			$post->post_tag = !empty($tag) ? $tag : null;
-
-// 			if(count($tag)>0){
-			// 				foreach($terms as $term)
-			// 					Log::info('post term:'.$term->name.',TAX:'.$term->taxonomy);
-			// 			}
-
+			try{
+				$terms = Term::get_terms_by_post($post->post_id);
+				if (!is_null($terms)) {
+					$cat = Term::get_category($terms);
+					$tag = Term::get_tag($terms);
+					$post->category = is_array($cat) && count($cat) > 0 ? reset($cat) : null;
+					$post->post_tag = is_array($tag) && count($tag) > 0 ? $tag : null;
+				} else {
+					$post->category = null;
+					$post->post_tag = null;
+				}
+			}catch(Exception $e){
+				//出现异常，全部置空
+				foreach ($posts as $post):
+					$post->category = null;
+					$post->post_tag = null;
+				endforeach;
+				Log::error("Post Add Meta|Get term error| {$e->getMessage()}");
+			}
 		endforeach;
-		return $posts;
 	}
 
 // 	public function comments()
@@ -290,35 +380,38 @@ $query->select('post_date')
 		where posts.ID=31;
 		 */
 		$post = DB::table('posts')
-			->select('posts.ID as post_id', 'post_title', 'post_content', 'post_date', 'users.user_login as post_author', 'posts.post_author as post_author_id', 'posts.post_cover_img', 'postimages.filename as post_img_name', 'post_summary')
+			->select('posts.ID as post_id', 'post_title', 'post_content', 'post_date', 'users.user_login as post_author', 'posts.post_author as post_author_id', 'post_cover_img', 'postimages.filename as post_img_name', 'post_summary', DB::raw('count(comments.comment_ID) as comment_count'))
+			->leftJoin('comments', 'comments.comment_post_ID', '=', 'posts.ID')
 			->leftJoin('users', 'users.ID', '=', 'posts.post_author')
 			->leftJoin('postimages', 'postimages.iid', '=', 'posts.post_cover_img')
 			->where('posts.ID', '=', $post_id)
 			->get();
-		if (count($post) <= 0) {
+
+		// $queries = DB::getQueryLog();
+		// $last_query = end($queries);
+		// Log::info('SINGLE POST:' . $last_query['query']);
+
+		if (!is_null($post) && count($post) > 0) {
+			return $post;
+		} else {
 			return null;
 		}
-// 		$terms = Term::getTermsByPostID($post_id);
-		// 		$cat = count($terms)>0?Term::getCategory($terms):array();
-		// 		$tag = count($terms)>0?Term::getTag($terms):array();
-		// 		$post[0]->category = $cat;
-		// 		$post[0]->post_tag = $tag;
-
-		return $post;
 	}
 
 	/**
 	 * 创建post
 	 */
-	public static function create_post($user_id, $post_title, $post_content, $post_cover_img_id, $post_summary) {
+	public static function create_post($post_id,$user_id, $post_title, $post_content,
+$post_cover_img_id,
+$post_summary, $post_status) {
 		//$post = new Post;
 		date_default_timezone_set("Europe/London");
 		$post_date_gmt = date('Y-m-d H:i:s', time());
 		date_default_timezone_set("Asia/Shanghai");
 		$post_date = date('Y-m-d H:i:s', time());
-
 		DB::table('posts')->insert(
 			array(
+				'ID'=>$post_id,
 				'post_author' => $user_id,
 				'post_title' => $post_title,
 				'post_content' => $post_content,
@@ -326,16 +419,19 @@ $query->select('post_date')
 				'post_date_gmt' => $post_date_gmt,
 				'post_modified' => $post_date,
 				'post_modified_gmt' => $post_date_gmt,
-
+				'post_status' => $post_status,
 				'post_summary' => $post_summary,
 				'post_cover_img' => $post_cover_img_id,
 			)
 		);
-		$get_last_post_id_sql = "SELECT LAST_INSERT_ID() ID";
-		$post_id = DB::select($get_last_post_id_sql)[0]->ID;
-		Log::info('CreatePost:' . $post_id);
+//		$get_last_post_id_sql = "SELECT LAST_INSERT_ID() ID";
+//		$post_id = DB::select($get_last_post_id_sql)[0]->ID;
+//		Log::info('CreatePost:' . $post_id);
 		return $post_id;
 	}
+
+
+//	public static function add_post()
 
 	/**
 	 * 创建post
@@ -480,13 +576,7 @@ $query->select('post_date')
 		return $content;
 	}
 
-	public static function create_post_term($post_id, $termid_arr) {
-		$insert_arr = array();
-		foreach ($termid_arr as $term_id) {
-			array_push($insert_arr, array('object_id' => $post_id, 'term_taxonomy_id' => $term_id));
-		}
-		DB::table('term_relationships')->insert($insert_arr);
-	}
+
 
 	/**
 	 * 获取纯文字摘要
@@ -517,6 +607,73 @@ $query->select('post_date')
 	public static function remove_html_label($content) {
 		$res = preg_replace("/<(.[^>]*)>/", "", $content);
 		return $res;
+	}
+
+	public static function search_name_content($search_text, $page, $per_page) {
+		$socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP); // or die('could not create socket');
+		$posts = null;
+		$err = '';
+		if ($socket) {
+			try {
+				$connect = socket_connect($socket, Constant::$SEARCH_SERVER_IP, Constant::$SEARCH_SERVER_PORT);
+				//向服务端发送数据
+				$search_str = sprintf(Constant::$SEARCH_FUNC, $search_text, $page, $per_page);
+				socket_write($socket, $search_str);
+				// socket_write($socket,  . '#' . $search_text . ',' . $page . ',' . $per_page . "\n");
+				//接受服务端返回数据
+				$json = socket_read($socket, 1024, PHP_NORMAL_READ);
+				$res = json_decode($json);
+				if ($res->status === "true") {
+					$search_res = $res->data;
+					$search_res_arr = explode('#', $search_res);
+					$cnt = count($search_res_arr);
+					$total = 0;
+					if ($cnt == 2) {
+						$total = $search_res_arr[0];
+						$ids = explode(',', $search_res_arr[1]);
+						$posts = array();
+						if (count($ids) > 0) {
+							foreach ($ids as $id) {
+								$tmp_post = self::get_post_by_id($id);
+								$posts = array_merge($posts, $tmp_post);
+							}
+							self::add_meta($posts);
+							// print_r($posts);
+						}
+					} else if ($cnt == 1) {
+						$posts = null;
+					} else {
+						$err = '查询错误';
+					}
+				} else {
+					$err = $res->data;
+				}
+				//关闭
+				socket_close($socket);
+			} catch (ErrorException $e) {
+				$err = $e->getMessage();
+			}
+		} else {
+			$err = "无法连接到搜索服务器";
+		}
+		if (strlen($err) > 0) {
+			return array(false, $err);
+		} else {
+			return array(true, $posts, $total);
+		}
+
+	}
+
+//	public static function create_post_term($tagid_str,$category_id){
+//
+//	}
+
+	public static function create_post_term($post_id, $termid_arr) {
+		$insert_arr = array();
+		foreach ($termid_arr as $term_id) {
+			array_push($insert_arr, array('object_id' => $post_id, 'term_taxonomy_id' => $term_id));
+		}
+		DB::table('term_relationships')->insert($insert_arr);
 	}
 
 }

@@ -1,4 +1,4 @@
-!function($){
+/*!function($){
 	$(function(){
 		$("#form_photo").ajaxForm();// ajaxForm()只是绑定表单事件，并不是提交表单。。。
 	 	$("#button_photo").click(function(){
@@ -69,4 +69,4 @@
 		 }
 	 }
 	 });
-}(window.jQuery)
+}(window.jQuery)*/

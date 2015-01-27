@@ -1,4 +1,4 @@
-@include('templates/header_login')
+@include('templates/header')
 
 {{ HTML::script('js/tinymce/tinymce.min.js') }}
 {{ HTML::script('js/tinymce/uploadimg/uploadimg.js') }}

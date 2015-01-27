@@ -37,6 +37,8 @@
 		    		<a href="{{url('post/single/'.$posts_item->post_id)}}">{{date ( "Y年m月d日", strtotime ( $posts_item->post_date ) ) }}</a>/
 		    		@if(!is_null($posts_item->category))
 		    			<a href="{{url()}}/post/term/{{ $posts_item->category->term_id }}">{{ $posts_item->category->name }}</a>/
+		    		@else
+		    			<a href="{{url()}}/post/term/1">未分类</a>/
 		    		@endif
 
 					@if( $posts_item->comment_count >0)
@@ -70,7 +72,10 @@
 	    		<a href="{{url('post/single/'.$posts_item->post_id)}}">{{date ( "Y年m月d日", strtotime ( $posts_item->post_date ) ) }}</a>/
 	    		@if(!empty($posts_item->category))
 	    			<a href="{{url()}}/post/term/{{ $posts_item->category->term_id }}">{{ $posts_item->category->name }}</a>/
-	    		@endif
+	    		@else
+		    		<a href="{{url()}}/post/term/1">未分类</a>/
+		    	@endif
+
 				@if( $posts_item->comment_count >0)
 					<a href="{{url('post/single/'.$posts_item->post_id)}}/#commanchor">{{$posts_item->comment_count}}条评论</a>
 				@else

@@ -2,67 +2,58 @@
 
 {{ HTML::script('js/tinymce/tinymce.min.js') }}
 {{ HTML::script('js/tinymce/uploadimg/uploadimg.js') }}
-{{ HTML::script('js/post/create_post.js') }}
+
 {{ HTML::script('js/lib/jquery.Jcrop.min.js') }}
 {{ HTML::script('js/lib/ajaxfileupload.v2.js') }}
-{{ HTML::script('js/lib/dump_src.js') }}
+<!-- form ajax submit-->
+{{ HTML::script('js/lib/jquery-form.js') }}
 {{ HTML::style('css/create_post.css') }}
 {{ HTML::style('css/jquery.Jcrop.min.css') }}
 
+{{ HTML::script('js/post/create_post.js') }}
+
 <script type="text/javascript">
-tinymce.init({
-	//toolbar: "undo redo | styleselect | bold italic | alignleft aligncenter alignright | image link | code | preview",
-	language : 'zh_CN',
-	object_resizing: true,
-	nowrap : false,
-    selector: "textarea",
-    tools: "inserttable",
-    toolbar: [
-    	          "undo redo | bold italic underline strikethrough | blockquote image link | alignleft aligncenter alignright | forecolor backcolor | code charmap | emoticons ",
-    	          "link | insertdatetime | preview | save | uploadimg"
-    	      ],
-	plugins : 'advlist autolink link image lists charmap print preview insertdatetime charmap code textcolor table emoticons save uploadimg',
-	insertdatetime_formats: ["%Y{{Lang::get('tools.YEAR')}}%m{{Lang::get('tools.MONTH')}}%d{{Lang::get('tools.DAY')}} %H:%M","%Y{{Lang::get('tools.YEAR')}}%m{{Lang::get('tools.MONTH')}}%d{{Lang::get('tools.DAY')}}","%H:%M"],
-	save_enablewhendirty: true,
-	upload_action: "http://"+window.location.host+'/img/post/content/upload',//required
-	upload_file_name: 'uploadimg',//required
-    save_onsavecallback: function() {console.log("Save");}
-
- });
-
-//data = ({"msg":"\u4e0a\u4f20\u6210\u529f\uff01","url":"http:\/\/www.lblog.com\/upload\/img\/d094fd36b80aa2b3c8163581c74dcbfc"});
-//console.log("data.msg:"+data.msg);
-
 </script>
+
 
 <div class="container">
 <div class="row">
 <div class="col-sm-8">
-	<h2>{{Lang::get('post.NEW_POST') }}</h2>
+	<h2>{{ $title  }}</h2>
 
-<form method="post" action="{{url()}}/admin/post/create" accept-charset="utf-8" role="form" id="create_post_form">
+<form id="create_post_form" method="post" action="{{url()}}/admin/post/api/save/{{$post_id}}"
+	  accept-charset="utf-8" role="form" >
 	<input type="hidden" name="method" value="save"/>
-	<input type="hidden" name="post_tag_ids" id="post_tag_ids" value="" />
-	<input type="hidden" id="set_cover" name="set_cover" value="false" />
-	<!-- <input type="hidden" id="cutted" name="cutted" value="false" /> -->
-	<!--<input type="hidden" id="cover_img_name" name="cover_img_name" value="false"/> 生成摘要url用 -->
-	<input type="hidden" id="cover_img_id" name="cover_img_id" value=""/><!-- 保存用 -->
+	<input type="hidden" id="is_draft" name="is_draft" value="false"/>
+	<input type="hidden" name="post_id" value="{{$post_id}}"/>
+	<input type="hidden" id="post_tag_ids" name="post_tag_ids" value="{{ is_null($post)?'':
+	(is_null($post->post_tag_id)?'':$post->post_tag_id) }}" />
+	<input type="hidden" id="set_cover" name="set_cover" value="{{ is_null($post)?'false':($post->post_cover_img==0?"false":"true") }}" />
+	<input type="hidden" id="cover_img_id" name="cover_img_id" value="{{ is_null($post)?'':$post->post_cover_img }}"/><!-- 保存用 -->
 	<div class="form-group">
-		{{ Form::label('post_title', Lang::get('post.POST_TITLE')) }}
-		{{ Form::text('post_title', '', array('class' => 'form-control')) }}
+		<label for="post_title">{{Lang::get('post.POST_TITLE') }}</label>
+		<input type="text" class="form-control" id="post_title" name="post_title"
+			   value="{{ is_null($post)?'':$post->post_title }}"/>
 	</div>
 
 	<div class="form-group">
-		<textarea rows="15" id="post_content" name="post_content" class="form-control"></textarea>
+		<textarea rows="15" id="post_content_ta" name="post_content_ta" class="form-control">
+			{{ is_null($post)?'':$post->post_content }}
+		</textarea>
 	</div>
 
 	<div class="form-group">
 		<h5>{{Lang::get('post.CATEGORY')}}</h5>
-
 		<select class="form-control" name="category" id="category">
-			@foreach($category as $cat)
-			  <option id="category{{$cat->term_id}}" value="{{$cat->term_id }}">{{ $cat->name }}</option>
-			@endforeach
+			@if(!is_null($category) && count($category)>0)
+				@foreach($category as $cat)
+					<option id="category{{$cat->term_id}}" value="{{$cat->term_id }}" @if(isset
+					($cat->selected)) @if($cat->selected==1)  selected @endif @endif>{{
+					$cat->name }}</option>
+				@endforeach
+			@else
+				<option value="1">{{ Lang::get('term.NO_PARENT') }}</option>
+			@endif
 		</select>
 	</div>
 
@@ -77,7 +68,15 @@ tinymce.init({
 		<h5>{{Lang::get('post.POST_TAG')}}&nbsp;<small>{{ Lang::get('post.POST_TAG_ADD_INFO')}}</small></h5>
 		<div class="clearfix"></div>
 		<!-- added tags -->
-        <div id="newtags"></div>
+		<div id="newtags">
+			@if(!is_null($post) )
+				@if(!is_null($post->post_tag) && count($post->post_tag)>0 )
+					@foreach($post->post_tag as $tag)
+						<span name="{{$tag->name}}" class="tag tag_new" value="{{$tag->term_id}}">{{$tag->name}}&nbsp;X</span>
+					@endforeach
+				@endif
+			@endif
+		</div>
         <div class="clearfix"></div>
         <!-- input new tag -->
 		<input type="text"  name="post_tag" id="post_tag" value="" class="form-control"/>
@@ -92,18 +91,7 @@ tinymce.init({
         </div>
     </div>
     </div>
-	<!--
-	<div class="row">
-		<div class="col-xs-6">
-			<label for="post_tag">{{Lang::get('post.POST_TAG')}}</label>
-			<input type="text" id="post_tag" name="post_tag" class="form_control">
-		</div>
-		<div class="col-xs-1">
-			<button id="post_tag_add" class="btn btn-default">添加</button>
-		</div>
-	</div>
 
-	<div class="form-group"></div> -->
 	<div class="form-group">
 		<!-- 设置博文封面图片 -->
 		<input type="button" class="btn btn-default" id="submit_button" data-toggle="modal" data-target="#cover_img_diag" value="设置摘要图片"/>
@@ -113,9 +101,11 @@ tinymce.init({
 	</div>
 
 	<div class="form-group col-sm-offset-5 col-sm-12">
-		<input type="submit" value="{{Lang::get('post.PUBLISH')}}" class="btn btn-default"/>
+		<input type="button" id="save_post" name="save_post" class="btn btn-default"
+			   value="{{Lang::get('post.PUBLISH')}}"/>
 		&nbsp;&nbsp;&nbsp;
-		<input type="button" name="save_draft" class="btn btn-default"  value="保存草稿" />
+		<input type="button" id="save_draft" name="save_draft" class="btn btn-default"
+			   value="保存草稿" />
 	</div>
 	</form>
 

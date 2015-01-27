@@ -1,0 +1,17 @@
+@CHARSET "UTF-8";
+
+.operations{
+	/*padding :10px;*/
+	margin:10px;
+}
+
+#new_post{
+	margin:0 10px 0 0;
+	float:left;
+}
+
+#upload_image_btn{
+	margin:0 10px 0 0;
+	float:left;
+}
+

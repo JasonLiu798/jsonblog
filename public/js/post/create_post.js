@@ -1,4 +1,74 @@
 $(document).ready(function(){
+
+	tinymce.init({
+		//toolbar: "undo redo | styleselect | bold italic | alignleft aligncenter alignright | image link | code | preview",
+		language : 'zh_CN',
+		object_resizing: true,
+		nowrap : false,
+		selector: "textarea",
+		tools: "inserttable",
+		toolbar: [
+			"undo redo | bold italic underline strikethrough | blockquote image link | alignleft aligncenter alignright | forecolor backcolor | code charmap | emoticons ",
+			"link | insertdatetime | preview | save | uploadimg"
+		],
+		plugins : 'advlist autolink link image lists charmap print preview insertdatetime charmap code textcolor table emoticons save uploadimg',
+		insertdatetime_formats: ["%Y{{Lang::get('tools.YEAR')}}%m{{Lang::get('tools.MONTH')}}%d{{Lang::get('tools.DAY')}} %H:%M","%Y{{Lang::get('tools.YEAR')}}%m{{Lang::get('tools.MONTH')}}%d{{Lang::get('tools.DAY')}}","%H:%M"],
+		save_enablewhendirty: true,
+		upload_action: "http://"+window.location.host+'/img/post/content/upload',//required
+		upload_file_name: 'uploadimg',//required
+		save_onsavecallback: function() {console.log("Save");}
+
+	});
+
+
+
+
+
+	//$("#create_post_form").ajaxForm(options);
+	$('#save_post').click(function(){
+		$('#is_draft').attr('value',false);
+		//$('#create_post_form').submit();
+		//console.log('tiny:'+tinymce.getInstanceById('post_content').getBody().innerHTML);
+		//console.log('tiny:'+tinymce.get('post_content').getContent());
+		var saveOptions = {
+			data:{
+				post_content:tinymce.get('post_content_ta').getContent()
+			},
+			success: function (data) {
+				if (data.status) {
+					console.log('保存成功');
+					//location.href="http://"+window.location.host+"/post/single/"+data.post_id;
+				} else {
+					console.log('errorcode:' + data.errorcode + ',error:' + data.error);
+				}
+			}
+		};
+		//var queryString = $('#create_post_form').formSerialize();
+		//console.log('FormSeri:'+queryString);
+		$("#create_post_form").ajaxSubmit(saveOptions);
+
+		//$("#dlg_form input").map(function(){
+		//	return ($(this).attr("name")+'='+$(this).val());
+		//}).get().join("&") ;
+
+	});
+
+	$('#save_draft').click(function(){
+		$('#is_draft').attr('value',true);
+		var draftOptions = {
+			success: function (data) {
+				if( data.status ){
+					alert('保存成功');
+				}else{
+					console.log('errorcode:' +data.errorcode + ',error:'+data.error );
+				}
+			}
+		};
+		$("#create_post_form").ajaxSubmit(draftOptions);
+	});
+
+
+
 	/**
 	 * post tag associate
 	 */
@@ -57,8 +127,8 @@ $(document).ready(function(){
         if(ids.length>5){
         	$('#post_tag_alert').val('标签最多添加5个哦！');
             return false;
-        };
-        var exist=$.inArray(id,ids);
+        }
+        var exist = $.inArray(id,ids);
         if(exist<0){
             $('#newtags').append('<span id='+id+' name='+txt+' value="'+value+'" class="tag tag_new">'+txt+'&nbsp;X</span>');
             if( $('#post_tag_ids').val().length ==0 ){
@@ -101,52 +171,69 @@ $(document).ready(function(){
             		return false;
             	}
             	
-            	//TAG EXSISTS
-                var txts=new Array();
+
+                var new_tags_arr = new Array();
+				var new_tags_str ='';
+				//已添加的新标签
                 $('#newtags .tag').each(function(){
-                    txts+=$(this).attr('name')+','
+					new_tags_arr.push( $(this).attr('name') );
+					new_tags_str += $(this).attr('name');
                 });
-                if(txts==''){
-                    txts=new Array();
-                }else{
-                    txts = txts.split(",");
-                }
-                if(txts.length>5){
+
+                if( new_tags_arr.length>=5 ){
                 	$('#post_tag_alert').text('标签最多添加5个哦！');
                 	return false;
-                };
-                var exist=$.inArray(txt,txts);
-                //NOT EXIST
+                }
+                var exist = $.inArray( txt, new_tags_arr );
+				var add_tag_name = txt.trim();
+				//已经存在 新添加的
                 if(exist<0){
                 	$.ajax({
                         url: "http://"+window.location.host+"/tag/api/create",
                         async: false,
-                        data: { new_tag_name: encodeURI(encodeURI(txt)) },
+                        data: { new_tag_name: encodeURI(encodeURI(add_tag_name)) },
                         success: function (data) {
-                        	var tag_id = data.term_id;
-            				$('#newtags').append('<span name='+txt+' class="tag tag_new" value="'+tag_id+'">'+txt+'&nbsp;X</span>');
-                            //ACTUALLY SUBMIT FORM TEXT
-                            if( $('#post_tag_ids').val().length ==0 ){
-                            	$('#post_tag_ids').val( tag_id);
-                            }else{
-                            	$('#post_tag_ids').val( $('#post_tag_ids').val()+','+tag_id);
-                            }
-                            console.log('POST TAG IDS:'+ $('#post_tag_ids').val() );
-                            //alert("Data: " + data + "\nStatus: " + status);
+							if(data.status ){
+								console.log('Tag 创建成功');
+								var tag_id = data.term_id;
+								add_tag_callback(tag_id,add_tag_name);
+							} else {
+								if(data.errorcode == NOLOGIN ){
+									console.log('no login');
+								}else if(data.errorcode == TAG_EXIST ){
+									console.log('tag exist,direct show');
+									//库中已存在 已有的标签，直接显示
+									var tag_id = data.error;
+									add_tag_callback(tag_id,add_tag_name);
+									//alert(data.error);
+								}else{
+									alert(data.error);
+								}
+							}
                         },
                         error: function (msg) {
                             alert(msg.responseText);
                         }
                     });
                     $(this).val('');
-                }else{//TAG EXIST
+                }else{//在新标签列表已经存在
                     $(this).val('');
                 }
             }
             return false;
         }
     });
-    
+
+	function add_tag_callback(tag_id,tag_name){
+		$('#newtags').append('<span name='+tag_name+' class="tag tag_new" value="'+tag_id+'">'+tag_name+'&nbsp;X</span>');
+		//ACTUALLY SUBMIT FORM TEXT
+		if( $('#post_tag_ids').val().length ==0 ){
+			$('#post_tag_ids').val( tag_id);
+		}else{
+			$('#post_tag_ids').val( $('#post_tag_ids').val()+','+tag_id);
+		}
+		console.log('POST TAG IDS:'+ $('#post_tag_ids').val() );
+	}
     /**
      * enter not submit form
      */
@@ -200,6 +287,7 @@ $(document).ready(function(){
             }
         });
     });
+
     $('#create_category_diag').on('hidden.bs.modal', function (e) {
     	$('#new_category_alert_box').hide();
     });

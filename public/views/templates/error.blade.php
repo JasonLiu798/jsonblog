@@ -1,43 +1,39 @@
-@if( is_null( Session::get('user')) )
-	@include('templates/header_logout')
-@else
-	@include('templates/header_login')
-@endif
+@include('templates/header')
 
 <script type="text/javascript">
 /*
 startclock();
-var timerID = null;   
-var timerRunning = false; 
+var timerID = null;
+var timerRunning = false;
 
-function showtime() {   
+function showtime() {
 	Today = new Date();
-	var NowSecond = Today.getSeconds();   
-	Secondleft = 59 - NowSecond   
+	var NowSecond = Today.getSeconds();
+	Secondleft = 59 - NowSecond
 
-	if (Secondleft<0)   
-	{   
-		Secondleft=60+Secondleft;   
-		Minuteleft=Minuteleft-1;   
-	}   
-	
+	if (Secondleft<0)
+	{
+		Secondleft=60+Secondleft;
+		Minuteleft=Minuteleft-1;
+	}
+
 	Temp= Secondleft+'秒';
-	document.form1.left.value=Temp;   
-	timerID = setTimeout("showtime()",1000);   
-	timerRunning = true;   
+	document.form1.left.value=Temp;
+	timerID = setTimeout("showtime()",1000);
+	timerRunning = true;
 }
 
-function stopclock () {   
+function stopclock () {
 	if(timerRunning)
-	clearTimeout(timerID);   
-	timerRunning = false;   
-}   
+	clearTimeout(timerID);
+	timerRunning = false;
+}
 
-function startclock () {   
+function startclock () {
 	stopclock();
 	showtime();
 }*/
-</script>   
+</script>
 
 <div class="error_box">
 <h2>出错了o(&gt;﹏&lt;)o</h2>

@@ -1,17 +1,15 @@
-@if( is_null( Session::get('user')) )
-    @include('templates/header_logout')
-@else
-    @include('templates/header_login')
-@endif
+@include('templates/header')
 
 {{ HTML::script('js/admin/admin.js') }}
+{{ HTML::style('css/admin.css') }}
+
 
 <div class="container">
 <div class="row">
     @include('templates/sidebar_admin')
     <div class="col-md-5 col-sm-5 col-lg-5">
         <!-- <h3>{{ $title }}</h3> -->
-        <div id="batch_delete">
+        <div class="operations">
             <form method="post" action="{{url()}}/admin/category/batchdelete" accept-charset="utf-8" role="form" id="batch_delete_form">
                 <input type="hidden" name="delete_ids" id="delete_ids" value=""/>
                 <button class="btn btn-default" name="batchdelete" id="batchdelete">批量删除</button>
@@ -35,8 +33,11 @@
                 <td>{{ $cat->name }}</td>
                 <td>{{ $cat->post_cnt }}</td>
                 <td>
+                    @if( $cat->term_id!=1 )
                     <a href="{{url()}}/admin/category/delete/{{$cat->term_id}}">删除</a>|
+
                     <a href="{{url()}}/admin/category/update/{{$cat->term_id}}">修改</a>
+                    @endif
                 </td>
             </tr>
                 @endforeach
@@ -57,7 +58,9 @@
                 <select class="form-control" name="new_category_parent" id="new_category_parent">
                     <option value="0">无</option>
                     @foreach($categories as $cat)
-                        <option id="new_category_parent{{$cat->term_id}}" value="{{$cat->term_id }}">{{ $cat->name }}</option>
+                        @if( $cat->term_id!=1 )
+                            <option id="new_category_parent{{$cat->term_id}}" value="{{$cat->term_id }}">{{ $cat->name }}</option>
+                        @endif
                     @endforeach
                 </select>
             </div>

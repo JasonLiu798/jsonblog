@@ -13,6 +13,8 @@
 	{{ HTML::style('bootstrap/css/bootstrap.css') }}
     {{ HTML::style('css/style.css') }}
 
+	{{ HTML::script('js/lib/constant.js') }}
+
     <script src="{{url()}}:3000/socket.io/socket.io.js"></script>
 	@if (! empty ( $next_url ))
 		<META HTTP-EQUIV="REFRESH" CONTENT="100;URL={{$next_url}}?>" />
@@ -74,8 +76,15 @@ $(document).ready(function(){
 
 			<div class="navbar-collapse collapse">
 				<ul class="nav navbar-nav">
-					<li class="active"><a href="{{url()}}/index">主页</a></li>
-					<li><a href="#">关于</a></li>
+					<li @if( isset($nav) && $nav === Constant::$NAV_IDX ) class="active" @endif><a href="{{url()}}/index">主页</a></li>
+					<li @if( isset($nav) && $nav === Constant::$NAV_MSG ) class="active" @endif><a href="{{url()}}/message">留言</a></li>
+					<li @if( isset($nav) && $nav === Constant::$NAV_ABOUT ) class="active" @endif><a href="{{url()}}/about">关于</a></li>
+
+					@if( !empty( $username ) )
+						<li @if( isset($nav) && $nav === Constant::$NAV_ADMIN ) class="active" @endif>
+                			<a href="{{url()}}/admin/post">管理</a>
+                		</li>
+					@endif
 
 					@if( !empty( $username ) )
 						<li>
@@ -84,10 +93,13 @@ $(document).ready(function(){
 					@endif
 
 
-					<li><form class="navbar-form">
-					<input class="span2" type="text" placeholder="搜一下">
-					<button type="submit" class="btn">搜索</button>
-				</form></li>
+					<li>
+						<form class="navbar-form" method="post" action="{{url()}}/post/search" accept-charset="utf-8" role="form" id="search_form">
+							<input name="page" type="hidden" value="1"/>
+							<input name="searchtext" class="span2" type="text" placeholder="搜一下" />
+							<button type="submit" class="btn btn-default">搜索</button>
+						</form>
+					</li>
 				</ul>
 
 				<ul class="nav navbar-nav navbar-right">
@@ -110,7 +122,7 @@ $(document).ready(function(){
 					@else
 						<a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ $username }}<b class="caret"></b></a>
 						<ul class="dropdown-menu">
-							<li><a href="{{url()}}">文章管理</a></li>
+							<li><a href="{{url()}}/admin/post">管理</a></li>
 							<li><a href="#">设置</a></li>
 							<li class="divider"></li>
 							<li><a href="{{url()}}/user/logout">退出</a></li>

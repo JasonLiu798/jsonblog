@@ -14,7 +14,7 @@ function moveCommentForm(thisID,isBack){
 	if(isBack){
 		moveDiv( "commentNew","replay_comment");
 		$("#cancleReplay").hide();
-		$("#comment_parent").attr("id","0");
+		$("#comment_parent").attr("value","0");
 	}else{
 		var desID = thisID+"Comment";
 		moveDiv( desID,"replay_comment");
@@ -25,7 +25,8 @@ function moveCommentForm(thisID,isBack){
 		$("#comment_parent").attr("value",new RegExp("[0-9]+").exec(thisID)[0] );
 	}
 	$("#comment_content").focus().select();
-	var pos = $("#comment_content").offset().top - $("#replay_comment").height() - 44;
+	// var pos = $("#comment_content").offset().top - $("#replay_comment").height() - 44;
+	var pos = $("#comment_content").offset().top - $("#replay_comment").height() -44;
 	$('html,body').animate({scrollTop:pos },ANI_SPEED_FAST);
 }
 </script>
@@ -45,10 +46,11 @@ function moveCommentForm(thisID,isBack){
 			@endif
             <h2 class="blog-post-title">{{$post->post_title }}</h2>
             <p class="blog-post-meta"><a href="{{url()}}/post/single/{{$post->post_id}}">{{date ( "Y-m-d", strtotime ( $post->post_date ) )}}</a> by <a href="{{url()}}/index">{{$post->post_author }}</a>
-            @if(!is_null($post->category))
+
+            @if(!is_null( $post->category) )
     			<a href="{{url()}}/post/term/{{ $post->category->term_id }}">{{ $post->category->name }}</a>
     		@else
-    			{{{'未分类'}}}
+    			<a href="{{url()}}/post/term/1">未分类</a>
     		@endif
 			</p><!-- end of p blog-post-meta -->
 			<div class="post_content">

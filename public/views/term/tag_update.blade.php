@@ -1,11 +1,4 @@
-@if( is_null( Session::get('user')) )
-    @include('templates/header_logout')
-@else
-    @include('templates/header_login')
-@endif
-<script>
-
-</script>
+@include('templates/header')
 
 <div class="container">
 <div class="row">

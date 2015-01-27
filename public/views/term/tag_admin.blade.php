@@ -1,17 +1,15 @@
-@if( is_null( Session::get('user')) )
-    @include('templates/header_logout')
-@else
-    @include('templates/header_login')
-@endif
+@include('templates/header')
 
 {{ HTML::script('js/admin/admin.js') }}
+{{ HTML::style('css/admin.css') }}
+
 
 <div class="container">
 <div class="row">
     @include('templates/sidebar_admin')
     <div class="col-md-5 col-sm-5 col-lg-5">
         <!-- <h3>{{ $title }}</h3> -->
-        <div id="batch_delete">
+        <div class="operations">
             <form method="post" action="{{url()}}/admin/tag/batchdelete" accept-charset="utf-8" role="form" id="batch_delete_form">
                 <input type="hidden" name="delete_ids" id="delete_ids" value=""/>
                 <button class="btn btn-default" name="batchdelete" id="batchdelete">批量删除</button>

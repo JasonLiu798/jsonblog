@@ -17,6 +17,13 @@ class Constant {
 	public static $POST_ADMIN_CUT_SIZE = 25;
 	public static $UTF_8 = 'utf-8';
 
+	/**
+	 * DB use
+	 */
+	public static $TS_INIT_FILTER_COL_NAME = 'TS_INIT_FILTER_COL';
+	public static $TS_COL_NAME = 'TS_COL';
+
+
 	public static $COMM_UNREAD = 0;
 	public static $COMM_READ = 1;
 

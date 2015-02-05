@@ -1,6 +1,6 @@
 <?php
 
-class Comment extends Eloquent {
+class Comment extends BaseModel {
 
 	/**
 	 * The database table used by the model.
@@ -10,6 +10,13 @@ class Comment extends Eloquent {
 	protected $table = 'comments';
 	protected $primaryKey = 'comment_ID';
 	public $timestamps = false;
+
+	protected static $TS_COL = 'comment_date';
+
+	protected static $TS_INIT_FILTER_COL = array(
+		"comment_post_ID"=> " !=0 "
+	);
+
 
 	protected $softDelete = true;
 
@@ -69,7 +76,7 @@ order by comment_date desc;
 	}
 
 	//public function
-	public static function getLatestComments($count) {
+	public static function get_latest_comments_db($count) {
 		/*
 		select comment_author,post_title from comments
 		inner join posts on comments.comment_post_ID= posts.ID
@@ -81,6 +88,53 @@ order by comment_date desc;
 		                                 ->take($count)->get();
 		return $comments;
 	}
+
+	/**
+	 * 获取最新评论
+	 * @param $count
+	 * @param null $redis
+	 * @return array
+	 */
+	public function get_latest_comments($count,$redis = null) {
+		/*
+		select comment_author,post_title from comments
+		inner join posts on comments.comment_post_ID= posts.ID
+		order by comment_date desc limit 5;
+		 */
+		if(is_null($redis)){
+			$redis = LRedis::connection();
+		}
+		$pks = $this->get_ts_pk_set(1,$count,$redis);
+		if(is_array($pks)&&count($pks)>0){
+			$comments = $this->get_modles_from_pkset($pks,$redis);
+		}else{
+
+		}
+		if(is_array($comments) && count($comments)>0){
+			$this->add_meta($comments,$redis);
+		}
+		return $comments;
+	}
+
+	public function add_meta(&$comments,$redis=null){
+		if(is_null($redis)){
+			$redis = LRedis::connection();
+		}
+		if(is_array($comments) && count($comments)>0){
+			foreach ($comments as $comm){
+				$post = new Post;
+				$post = $post->get_model( $comm->comment_post_ID,$redis );
+				if(!is_null($post)){
+					$comm->post_title = $post->post_title;
+					$comm->post_id = $post->post_id;
+				}else{
+					$comm->post_title = null;
+					$comm->post_id = null;
+				}
+			}
+		}
+	}
+
 
 	public static function getNewCommentCountByPostAuthorID($post_author_id) {
 		/*

@@ -104,16 +104,29 @@
    </div><!-- post_pane -->
 
 @endforeach
-<!--
-	<ul class="pagination">
-		<li><a href="#">&laquo;</a></li>
 
-		<li class="active" ><a href="#">1 <span class="sr-only">(current)</span> </a></li>
-		<li><a href="#">2</a></li>
-  		<li><a href="#">&raquo;</a></li>
-	</ul>
-    -->
-    {{ $posts->links() }}
+@if( $totalpage >1)
+	<div class="pages">
+		<nav>
+			<ul class="pagination">
+				@if( $page >1 && $page<= $totalpage )
+					<li><a href="{{url()}}/index?page={{$page-1}}">&laquo;</a></li>
+				@else
+					<li class="disable"><span>&laquo;</span></li>
+				@endif
+				@for ($i = 1; $i <=$totalpage; $i++)
+					<li @if($i == $page) class="active" @endif><a href="{{url()}}/index?page={{$i}}">{{$i}}</a></li>
+				@endfor
+				@if( $page<$totalpage && $page>=1 )
+					<li><a href="{{url()}}/index?page={{$page+1}}">&raquo;</a></li>
+				@else
+					<li class="disable"><span>&raquo;</span></li>
+				@endif
+			</ul>
+		</nav>
+	</div>
+@endif
+    {{--{{ $posts->links() }}--}}
 </div><!-- container  posts_wrap col-9 -->
 
 @include('templates/sidebar')

@@ -1,6 +1,6 @@
 <?php
 
-class Post extends Eloquent {
+class Post extends BaseModel {
 
 	/**
 	 * The database table used by the model.
@@ -8,72 +8,81 @@ class Post extends Eloquent {
 	 * @var string
 	 */
 	protected $table = 'posts';
-	protected $primaryKey = 'ID';
+	protected $primaryKey = 'post_id';
+	protected static $MODEL_KEY = "%s#%s";//primarykey#{primarykey}
 
+
+	public $err;
+//	protected $primaryKey = 'post_id';
+//	public static $MODELKEY = "post_id#%s";
+
+
+
+//	public static $TIMESORT_PKSET_KEY = "POST_TS_PK#SET";
+
+
+	protected static $TS_COL = 'post_date';
+	protected static $TS_INIT_FILTER_COL = array(
+		"post_status"=> "='publish'"
+	);
+
+	// public static $MODELKEY = "post_id#%s";
 	public $timestamps = false;
-
-
-	public function get_new_pk( $init=false){
-		$redis = LRedis::connection();
-		$pre_pk = $redis->get( $this->primaryKey );
-		$pk = 0;
-		if(is_null( $this->primaryKey)){
-			return false;
-		}
-		if(is_null($pre_pk) || $init){
-			//init pid
-			if( !$this->init_redis_pk($redis)){
-				Log::error( "init $this->table PK $this->primaryKey in redis failed" );
-				return false;
-			}
-		}
-		$pk = $redis->incr( $this->primaryKey );
-		if($pk){
-			return $pk;
-		}else{
-			return false;
-		}
-	}
-
-	public function init_redis_pk($redis=null){
-		if(is_null($redis)){
-			$redis = LRedis::connection();
-		}
-		$max_pid = DB::table( $this->table )->max( $this->primaryKey ) ;
-		if($max_pid){
-			$res_set = $redis->set($this->primaryKey ,$max_pid);//如无acid,get max acid 设置
-			if(!$res_set){
-				return false;
-			}
-		}
-		return true;
+	// protected $softDelete = true;
+	/**
+	 * ------------------------Relation functions------------------------------------------
+	 */
+	/**
+	 * term-post 多对多
+	 * @return mixed
+	 */
+	public function terms(){
+		return $this->belongsToMany('Term', 'term_relationships', 'object_id', 'term_id');
 	}
 
 	/**
-	 * 验证是否有效PK
-	 * 0<$pid<max pk+1
-	 * @param $pid
+	 * 一对多
+	 * @return mixed
 	 */
-	public function chk_pk_format($pid){
-		if(!is_numeric($pid)) {
-			return false;
-		}
-		$redis = LRedis::connection();
-		$max_pk = $redis->get( $this->primaryKey );
-		if( is_null($max_pk) ){
-			//初始化 redis pk
-			if( !$this->init_redis_pk($redis)){
-				Log::error( "init $this->table PK $this->primaryKey in redis failed" );
-				return false;
-			}
-		}else{
-			if($pid > $max_pk || $pid<0){
-				return false;
-			}
-		}
-		return true;
+	public function user(){
+//		$this->('Post');
+		return $this->belongsTo('User','post_author','ID');
 	}
 
+	/**
+	 * 一对多
+	 * @return mixed
+	 */
+	public function comments() {
+		return $this->hasMany('Comment', 'comment_post_ID');
+	}
+
+	/**
+	 * 一对一
+	 * @return mixed
+	 */
+	public function postimage(){
+		return $this->hasOne('PostImage','iid','post_cover_img');
+	}
+
+	/**
+	 * 一对一
+	 * @return mixed
+	 */
+	public function postauthor(){
+		return $this->hasOne('User','ID','post_author');
+	}
+
+
+
+	/**
+	 * ------------------------校验函数 functions--------------------------------------------------
+	 */
+	/**
+	 * pid 是否存在
+	 * @param $pid
+	 * @return bool
+	 */
 	public static function chk_pid_exist($pid){
 		$post = Post::find($pid);
 		if(is_null($post)){
@@ -83,20 +92,229 @@ class Post extends Eloquent {
 	}
 
 
-	// protected $softDelete = true;
+	/**
+	 * ---------------------------------查询函数------------------------------------------------
+	 */
 
-// 	public function get()
-	// 	{
-	// 		return $this->hasMany('Comment');
-	// 	}
-	//
-	//
-	public function comments() {
-		return $this->hasMany('Comment', 'comment_post_ID');
+
+	public function get_posts_onepage_with_meta($page,$pagesize,$redis = null){
+		if(is_null($redis)){
+			$redis = LRedis::connection();
+		}
+		$posts = $this->get_posts_onepage($page,$pagesize,$redis);
+		if(!is_null($posts)){
+			self::add_meta($posts,$redis);
+		}
+		return $posts;
 	}
-	// public function category() {
-	// 	return $this->hasMany('Comment', 'comment_post_ID');
-	// }
+
+
+	/**
+	 * [多条] 首页用，
+	 * @param $page 页数
+	 * @param $pagesize 页码
+	 * @param null $redis
+	 */
+	public function get_posts_onepage($page,$pagesize,$redis=null){
+		$err = '';
+		$res = null;
+		if($page <0 ){
+			$this->err = '请求页数范围错误';
+		}else{
+			if(is_null($redis)){
+				$redis = LRedis::connection();
+			}
+//			$total = $this->get_ts_pk_set_size($redis);
+			$total_db = $this->get_size_db();//取得 size 实际值
+			if($total_db == 0){
+				$res = null;//库内无post
+				$this->err = "库内无post";
+			}else{
+				if( $page * Constant::$PAGESIZE > $total_db ){//page 有效性检查完毕，可取ts_set值
+					$res = null;
+					$this->err = '请求页数超出范围';
+				}else{//page正常，且库内有post
+					$pk_set = $this->get_ts_pk_set($page,Constant::$PAGESIZE,$redis);
+					if(!is_null($pk_set) && count($pk_set >0 )){
+						$res = $this->get_post_from_pkset($pk_set);
+					}
+					if(!is_null($res)&& count($res)>0){
+						//按时间排序 从大到小
+						usort($res , function($p1, $p2) {
+							$p1_date = strtotime($p1->post_date);
+							$p2_date = strtotime($p2->post_date);
+							if($p1_date == $p2_date){
+								return 0;
+							} else {
+								return $p1_date >$p2_date ?-1:1;
+							}
+						});
+					}else{
+						$res = $this->get_posts_onepage_db($page,Constant::$PAGESIZE);
+						if(is_null($res)){
+							$this->err = '从库中取posts 值为空或数据库错误';
+						}
+					}
+				}
+			}
+		}
+		return $res;
+	}
+
+	/**
+	 * [多条]
+	 * @param $page
+	 * @param $pagesize
+	 * @return mixed
+	 */
+	public function get_posts_onepage_db($page,$pagesize){
+		$res = DB::table( $this->table )
+			->skip( ($page-1)*$pagesize )
+			->take($pagesize)->orderBy(self::$TS_COL)->get();
+		return $res;
+	}
+
+	/**
+	 * [多条] 从pkset获取post
+	 * @param $pks
+	 * @param null $redis
+	 * @return array
+	 */
+	public function get_post_from_pkset($pks,$redis=null){
+		if(is_null($redis)){
+			$redis = LRedis::connection();
+		}
+		$res = array();
+		if( is_array($pks) && count($pks)>0){
+			foreach($pks as $pk){
+//				$post = $this->get_one_post_nocontent($pk,$redis);
+				$post = $this->get_model($pk,$redis);
+				if(!is_null($post)){
+					array_push($res,$post);
+				}else{
+					$errmsg = "获取到空post";
+					$this->error = $errmsg;
+					$method = __METHOD__;
+					Log::error("{$method}|MSG:{$errmsg}");
+				}
+			}
+		}
+		return $res;
+	}
+
+
+	/**
+	 * 单条，
+	 * @param $post_id
+	 * @param null $redis
+	 * @return null
+	 *
+	public function get_one_post_nocontent($post_id,$redis=null){
+		if(is_null($redis)){
+			$redis = LRedis::connection();
+		}
+		$classname = get_class($this);
+
+		$key = strtoupper(sprintf(self::$MODELKEY ,$classname ,$post_id));
+		$post_se = $redis->get($key);
+		if(!is_null($post_se)){
+			$res = unserialize($post_se);
+			if(is_null($res)){//cannot be decoded or if the encoded data is deeper than the recursion limit.
+				$res = $this->get_one_post_nocontent_db_and_init_cache($post_id,$redis);
+			}
+		}else{
+			$res = $this->get_one_post_nocontent_db_and_init_cache($post_id,$redis);
+		}
+		return $res;
+	}
+*/
+
+
+	/**
+	 * 单条
+	 * @param $post_id
+	 * @param null $redis
+	 * @return null
+	 *
+	public function get_one_post_nocontent_db_and_init_cache($post_id,$redis=null){
+		if(is_null($redis)){
+			$redis = LRedis::connection();
+		}
+		try{
+			$res = Post::find($post_id);
+		}catch(Exception $e){
+			$error_msg = $e->getMessage();
+			$method = __METHOD__;
+			Log::error("{$method}|MSG:{$error_msg}");
+			$res = null;
+		}
+		if( !is_null($res)){
+			$res->post_content = null;
+			$key = sprintf(self::$MODELKEY,$post_id);
+			$redis->set($key,json_encode($res));
+		}
+		return $res;
+	}
+	 */
+
+	/**
+	 * 附加post category和tag
+	 * @param $posts
+	 */
+	public static function add_meta(&$posts,$redis=null) {
+		if(is_null($redis)){
+			$redis = LRedis::connection();
+		}
+		foreach ($posts as $post):
+			try{
+//				$terms = Term::get_terms_by_post($post->post_id);
+				$tr = new TermRelationship();
+				$terms = $tr->get_post_term( $post->post_id );//Term::get_terms_by_post
+				//($post->post_id);
+				if (!is_null($terms)) {
+					$cat = Term::get_category($terms);
+					$tag = Term::get_tag($terms);
+					$post->category = is_array($cat) && count($cat) > 0 ? reset($cat) : null;
+					$post->post_tag = is_array($tag) && count($tag) > 0 ? $tag : null;
+				} else {
+					$post->category = null;
+					$post->post_tag = null;
+				}
+//				$img_pk = ;
+				$img = new PostImage;
+				$img = $img->get_model($post->post_cover_img);
+//				$img = $post->postimage;
+				$author = new User;
+				$author = $author->get_model($post->post_author,$redis );
+				if(!is_null($img)){
+					$post->post_img_name = $img->name;
+				}else{
+					$post->post_img_name = null;
+				}
+				if(!is_null($author)){
+					$post->post_author = $author->user_login;
+				}else{
+					$post->post_author = null;
+				}
+				$post_model = new Post;
+				$cnt = $post_model->get_relate_count("comment",$post->post_id,$redis);
+				if($cnt<0){
+					$post->comment_count = 0;
+				}else{
+					$post->comment_count = $cnt;
+				}
+			}catch(Exception $e){
+				//出现异常，全部置空
+				foreach ($posts as $post):
+					$post->category = null;
+					$post->post_tag = null;
+				endforeach;
+				Log::error("Post Add Meta|Get term error| {$e->getMessage()}");
+			}
+		endforeach;
+	}
+
+
 	/**
 	 *
 	 * @param unknown $user_id
@@ -130,11 +348,81 @@ order by posts.post_date desc;
 	}
 
 	/**
+	 * @param null $redis
+	 *
+	public function init_posts($redis=null){
+		if(is_null($redis)){
+			$redis = LRedis::connection();
+		}
+		try{
+			$posts = Post::all();
+			if( is_array($posts) && count($posts)>0){
+				foreach($posts as $post){
+					$key = sprintf(self::$POSTKEY,$post->post_id);
+					$set_res = $redis->set($key,json_encode($post));
+					if(!$set_res){
+						$method = __METHOD__;
+						Log::error("{$method}|MSG:设置post缓存失败");
+					}
+				}
+				$res = $posts;
+			}else{
+				$res = null;
+			}
+		}catch(Exception $e){
+			$error_msg = $e->getMessage();
+			$method = __METHOD__;
+			Log::error("{$method}|MSG:{$error_msg}");
+			$res = false;
+		}
+	}
+	 */
+
+
+
+
+
+	public function get_post_db($page,$pagesize){
+		try{
+			$idx = $this->page2index($page,$pagesize);
+			$start = $idx['start'];
+			$stop = $idx['stop'];
+
+			$res = DB::table('posts')
+				->leftJoin('users', 'users.ID', '=', 'posts.post_author')
+				->leftJoin('postimages', 'postimages.iid', '=', 'posts.post_cover_img')
+				->select('posts.ID as post_id', 'post_title', 'post_content', 'post_date', 'users.user_login as post_author', 'post_summary', 'postimages.filename as post_img_name', DB::raw('count(comments.comment_ID) as comment_count'))
+				->leftJoin('comments', 'comments.comment_post_ID', '=', 'posts.ID')
+				->where('post_status','=',Constant::$POST_PUBLISH)
+				->orderBy('post_date', 'desc');
+		}catch(Exception $e){
+			$error_msg = $e->getMessage();
+			$method = __METHOD__;
+			Log::error("{$method}|MSG:{$error_msg}");
+			$res = null;
+		}
+		return $res;
+	}
+
+//	public static function get_post_with_meta_db($pagesize){
+//		$posts = self::get_post_db($pagesize);
+//		if ($posts) {
+//			Post::add_meta($posts);
+//		} else {
+//			$posts = null;
+//		}
+//		return $posts;
+//	}
+
+
+	/**
 	 * 获取所有posts 评论数，作者，
 	 * @param unknown $pagesize
 	 * @return NULL
 	 */
-	public static function get_posts($pagesize) {
+	public static function get_posts_bak($pagesize,$redis=null) {
+		//$posts = Post::paginate($pagesize);
+
 		$posts = DB::table('posts')
 			->leftJoin('users', 'users.ID', '=', 'posts.post_author')
 			->leftJoin('postimages', 'postimages.iid', '=', 'posts.post_cover_img')
@@ -149,6 +437,8 @@ order by posts.post_date desc;
 		// $paginator = Paginator::make($posts,$totla_cnt,$pagesize);
 		return $posts;
 	}
+
+
 
 	/**
 	 * get posts by term_id
@@ -313,29 +603,7 @@ $query->select('post_date')
 		return $res;
 	}
 
-	public static function add_meta(&$posts) {
-		foreach ($posts as $post):
-			try{
-				$terms = Term::get_terms_by_post($post->post_id);
-				if (!is_null($terms)) {
-					$cat = Term::get_category($terms);
-					$tag = Term::get_tag($terms);
-					$post->category = is_array($cat) && count($cat) > 0 ? reset($cat) : null;
-					$post->post_tag = is_array($tag) && count($tag) > 0 ? $tag : null;
-				} else {
-					$post->category = null;
-					$post->post_tag = null;
-				}
-			}catch(Exception $e){
-				//出现异常，全部置空
-				foreach ($posts as $post):
-					$post->category = null;
-					$post->post_tag = null;
-				endforeach;
-				Log::error("Post Add Meta|Get term error| {$e->getMessage()}");
-			}
-		endforeach;
-	}
+
 
 // 	public function comments()
 	// 	{
@@ -352,6 +620,26 @@ $query->select('post_date')
 		$posts = DB::table('posts')->select('ID', 'post_title')->orderBy('post_date')->take($count)->get();
 		return $posts;
 	}
+
+	/**
+	 * 获取最新博客5篇
+	 * @param $count
+	 * @param null $redis
+	 * @return array
+	 */
+	public function get_latest_count_post($count,$redis=null) {
+		if(is_null($redis)){
+			$redis = LRedis::connection();
+		}
+		$pks = $this->get_ts_pk_set(1,$count,$redis);
+		if(is_array($pks)&&count($pks)>0){
+			$posts = $this->get_post_from_pkset($pks,$redis);
+		}
+		return $posts;
+	}
+
+
+
 
 	public static function getPostsStat() {
 		/*
@@ -398,6 +686,87 @@ $query->select('post_date')
 		}
 	}
 
+
+
+	/**
+	 * 全文检索搜索函数 search function
+	 * @param $search_text
+	 * @param $page
+	 * @param $per_page
+	 * @return array
+	 */
+	public static function search_name_content($search_text, $page, $per_page) {
+		$socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP); // or die('could not create socket');
+		$posts = null;
+		$err = '';
+		if ($socket) {
+			try {
+				$connect = socket_connect($socket, Constant::$SEARCH_SERVER_IP, Constant::$SEARCH_SERVER_PORT);
+				//向服务端发送数据
+				$search_str = sprintf(Constant::$SEARCH_FUNC, $search_text, $page, $per_page);
+				socket_write($socket, $search_str);
+				// socket_write($socket,  . '#' . $search_text . ',' . $page . ',' . $per_page . "\n");
+				//接受服务端返回数据
+				$json = socket_read($socket, 1024, PHP_NORMAL_READ);
+				$res = json_decode($json);
+				if ($res->status === "true") {
+					$search_res = $res->data;
+					$search_res_arr = explode('#', $search_res);
+					$cnt = count($search_res_arr);
+					$total = 0;
+					if ($cnt == 2) {
+						$total = $search_res_arr[0];
+						$ids = explode(',', $search_res_arr[1]);
+						$posts = array();
+						if (count($ids) > 0) {
+							foreach ($ids as $id) {
+								$tmp_post = self::get_post_by_id($id);
+								$posts = array_merge($posts, $tmp_post);
+							}
+							self::add_meta($posts);
+							// print_r($posts);
+						}
+					} else if ($cnt == 1) {
+						$posts = null;
+					} else {
+						$err = '查询错误';
+					}
+				} else {
+					$err = $res->data;
+				}
+				//关闭
+				socket_close($socket);
+			} catch (ErrorException $e) {
+				$err = $e->getMessage();
+			}
+		} else {
+			$err = "无法连接到搜索服务器";
+		}
+		if (strlen($err) > 0) {
+			return array(false, $err);
+		} else {
+			return array(true, $posts, $total);
+		}
+	}
+
+	/**
+	 * 添加post，增加此博文的全文索引
+	 * @param $post_id
+	 */
+	public static function add_search_index($post_id) {
+
+	}
+
+	/**
+	 * 更新所有全文索引，合并碎片，定时执行
+	 */
+	public static function rebuild_search_index() {
+
+	}
+
+	/**
+	 * ---------------------------------新建/删除/修改函数---------------------------------------------
+	 */
 	/**
 	 * 创建post
 	 */
@@ -609,64 +978,8 @@ $post_summary, $post_status) {
 		return $res;
 	}
 
-	public static function search_name_content($search_text, $page, $per_page) {
-		$socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP); // or die('could not create socket');
-		$posts = null;
-		$err = '';
-		if ($socket) {
-			try {
-				$connect = socket_connect($socket, Constant::$SEARCH_SERVER_IP, Constant::$SEARCH_SERVER_PORT);
-				//向服务端发送数据
-				$search_str = sprintf(Constant::$SEARCH_FUNC, $search_text, $page, $per_page);
-				socket_write($socket, $search_str);
-				// socket_write($socket,  . '#' . $search_text . ',' . $page . ',' . $per_page . "\n");
-				//接受服务端返回数据
-				$json = socket_read($socket, 1024, PHP_NORMAL_READ);
-				$res = json_decode($json);
-				if ($res->status === "true") {
-					$search_res = $res->data;
-					$search_res_arr = explode('#', $search_res);
-					$cnt = count($search_res_arr);
-					$total = 0;
-					if ($cnt == 2) {
-						$total = $search_res_arr[0];
-						$ids = explode(',', $search_res_arr[1]);
-						$posts = array();
-						if (count($ids) > 0) {
-							foreach ($ids as $id) {
-								$tmp_post = self::get_post_by_id($id);
-								$posts = array_merge($posts, $tmp_post);
-							}
-							self::add_meta($posts);
-							// print_r($posts);
-						}
-					} else if ($cnt == 1) {
-						$posts = null;
-					} else {
-						$err = '查询错误';
-					}
-				} else {
-					$err = $res->data;
-				}
-				//关闭
-				socket_close($socket);
-			} catch (ErrorException $e) {
-				$err = $e->getMessage();
-			}
-		} else {
-			$err = "无法连接到搜索服务器";
-		}
-		if (strlen($err) > 0) {
-			return array(false, $err);
-		} else {
-			return array(true, $posts, $total);
-		}
 
-	}
 
-//	public static function create_post_term($tagid_str,$category_id){
-//
-//	}
 
 	public static function create_post_term($post_id, $termid_arr) {
 		$insert_arr = array();

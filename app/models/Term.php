@@ -1,11 +1,17 @@
 <?php
 
-class Term extends Eloquent {
+class Term extends BaseModel {
 
 	protected $table = 'terms';
 	protected $primaryKey = 'term_id';
+	protected static $primaryKeyS = 'term_id';
 	public $timestamps = false;
 	public $category2show;
+
+	public static $CNTKEY = "term_id#%s#cnt";
+	public static $TERMKEY = "term_id#%s";
+
+	private static $PKSKEY = "termids";
 	//public static function getPost
 
 	public function __construct() {
@@ -13,9 +19,29 @@ class Term extends Eloquent {
 		$this->category2show = array();
 	}
 
-	public function termtaxonomy() {
-		return $this->hasOne('TermTaxonomy', 'term_id');
+	/**
+	 * term-post 多对多
+	 * @return mixed
+	 */
+	public function posts(){
+		return $this->belongsToMany('Post', 'term_relationships', 'term_id', 'object_id');
 	}
+
+	/**
+	 * term-term_relationship 一对多
+	 */
+	public function termrelationships(){
+		Log::info('term_relationships');
+		return $this->hasMany('TermRelationship','term_id','term_id');
+	}
+
+
+
+
+
+
+
+
 
 	public static function delete_term_relationship($post_id) {
 		//DB::table('terms')
@@ -54,19 +80,22 @@ class Term extends Eloquent {
 	 * @return unknown
 	 */
 	public static function get_terms_by_post($post_id) {
+
+		$terms = Post::find($post_id)->terms;
 		/*
 		select terms.name as name,term_taxonomy.taxonomy as taxonomy,terms.term_id as term_id
 		from term_taxonomy
 		join terms on terms.term_id=term_taxonomy.term_id
 		join term_relationships on term_relationships.term_taxonomy_id =term_taxonomy.term_id
 		where term_relationships.object_id=30;
-		 */
+		 *
 		$terms = DB::table('term_taxonomy')
 			->select('terms.name as name', 'term_taxonomy.taxonomy as taxonomy', 'terms.term_id as term_id')
 			->join('terms', 'terms.term_id', '=', 'term_taxonomy.term_id')
 			->join('term_relationships', 'term_relationships.term_taxonomy_id', '=', 'term_taxonomy.term_id')
 			->where('term_relationships.object_id', '=', $post_id)
 			->get();
+		*/
 //		$queries = DB::getQueryLog();
 //		$last_query = end($queries);
 //		Log::info('TERMS:' . $last_query['query']);
@@ -131,10 +160,35 @@ class Term extends Eloquent {
 		return is_null($terms) ? null : array_filter($terms, function ($v) {return $v->taxonomy === 'post_tag';});
 	}
 
+
+	/**
+	 * 获取terms和 term-post统计
+	 * @param null $redis
+	 * @return array|null
+	 */
+	public function get_terms_and_stat($redis = null) {
+		if(is_null($redis)){
+			$redis = LRedis::connection();
+		}
+		$res = $this->get_models($redis);
+		if(is_array($res) && count($res)>0 ){
+			$term_model = new Term;
+
+			$cnt = $term_model->get_relate_count('post',2);
+			foreach($res as $term){
+				$cnt = $term_model->get_relate_count('post',$term->term_id);
+				$term->term_count = $cnt;
+			}
+		}
+		return $res;
+	}
+
+
 	/**
 	 * for index show
 	 */
 	public static function getTermsAndStat() {
+
 		/*
 		select terms.name term_name,term_taxonomy.taxonomy,count(*) term_count from terms
 		left join term_relationships on terms.term_id=term_taxonomy_id
@@ -156,7 +210,7 @@ class Term extends Eloquent {
 		// 			->leftJoin('terms','terms.term_id','=','term_relationships.term_taxonomy_id')
 		// 			->groupBy('term_name')->orderBy('term_count', 'desc')
 		// 			->get();
-
+		//获取所有term基本信息->通过tid获取term信息
 		$terms = DB::table('terms')
 			->select( DB::raw('count(*) term_count , terms.name as term_name,terms.term_id,term_taxonomy.taxonomy'))
 			->leftJoin('term_relationships', 'term_relationships.term_taxonomy_id', '=', 'terms.term_id')
@@ -166,6 +220,68 @@ class Term extends Eloquent {
 			->get();
 		return $terms;
 	}
+
+	/**
+	 * 获取所有 term主键
+	 * @return mixed 失败返回空数组
+	 *
+	public static function get_term_ids(){
+		try{
+			$redis = $redis = LRedis::connection();
+			$cache_res = $redis->sMembers( self::$PKSKEY );
+			if(is_null($cache_res)){
+				$terms = Term::all();
+				$res = array();
+				foreach($terms as $term){
+					$redis->sAdd( self::$PKSKEY , $term->term_id );
+					array_push($res, $term->term_id );
+				}
+			}else{
+				$res = $cache_res;
+			}
+		}catch(Exception $e){
+			$method = __METHOD__;
+			Log::error("{$method}|获取term pk失败");
+			$res = array();
+		}
+		return $res;
+	}
+	*/
+
+
+
+
+
+	public static function get_term_stat8tid($tid){
+		$redis = $redis = LRedis::connection();
+		//key format term_idTidCnt
+		$key = sprintf(self::$CNTKEY,$tid);
+		$tcnt_cache = $redis->get( $key );
+		if(is_null($tcnt_cache)){
+			//无缓存，则更新
+			/**
+			 * select count(*) term_count
+				from terms
+				left join term_relationships on terms.term_id=term_taxonomy_id
+				inner join posts on term_relationships.object_id=posts.ID
+				where term_id = 100;
+			 */
+			try{
+				$cnt = Term::find(100)->posts->count();
+			}catch(Exception $e){
+				$method = __METHOD__;
+				$cnt = 0;//默认设为0
+				Log::error("{$method}|获取{$tid}的分类统计失败");
+			}
+			$redis->set( $key , $cnt);
+			$res = $cnt;
+		}else{
+			$res = $tcnt_cache;
+		}
+		return $res;
+	}
+
+
 	/*
 	public static function getCategory($terms){
 	return is_null($terms)?null:array_filter($terms,function($v){ return $v->taxonomy==='category'; });
@@ -613,6 +729,67 @@ class Term extends Eloquent {
 			$res = null;
 		}
 		return $res;
+	}
+
+
+	public function init_post_terms($post_id,$redis=null){
+		if(is_null($redis)){
+			$redis = LRedis::connection();
+		}
+
+	}
+
+
+	/**
+	 * 获取一条term信息，raw格式json
+	 * key 格式 PKNAME#tid
+	 * value 格式jason, {"term_id":1,"name":"\u672a\u5206\u7c7b",
+	 * 					"taxonomy":"category","description":null,"parent":0}
+	 * @param $tid
+	 */
+	public function get_term($tid,$redis = null){
+		if(is_null($redis)){
+			$redis = LRedis::connection();
+		}
+		$key = sprintf(self::$TERMKEY,$tid);
+		$term_cache = $redis->get($key);
+		if(is_null($term_cache)){
+			$res = $this->init_term_cache($redis);
+		}else{
+			$term = json_decode($term_cache);
+			$res = $term ? $term: null;
+		}
+		return $res;
+	}
+
+
+
+	/**
+	 * 初始化一条term
+	 * @param $tid
+	 * @param null $redis
+	 * @return null|void
+	 */
+	public function init_term_cache($tid,$redis=null){
+		if(is_null($redis)){
+			$redis = LRedis::connection();
+		}
+		$term_db = $this->get_term_db($tid);
+		$key = sprintf(self::$TERMKEY,$tid);
+		if( $term_db ){
+			$json = json_encode($term_db);
+			$redis->set($key,$json);
+			$res = $term_db;
+		}else{
+			$method = __METHOD__;
+			Log::error("{$method}|获取{$tid} term失败");
+			$res = null;
+		}
+		return $res;
+	}
+
+	public function get_term_db($term_id){
+		$term = Term::find($term_id);
 	}
 
 

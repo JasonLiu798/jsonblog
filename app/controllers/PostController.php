@@ -1,27 +1,41 @@
 <?php
 class PostController extends BaseController {
 
+	/**
+	 * Post Index
+	 * @return mixed
+	 */
 	public function index() {
+
+
 		$INFO_ST = microtime(1);
-		$posts = Post::get_posts(Constant::$PAGESIZE);
-		if ($posts) {
-			Post::add_meta($posts);
-		} else {
-			$posts = null;
-		}
-		$sidebar = PostController::get_sidebar();
-		$username = User::get_name_from_session(Session::get('user'));
+//		$view_se = Cache::get('indexpage');
+//
+//		Cache::put('indexpage', $view , 5);
+
+		$parm_page = Input::get('page');
+		$page = is_null($parm_page)?1:$parm_page;//至少为1，小于 $total/Pagesize
+
+		$redis = LRedis::connection();
+		$post_model = new Post;
+		$posts = $post_model->get_posts_onepage_with_meta($page,Constant::$PAGESIZE,$redis);
+		$sidebar = PostController::get_sidebar($redis);
+		$username = User::get_name_from_session();
+
+		$totalpage = 2;
+
 		$view = View::make('index',
-			array('title' => 'AsyncBlog',
-				'username' => $username,
-				'nav' => Constant::$NAV_IDX,
-				'term4title' => null,
-				'date4title' => null,
-				'posts' => $posts,
-				'sidebar' => $sidebar));
-		$INFO_RUNTIME = microtime(1)-$INFO_ST;
-		Log::info("Class:{get_class()},Method:{get_class_methods(PostController)},Runtime:{$INFO_RUNTIME}");
-		return $view;
+			array('title' => 'AsyncBlog','sidebar' => $sidebar,
+				'page'=>$page,'totalpage'=>$totalpage,
+				'username' => $username, 'nav' => Constant::$NAV_IDX,
+				'term4title' => null, 'date4title' => null,
+				'posts' => $posts));
+
+		$INFO_RUNTIME = round(1000*(microtime(1)-$INFO_ST),5);
+		$method = __METHOD__;
+		Log::info("{$method},Runtime:{$INFO_RUNTIME}");
+		echo $view;
+//		echo $view;
 	}
 
 	/**
@@ -98,20 +112,28 @@ class PostController extends BaseController {
 	 * get sidebar infos
 	 * @return stdClass
 	 */
-	public static function get_sidebar() {
+	public static function get_sidebar($redis = null) {
+		if(is_null($redis)){
+			$redis = LRedis::connection();
+		}
+
 		$res = new stdClass;
 		//get terms
-		$term_stats = Term::getTermsAndStat();
+		$term_model = new Term;
+		$term_stats = $term_model->get_terms_and_stat($redis);
+
 		$res->cat_stats = Term::get_category($term_stats);
 		$res->tag_stats = Term::get_tag($term_stats);
 		//get post archive
 		$post_stats = Post::getPostsStat();
 		$res->post_stats = $post_stats;
 		//get latest posts
-		$latest_posts = Post::getNewstPost(5);
+		$post_model = new Post;
+		$latest_posts = $post_model->get_latest_count_post(5,$redis);
 		$res->latest_posts = $latest_posts;
 		//get latest comments
-		$latest_comments = Comment::getLatestComments(5);
+		$comm_model = new Comment;
+		$latest_comments = $comm_model->get_latest_comments(5,$redis);
 		$res->latest_comments = $latest_comments;
 		return $res;
 	}
@@ -322,13 +344,19 @@ class PostController extends BaseController {
 					//POST_CONTENT SUMMARY
 //					$post_content = htmlentities( Input::get('post_content') , ENT_QUOTES);
 //					$post_content = htmlspecialchars(Input::get('post_content'), ENT_QUOTES);
-					$htmlFilter = new HtmlFilter;
-					$start = microtime(1);
-					$htmlFilter->addValues('a', 'href', array('#'));
-					var_dump($htmlFilter->filter( Input::get('post_content') ));
-					echo PHP_EOL, (microtime(1) - $start);
 
-					$post_content = htmlspecialchars();
+					$START = microtime(1);
+
+					$htmlFilter = new HtmlFilter;
+					$htmlFilter->addValues('a', 'href', array('#'));
+					$post_content = $htmlFilter->filter( Input::get('post_content') );
+
+					$TOTAL = 1000* (microtime(1) - $START);
+					Log::info("Filter post time:{$TOTAL}");
+
+//					echo PHP_EOL, (microtime(1) - $start);
+
+//					$post_content = htmlspecialchars();
 					//urldecode
 					Log::info('Post Content:'.$post_content);
 					if (strlen($post_content) > Constant::$POST_INDEX_CUT_SIZE) {
@@ -526,11 +554,138 @@ class PostController extends BaseController {
 	public function test() {
 //		$post_model = new Post;
 //		echo $post_model->chk_pk(243);
+
+//		print_r(   Term::find(1)->ttttermrelationships  );
+
+//		print_r( TermRelationship::find(1)->post);
+
+
+//		$p  = new Post;
+//		print_r($p->get_pk_set());
+
+//		$pk_set_db = DB::table('posts')->select('ID')->get();
+//		echo gettype($pk_set_db);
+//		$redis = null;
+		$str = "key%s";
+		$start = microtime(1);
+
+
+		$post_model = new Post;
+		$total = $post_model->init_ts_pk_set();
+		echo $total;
+//		var_dump( $p->get_ts_pk_set(1,10) );
+
+
+//		$comments = Comment::all();
+//		$comments->sortBy(function($comments)
+//		{
+//			return $comments->comment_date;
+//		})->skip(0)->take(2);
+
+
+
+//		echo sprintf($str,"a");
+
+//		echo "keya";
+//		$p = new Post;
+//		$p->get_ts_pk_set(2,2);
+//		$p->get_ts
+
+//		$redis = LRedis::connection();
+//		$redis->ZADD('POST_TS_PKSET',
+
+//		$p = Post::find(42);
+//		$redis->ZADD('POST_TS_PKSET',5,$p->post_id);
+////		$redis->ZREM( 'POST_TS_PKSET',strtotime($p->post_date) );
+////
+//		$p = Post::find(43);
+//		$redis->ZADD('POST_TS_PKSET',4,$p->post_id);
+////		$redis->ZADD('POST_TS_PKSET',strtotime($p->post_date),$p->post_id);
+////		$redis->ZREM( 'POST_TS_PKSET',strtotime($p->post_date) );
+////
+//		$p = Post::find(44);
+//		$redis->ZADD('POST_TS_PKSET',3,$p->post_id);
+//		$redis->ZADD('POST_TS_PKSET',strtotime($p->post_date),$p->post_id);
+//		$redis->ZREM( 'POST_TS_PKSET',strtotime($p->post_date) );
+
+//		$redis
+
+//		var_dump();
+//		$ps = Post::all();
+//
+//		foreach($ps as $p){
+//
+//		}
+
+
+//		$p = new Post;
+//		var_dump($p->get_pk_set());
+
+//		var_dump(Post::find(42)->user);
+
+
+
+
+
+//
+//		$tr = new TermRelationship();
+//		$res = $tr->get_post_term(36);
+////		$res = $tr->get_post_term_key(36);
+////		$res = $tr->get_post_term_id_from_db(36);
+////		echo "B\n";
+//		var_dump($res);
+//		print_r( $tr->get_post_term(36) );
+
+//		$p = Post::find(42);
+//		$t = new stdClass;
+//		$t->str = 'ID';
+////		$str = 'ID';
+//		echo $p[$t->str];
+
+//
+//		$redis = LRedis::connection();
+//		$res = $redis->SMEMBERS('testset');
+//		echo gettype($res);
+//		var_dump($res);
+
+//		if(is_null($redis)){
+//			echo 'null';
+//		}
+		$time = 1000*(microtime(1) - $start);
+		echo "<br/>time:".$time;
+
+		/*
+		$start = microtime(1);
+		print_r( Term::get_term(1) );
+		$time = 1000*(microtime(1) - $start);
+		echo "time:".$time;
+		*/
+
+
+//		$t = new Term;
+//		print_r(Term::find(1)->posts->count());
+//		print_r( Term::find(1)->posts );
+
+//		$t = new Term;
+//		echo $t->get_new_pk();
+
+
+//
+//		$p = Post::find(36);
+//		print_r($p->terms);
+
+//		$redis = $redis = LRedis::connection();
+//		$cache_res = $redis->sMembers( "myset" );
+//		print_r($cache_res);
+
+		/*
 		$htmlcode = <<<EOF
 		<p>
 			<div REL="add-2012-xs">ssssssssssssssssssss</DIV>
-			<script>skdflkjdjklsf</script>
-			<img href="http://sdjkfjkdf" width=100 height=233 />
+			<script>
+				skdflkjdjklsf
+			</script>
+			<img href="http://www.lblog.com/img/a.jpg" width=100 height=233 />
 			<a href="http://ww.baidu.com">sdjk</a>
 			sdfsdfjkl
         </p>
@@ -541,7 +696,8 @@ EOF;
 		$htmlFilter = new HtmlFilter;
 		echo $htmlFilter->filter($htmlcode);
 //		var_dump($htmlFilter->filter($htmlcode));
-		echo (microtime(1) - $start);
+		echo "\n".(1000*(microtime(1) - $start));
+		*/
 
 //		$id_arr = Term::process_idstr('108,100,110');
 //		echo "BF:\n";

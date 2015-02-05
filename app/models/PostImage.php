@@ -1,6 +1,6 @@
 <?php
 
-class PostImage extends Eloquent {
+class PostImage extends BaseModel {
 	//index image 600x360
 	protected $table = 'postimages';
 
@@ -12,7 +12,9 @@ class PostImage extends Eloquent {
 		$res = PostImage::paginate($pagesize);
 		return $res;
 	}
+	public static function get_post_img_name($post_id){
 
+	}
 	// public static function chk_exist($iid){
 	// 	$img = PostImage::find($iid);
 	// 	if(is_null($img)){

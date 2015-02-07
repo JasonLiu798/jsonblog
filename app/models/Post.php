@@ -12,7 +12,7 @@ class Post extends BaseModel {
 	protected static $MODEL_KEY = "%s#%s";//primarykey#{primarykey}
 
 
-	public $err;
+	public $error;
 //	protected $primaryKey = 'post_id';
 //	public static $MODELKEY = "post_id#%s";
 
@@ -22,6 +22,7 @@ class Post extends BaseModel {
 
 
 	protected static $TS_COL = 'post_date';
+	public static $TS_CONDITION = 1;
 	protected static $CONDITION_COL = array(
 		0=> "post_status ='publish'"
 	);
@@ -101,11 +102,35 @@ class Post extends BaseModel {
 		if(is_null($redis)){
 			$redis = LRedis::connection();
 		}
-		$posts = $this->get_posts_onepage($page,$pagesize,$redis);
-		if(!is_null($posts)){
-			self::add_meta($posts,$redis);
+		$res = $this->get_posts_onepage($page,$pagesize,$redis);
+		if($res->status){
+			self::add_meta($res->posts,$redis);
 		}
-		return $posts;
+		return $res;
+	}
+
+	public function get_sort_post_size( $redis=null ){
+		if(is_null($redis)){
+			$redis = LRedis::connection();
+		}
+		$res = $this->get_size_with_condition( self::$TS_CONDITION ,$redis );
+		if($res <0 ){
+			Log::error($this->error);
+			$res = 0;
+		}
+		return $res;
+	}
+
+	public function get_post_size($redis=null ){
+		if(is_null($redis)){
+			$redis = LRedis::connection();
+		}
+		$res = $this->get_size($redis);
+		if($res <0 ){
+			Log::error($this->error);
+			$res = 0;
+		}
+		return $res;
 	}
 
 
@@ -117,30 +142,31 @@ class Post extends BaseModel {
 	 */
 	public function get_posts_onepage($page,$pagesize,$redis=null){
 		$err = '';
-		$res = null;
+		$res = new stdclass;
+		if(is_null($redis)){
+			$redis = LRedis::connection();
+		}
 		if($page <0 ){
-			$this->err = '请求页数范围错误';
+			$this->error = '请求页数范围错误';
 		}else{
-			if(is_null($redis)){
-				$redis = LRedis::connection();
-			}
-//			$total = $this->get_ts_pk_set_size($redis);
-			$total_db = $this->get_size_db();//取得 size 实际值
+			$total_db = $this->get_size_with_condition(self::$TS_CONDITION);//取得 size 实际值
 			if($total_db == 0){
-				$res = null;//库内无post
-				$this->err = "库内无post";
+				$res->posts = null;//库内无post
+				$res->status = false;
+				$this->error = "库内无post";
 			}else{
-				if( $page * Constant::$PAGESIZE > $total_db ){//page 有效性检查完毕，可取ts_set值
-					$res = null;
-					$this->err = '请求页数超出范围';
+				if( $page  > ceil($total_db/Constant::$PAGESIZE) ){//page 有效性检查完毕，可取ts_set值
+					$res->posts = null;//库内无post
+					$res->status = false;
+					$this->error = '请求页数超出范围';
 				}else{//page正常，且库内有post
-					$pk_set = $this->get_ts_pk_set($page,Constant::$PAGESIZE,$redis);
+					$pk_set = $this->get_ts_pk_set($page,Constant::$PAGESIZE,self::$TS_CONDITION,$redis);
 					if(!is_null($pk_set) && count($pk_set >0 )){
-						$res = $this->get_post_from_pkset($pk_set);
+						$posts = $this->get_post_from_pkset($pk_set);
 					}
-					if(!is_null($res)&& count($res)>0){
+					if(!is_null($posts)&& count($posts)>0){
 						//按时间排序 从大到小
-						usort($res , function($p1, $p2) {
+						usort($posts  , function($p1, $p2) {
 							$p1_date = strtotime($p1->post_date);
 							$p2_date = strtotime($p2->post_date);
 							if($p1_date == $p2_date){
@@ -149,10 +175,19 @@ class Post extends BaseModel {
 								return $p1_date >$p2_date ?-1:1;
 							}
 						});
+						$res->posts = $posts;
+						$res->total = $total_db;
+						$res->status = true;
 					}else{
-						$res = $this->get_posts_onepage_db($page,Constant::$PAGESIZE);
-						if(is_null($res)){
-							$this->err = '从库中取posts 值为空或数据库错误';
+						$posts = $this->get_posts_onepage_db($page,
+							Constant::$PAGESIZE,self::$TS_CONDITION);
+						if(is_null($posts)){
+							$res->status = false;
+							$this->error = '从库中取posts 值为空或数据库错误';
+						}else{
+							$res->post = $posts;
+							$res->total = $total_db;
+							$res->status = true;
 						}
 					}
 				}
@@ -167,10 +202,22 @@ class Post extends BaseModel {
 	 * @param $pagesize
 	 * @return mixed
 	 */
-	public function get_posts_onepage_db($page,$pagesize){
-		$res = DB::table( $this->table )
-			->skip( ($page-1)*$pagesize )
-			->take($pagesize)->orderBy(self::$TS_COL)->get();
+	public function get_posts_onepage_db($page,$pagesize,$condition=0){
+		$where_raw = BaseModel::generate_where( $condition, self::$CONDITION_COL );
+		if(!is_null($where_raw) && strlen($where_raw)>0){
+			$res = DB::table( $this->table )
+				->whereRaw($where_raw)
+				->skip( ($page-1)*$pagesize )
+				->take($pagesize)->orderBy(self::$TS_COL,'desc')->get();
+//			$queries = DB::getQueryLog();
+//			$last_query = end($queries);
+//			echo $last_query['query'];
+		}else{
+			$res = DB::table( $this->table )
+				->skip( ($page-1)*$pagesize )
+				->take($pagesize)->orderBy(self::$TS_COL)->get();
+		}
+
 		return $res;
 	}
 
@@ -629,7 +676,7 @@ $query->select('post_date')
 		if(is_null($redis)){
 			$redis = LRedis::connection();
 		}
-		$pks = $this->get_ts_pk_set(1,$count,$redis);
+		$pks = $this->get_ts_pk_set(1, $count, self::$TS_CONDITION, $redis);
 		if(is_array($pks)&&count($pks)>0){
 			$posts = $this->get_post_from_pkset($pks,$redis);
 		}

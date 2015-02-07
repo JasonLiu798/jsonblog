@@ -12,9 +12,9 @@ class Comment extends BaseModel {
 	public $timestamps = false;
 
 	protected static $TS_COL = 'comment_date';
-
-	protected static $TS_INIT_FILTER_COL = array(
-		"comment_post_ID"=> " !=0 "
+	public  static $TS_CONDITION = 1;
+	protected static $CONDITION_COL = array(
+		0=> "comment_post_ID !=0"
 	);
 
 
@@ -104,7 +104,7 @@ order by comment_date desc;
 		if(is_null($redis)){
 			$redis = LRedis::connection();
 		}
-		$pks = $this->get_ts_pk_set(1,$count,$redis);
+		$pks = $this->get_ts_pk_set(1,$count,self::$TS_CONDITION,$redis);
 		if(is_array($pks)&&count($pks)>0){
 			$comments = $this->get_modles_from_pkset($pks,$redis);
 		}else{

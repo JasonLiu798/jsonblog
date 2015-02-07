@@ -10,37 +10,53 @@ class PostController extends BaseController {
 	 * Post Index
 	 * @return mixed
 	 */
-	public function index() {
+	public function index( $page =1) {
 		$INFO_ST = microtime(1);
-
-		$parm_page = Input::get('page');
 		$resp = null;
 
-		if(is_null($parm_page)){
+		if( $page == 1){
 			$view_cache = self::$pagecache->get_index();
 			if(!is_null($view_cache)){
 				$resp = $view_cache;
 			}
 		}//首页缓存，后续页数读库
-
+		$error = '';
 		if(is_null($resp)){
-			$page = is_null($parm_page)?1:$parm_page;//至少为1，小于 $total/Pagesize
-
+//			$page = is_null($parm_page)?1:$parm_page;//至少为1，小于 $total/Pagesize
 			$redis = LRedis::connection();
 			$post_model = new Post;
-			$posts = $post_model->get_posts_onepage_with_meta($page,Constant::$PAGESIZE,$redis);
-			$sidebar = PostController::get_sidebar($redis);
-			$username = User::get_name_from_session();
-			$totalpage = $post_model->get_size();
-			$resp = View::make('index',
-				array('title' => 'AsyncBlog','sidebar' => $sidebar,
-					'page'=>$page,'totalpage'=>$totalpage,
-					'username' => $username, 'nav' => Constant::$NAV_IDX,
-					'term4title' => null, 'date4title' => null,
-					'posts' => $posts));
-			$view_redis->SET('indexpage',$resp."");
-			$view_redis->EXPIRE('index',60);
+			$res = $post_model->get_posts_onepage_with_meta($page,Constant::$PAGESIZE,$redis);
+			if($res->status){
+				$total_cnt = $res->total;
+				$posts = $res->posts;
+				if($total_cnt>0){
+					$totalpage = ceil($total_cnt / Constant::$PAGESIZE);
+					Log::info("total count $total_cnt ,total page $totalpage");
+				}else{
+					$totalpage = 1;
+				}
+				$sidebar = self::get_sidebar($redis);
+				$username = User::get_name_from_session();
+				$resp = View::make('index',
+					array('title' => 'AsyncBlog','sidebar' => $sidebar,
+						'page'=>$page,'totalpage'=>$totalpage,
+						'username' => $username, 'nav' => Constant::$NAV_IDX,
+						'term4title' => null, 'date4title' => null,
+						'posts' => $posts));
+				if($page==1){
+					self::$pagecache->update_index($resp);
+				}
+			}else{
+				Log::error( $post_model->error );
+				$posts = null;
+				$total_cnt = -1;
+				$error = $post_model->error;
+			}
 		}
+		if(strlen($error)>0){
+			return Redirect::route('error', array($error));
+		}
+
 		$INFO_RUNTIME = round(1000*(microtime(1)-$INFO_ST),5);
 		$method = __METHOD__;
 		Log::info("{$method},Runtime:{$INFO_RUNTIME}");

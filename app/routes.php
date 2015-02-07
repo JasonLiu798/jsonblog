@@ -12,9 +12,14 @@
  */
 
 //Index
-Route::any('/', function () {
-	return Redirect::to('index');
-});
+//Route::any('/', function () {
+//	return Redirect::to('index');
+//});
+
+Route::any('/{page?}',  array('as' => 'index', 'uses' => 'PostController@index'));
+//Route::any('/index', array('as' => 'index', 'uses' => 'PostController@index'));
+
+
 //return Redirect::action('PostController@index');
 //return Redirect::route('index');
 // return Redirect::to('index');
@@ -33,7 +38,7 @@ Route::filter('chkstatus', function () {
 	}
 });
 
-Route::any('/index', array('as' => 'index', 'uses' => 'PostController@index'));
+
 
 Route::any('about', 'BaseController@about');
 //Post

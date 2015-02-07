@@ -110,15 +110,15 @@
 		<nav>
 			<ul class="pagination">
 				@if( $page >1 && $page<= $totalpage )
-					<li><a href="{{url()}}/index?page={{$page-1}}">&laquo;</a></li>
+					<li><a href="{{url()}}/{{$page-1}}">&laquo;</a></li>
 				@else
 					<li class="disable"><span>&laquo;</span></li>
 				@endif
 				@for ($i = 1; $i <=$totalpage; $i++)
-					<li @if($i == $page) class="active" @endif><a href="{{url()}}/index?page={{$i}}">{{$i}}</a></li>
+					<li @if($i == $page) class="active" @endif><a href="{{url()}}/{{$i}}">{{$i}}</a></li>
 				@endfor
 				@if( $page<$totalpage && $page>=1 )
-					<li><a href="{{url()}}/index?page={{$page+1}}">&raquo;</a></li>
+					<li><a href="{{url()}}/{{$page+1}}">&raquo;</a></li>
 				@else
 					<li class="disable"><span>&raquo;</span></li>
 				@endif

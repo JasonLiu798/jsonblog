@@ -70,13 +70,13 @@ $(document).ready(function(){
 					<span class="sr-only">Async Blog</span> <span class="icon-bar"></span>
 					<span class="icon-bar"></span> <span class="icon-bar"></span>
 				</button>
-				<a class="navbar-brand" href="{{url()}}/index">Async Blog</a>
+				<a class="navbar-brand" href="{{url()}}">Async Blog</a>
 			</div>
 			<!-- end of navbar-header -->
 
 			<div class="navbar-collapse collapse">
 				<ul class="nav navbar-nav">
-					<li @if( isset($nav) && $nav === Constant::$NAV_IDX ) class="active" @endif><a href="{{url()}}/index">主页</a></li>
+					<li @if( isset($nav) && $nav === Constant::$NAV_IDX ) class="active" @endif><a href="{{url()}}">主页</a></li>
 					<li @if( isset($nav) && $nav === Constant::$NAV_MSG ) class="active" @endif><a href="{{url()}}/message">留言</a></li>
 					<li @if( isset($nav) && $nav === Constant::$NAV_ABOUT ) class="active" @endif><a href="{{url()}}/about">关于</a></li>
 
@@ -84,8 +84,8 @@ $(document).ready(function(){
 						<li @if( isset($nav) && $nav === Constant::$NAV_ADMIN ) class="active" @endif>
                 			<a href="{{url()}}/admin/post">管理</a>
                 		</li>
-					@endif
-
+					@
+					endif
 					@if( !empty( $username ) )
 						<li>
                 			<a href="#" id="msg_box" data-container="body" data-animation="true" rel="popover" data-placement="bottom" data-html="true" data-trigger="click" data-content="暂无消息">消息<span class="badge" id="msgs_count_badge"></span></a>

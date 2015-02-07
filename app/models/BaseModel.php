@@ -196,12 +196,12 @@ class BaseModel extends Eloquent {
      * @param null $redis
      * @return array
      */
-    public function get_ts_pk_set($page,$pagesize,$redis=null){
+    public function get_ts_pk_set($page,$pagesize,$condition=0,$redis=null){
         if(is_null($redis)){
             $redis = LRedis::connection();
         }
-        $key = sprintf( self::$TS_PKSET_KEY,$this->table );//format:TS_PK_{tablename}#SET
-
+        $key = strtoupper(sprintf( self::$TS_PKSET_KEY,$this->table,$condition ) );
+        //format:TS_PK_{tablename}#SET
         $page_idx = $this->page2index($page,$pagesize);
         $start = $page_idx['start'];
         $stop = $page_idx['stop'];
@@ -213,14 +213,16 @@ class BaseModel extends Eloquent {
             ==0) ){
             $actual_size = $this->get_size_db();
             if( $actual_size > 0 ){//实际库内有数据
-                $init_res = $this->init_ts_pk_set($redis);
+                $init_res = $this->init_ts_pk_set($condition,$redis);
                 if($init_res){
                     $res =  $redis->ZREVRANGE( $key,$start,$stop );//再次获取
                 }else{
                     //初始化失败
                     $method = __METHOD__;
                     $sub_class = get_class($this);
-                    Log::error("{$method}|初始化类 {$sub_class} 时间有序集PK失败");
+                    $errmsg = "{$method}|初始化类 {$sub_class} 时间有序集PK失败";
+                    $this->error = $errmsg;
+                    Log::error($errmsg);
                     $res = null;
                 }
             }else{//库内无数据
@@ -266,18 +268,44 @@ class BaseModel extends Eloquent {
         if(is_null($redis)){
             $redis = LRedis::connection();
         }
-        $key = strtoupper(sprintf( self::$TS_PKSET_KEY,$this->table ));
+        $key = strtoupper(sprintf( self::$TS_PKSET_KEY,$this->table,$condition ));
         //format:TS_PK_{tablename}#SET
         return $redis->ZCARD($key);
     }
 
+    /**
+     * 删除一个 from ts pk set
+     * @param $pk
+     * @param int $condition
+     * @param null $redis
+     * @return mixed
+     */
+    public function delete_pk_from_ts_pk_set($pk,$condition=0,$redis=null){
+        if(is_null($redis)){
+            $redis = LRedis::connection();
+        }
+        $key = strtoupper(sprintf( self::$TS_PKSET_KEY,$this->table,$condition ));
+        return $redis->zRem($key , $pk );
+    }
+
+    /**
+     *
+     * @param $pk
+     * @param int $condition
+     * @param null $redis
+     */
+    public function add_one2ts_pk_set($pk,$score,$condition=0,$redis=null){
+        if(is_null($redis)){
+            $redis = LRedis::connection();
+        }
+        $key = strtoupper(sprintf( self::$TS_PKSET_KEY, $this->table,$condition ));
+        // ZADD key score member [[score member] [score member] ...]
+        $redis->ZAdd( $key  ,$score,$pk );
+        //strtotime( $pk_arr[ $time_col ]),//score 时间
+    }
 
     /**
      * 初始化时间排序主键set
-     * @return bool
-     */
-
-    /**
      * @param int $condition[转换为位模式]
      * 0=无过滤条件，
      * 1=条件1
@@ -312,7 +340,7 @@ class BaseModel extends Eloquent {
                 eval($ts_col_isset_eval);
                 if( $ts_col_res ){//如果有才进行condition判断
                     //$TS_PKSET_KEY = "TS_PK_%s_%s#SET";
-                    $key = strtoupper( sprintf( self::$TS_PKSET_KEY,$classname,$condition ));
+                    $key = strtoupper( sprintf( self::$TS_PKSET_KEY,$this->table,$condition ));
                     //获取time sort col name
                     $time_col = null;
                     $get_time_sort_col_eval = "\$time_col = ". get_class($this) ."::\$"
@@ -320,20 +348,12 @@ class BaseModel extends Eloquent {
                     eval( $get_time_sort_col_eval );
 
                     $condition_arr = array();
+                    $where_raw =  '';
                     if($condition>0){
-                        $condition_col_res = false;
-                        $condition_col_isset_eval = "\$condition_col_res = isset( ".get_class($this)."::\$"
-                            .Constant::$CONDITION_COL_NAME .');';
-                        eval($condition_col_isset_eval);
+                        $condition_col_res = $this->chk_isset_condition_arr($classname);
                         if($condition_col_res){//定义了过滤数组
                             //获取条件数组
-                            $condition_col = null;
-                            $get_condition_col_eval = "\$condition_col = ". get_class($this) ."::\$"
-                                .Constant::$CONDITION_COL_NAME.";";
-                            eval( $get_condition_col_eval);
-//                            echo "CC\n";
-//                            print_r( $condition_col );
-
+                            $condition_col = $this->get_condition_col_arr($classname);
                             //过滤数组存在，且成员数量大于0
                             if( is_array($condition_col) && count($condition_col)>0){
                                 //判断条件数组大小
@@ -341,16 +361,8 @@ class BaseModel extends Eloquent {
                                     $res = false;
                                     $this->error = "过滤条件数组count小于 log(condition)/log2+1";
                                 }else{
-                                    $i = 0;
-                                    //$selected_condition_arr = array();
-                                    while($condition !=0){
-                                        $is_set = $condition%2;
-                                        if( $is_set == 1){
-                                            array_push($condition_arr,$condition_col[$i]);
-                                        }
-                                        $i++;
-                                        $condition = $condition >>1;
-                                    }
+                                    $where_raw = self::generate_where($condition,
+                                        $condition_col);
                                 }
                             }
                         }else{
@@ -359,30 +371,20 @@ class BaseModel extends Eloquent {
                             $this->error = "conditon >0 ,但condition arr未定义";
                         }
                     }
-//                    echo "CA:\n";
-//        print_r($condition_arr);
+
+                    echo "where $where_raw ";
+
                     if( $res ){
                         /**
                          * 合成语句
                          */
-                        if( ($size = count( $condition_arr ))>0 ){
-                            $i = 0;
-                            $where_raw = '';
-                            foreach($condition_arr as $item){
-                                if($i == $size-1){
-                                    $where_raw .= sprintf(" %s ",$item );
-                                }else{
-                                    $where_raw .= sprintf(" %s and ",$item );
-                                }
-                                $i++;
-                            }
-                            echo $where_raw;
+                        if( !is_null($where_raw) && strlen($where_raw)>0 ){
                             $pk_set_db = DB::table($this->table)->select( $this->primaryKey , $time_col )
                                 ->whereRaw($where_raw)
                                 ->get();
 //                    $queries = DB::getQueryLog();
 //                    $last_query = end($queries);
-//                    var_dump($pk_set_db);
+////                    var_dump($pk_set_db);
 //                    echo $last_query['query'];
                             // 			Log::info('post date:'.$last_query['query']);
                         }else{
@@ -421,60 +423,62 @@ class BaseModel extends Eloquent {
 
 
 
-/*
+    public function get_condition_col_arr($classname){
+        $condition_col = null;
+        $get_condition_col_eval = "\$condition_col = ". get_class($this) ."::\$"
+            .Constant::$CONDITION_COL_NAME.";";
+        eval( $get_condition_col_eval);
+        return $condition_col;
+    }
 
 
-
-//            eval($filter_col_isset_eval.$ts_col_isset_eval );
-//            $filter_col = null;
-//            $time_col = null;
-
-            if( $ts_col_res ){
-
-//                echo 'time col:'.$time_col;
-                if( $filter_col_res ){
-                    $filter_col_eval = "\$filter_col = ". get_class($this) ."::\$"
-                        .Constant::$TS_INIT_FILTER_COL_NAME
-                        .";";
-                    eval( $filter_col_eval);
-//                    print_r($filter_col);
-                }
-                $res = false;
-                /**
-                 * 需要过滤
-                 *
-                if( is_array( $filter_col )&& ($size = count( $filter_col ))>0 ){
-                    $i = 0;
-                    $where_raw = '';
-                    foreach($filter_col as $colname=>$colvalue){
-                        if($i == $size-1){
-                            $where_raw .= sprintf(" %s %s ",$colname,$colvalue);
-                        }else{
-                            $where_raw .= sprintf(" %s %s and ",$colname,$colvalue);//$colname
-                            //.$colvalue.' and ';
-                        }
-                        $i++;
-                    }
-//                    echo $where_raw;
-                    $pk_set_db = DB::table($this->table)->select( $this->primaryKey , $time_col )
-                        ->whereRaw($where_raw)
-                        ->get();
-//                    $queries = DB::getQueryLog();
-//                    $last_query = end($queries);
-//                    var_dump($pk_set_db);
-//                    echo $last_query['query'];
-                    // 			Log::info('post date:'.$last_query['query']);
-                }else{
-                    /**
-                     * 不需要过滤
-                     *
-                    $pk_set_db = DB::table($this->table)->select( $this->primaryKey , $time_col )->get();
-                }
-*/
+    public function chk_isset_condition_arr($classname){
+        $condition_col_res = false;
+        $condition_col_isset_eval = "\$condition_col_res = isset(
+                            $classname::\$".Constant::$CONDITION_COL_NAME .');';
+        eval($condition_col_isset_eval);
+        return $condition_col_res;
+    }
 
 
-//            gettype($pk_set_db);
+    public static function generate_where($condition,$condition_col){
+        $condition_arr = self::parse_condition($condition,
+            $condition_col);
+        $size = count($condition_arr);
+        $i = 0;
+        $where_raw = '';
+        foreach($condition_arr as $item){
+            if($i == $size-1){
+                $where_raw .= sprintf(" %s ",$item );
+            }else{
+                $where_raw .= sprintf(" %s and ",$item );
+            }
+            $i++;
+        }
+        return $where_raw;
+    }
 
+
+    /**
+     * 解析condition
+     * @param $condition
+     * @param $condition_col
+     * @return array
+     */
+    public static function parse_condition($condition,$condition_col){
+        $res = array();
+        $i = 0;
+        while($condition !=0){
+            $is_set = $condition%2;
+            if( $is_set == 1){
+                array_push($res,$condition_col[$i]);
+            }
+            $i++;
+            $condition = $condition >>1;
+        }
+        return $res;
+
+    }
 
 
 
@@ -607,6 +611,68 @@ class BaseModel extends Eloquent {
         return $res;
     }
 
+    public function get_size_with_condition($condition=0,$redis = null){
+        if(is_null($redis)){
+            $redis = LRedis::connection();
+        }
+        if($condition == 0){
+            $res = $this->get_size($redis);
+        }else{
+            $key = strtoupper( sprintf( self::$TS_PKSET_KEY,$this->table,$condition ));
+            $exist = $redis->exists($key);
+            if($exist){
+                $res = $redis->zcard($key);
+            }else{//key 不存在
+                if($this->init_ts_pk_set($condition,$redis)){
+                    $res = $redis->zcard($key);
+                }else{
+                    //从库获取
+                    $res = $this->get_size_db_with_condition($condition);
+                }
+            }
+        }
+        return $res;
+    }
+
+    /**
+     * 获取带条件统计数
+     * @param int $condition
+     * @return int
+     */
+    public function get_size_db_with_condition($condition = 0){
+        try{
+            if($condition == 0){
+                $res = DB::table($this->table)->count();
+            }else{
+                $classname = get_class($this);
+                $condition_col_res = $this->chk_isset_condition_arr($classname);
+                if($condition_col_res){//定义了过滤数组
+                    //获取条件数组
+                    $condition_col = $this->get_condition_col_arr($classname);
+                    //过滤数组存在，且成员数量大于0
+                    if( is_array($condition_col) && count($condition_col)>0){
+                        $where_raw = self::generate_where($condition,
+                                $condition_col);
+                    }
+                }else{
+                    //conditon >0 ,但condition arr未定义
+                    $res = -1;
+                    $this->error = "conditon >0 ,但condition arr未定义";
+                }
+                $res = DB::table($this->table)->whereRaw($where_raw)->count();
+            }
+        }catch(Exception $e){
+            $error_msg = $e->getMessage();
+            $method = __METHOD__;
+            $errmsg = "MSG:{$error_msg}|初始化post-term关系缓存失败";
+            $this->error = $errmsg;
+            Log::error("{$method}|$errmsg");
+            $res = -1;
+        }
+        return $res;
+    }
+
+
 
     /**
      * 获取 model size
@@ -643,6 +709,7 @@ class BaseModel extends Eloquent {
         }else{
             //不存在则初始化
             $cnt = $this->get_size_db();
+
             if($cnt>=0){
                 $res = $redis->INCRBY($key,$cnt);
             }else{
@@ -849,6 +916,7 @@ class BaseModel extends Eloquent {
         }
         return $res;
     }
+
 
 
 

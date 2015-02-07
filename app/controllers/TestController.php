@@ -3,21 +3,26 @@ use Illuminate\Redis\Database as Redis;
 class TestController extends BaseController {
 	
 	public function test(){
-
-
 		$redis = LRedis::connection();
 		$post_model = new Post;
 		$comm_model = new Comment;
 
 		$start = microtime(1);
 
-		$res = $post_model->init_ts_pk_set(1);
+		$res = $post_model->get_posts_onepage_with_meta(5,Constant::$PAGESIZE,$redis);
+//		$res1 = $post_model->get_size_with_condition(1);
+//		echo $res1;
+//		$res = $comm_model->get_ts_pk_set(1,5,Comment::$TS_CONDITION,$redis);
+//		$res = $post_model->get_size_with_condition(1);
+		var_dump($res);
 
-		if(!$res ){
-			echo "error:".$post_model->error;
-		}else{
-			echo "success";
-		}
+//		$res = $post_model->init_ts_pk_set(1);
+//
+//		if(!$res ){
+//			echo "error:".$post_model->error;
+//		}else{
+//			echo "success";
+//		}
 
 //		PageCache::admin_update();
 //		$b = 2;

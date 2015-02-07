@@ -24,7 +24,7 @@ class PageCache{
 
 
     function __construct(){
-        echo "construct";
+//        echo "construct";
         self::$redis = LRedis::connection('viewcache');
     }
 
@@ -32,19 +32,21 @@ class PageCache{
         return self::$redis->get( self::$INDEX );
     }
 
-    public function set_index($view){
-        self::$redis->SET( self::$INDEX , (string)$view );
-        self::$redis->EXPIRE( self::$INDEX , self::$ONE_MIN );
-    }
+//    public function set_index($view){
+//        self::$redis->SET( self::$INDEX , (string)$view );
+//        self::$redis->EXPIRE( self::$INDEX , self::$ONE_MIN );
+//    }
 
-
-    public function index_update($view=null){
+    public function update_index($view=null){
         if(is_null($view)){
             self::$redis->PERSIST( self::$INDEX );
         }else{
-            $this->set_index($view);
+            self::$redis->set(self::$INDEX, $view);
+            self::$redis->EXPIRE( self::$INDEX , self::$ONE_MIN );
         }
     }
+
+
 
     public function sidebar_update(){
         echo "update";

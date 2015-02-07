@@ -20,7 +20,7 @@ class Constant {
 	/**
 	 * DB use
 	 */
-	public static $TS_INIT_FILTER_COL_NAME = 'TS_INIT_FILTER_COL';
+	public static $CONDITION_COL_NAME = 'CONDITION_COL';
 	public static $TS_COL_NAME = 'TS_COL';
 
 

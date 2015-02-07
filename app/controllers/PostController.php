@@ -1,41 +1,50 @@
 <?php
 class PostController extends BaseController {
 
+	private static $pagecache;
+	function __construct(){
+		self::$pagecache = new PageCache;
+	}
+
 	/**
 	 * Post Index
 	 * @return mixed
 	 */
 	public function index() {
-
-
 		$INFO_ST = microtime(1);
-//		$view_se = Cache::get('indexpage');
-//
-//		Cache::put('indexpage', $view , 5);
 
 		$parm_page = Input::get('page');
-		$page = is_null($parm_page)?1:$parm_page;//至少为1，小于 $total/Pagesize
+		$resp = null;
 
-		$redis = LRedis::connection();
-		$post_model = new Post;
-		$posts = $post_model->get_posts_onepage_with_meta($page,Constant::$PAGESIZE,$redis);
-		$sidebar = PostController::get_sidebar($redis);
-		$username = User::get_name_from_session();
+		if(is_null($parm_page)){
+			$view_cache = self::$pagecache->get_index();
+			if(!is_null($view_cache)){
+				$resp = $view_cache;
+			}
+		}//首页缓存，后续页数读库
 
-		$totalpage = 2;
+		if(is_null($resp)){
+			$page = is_null($parm_page)?1:$parm_page;//至少为1，小于 $total/Pagesize
 
-		$view = View::make('index',
-			array('title' => 'AsyncBlog','sidebar' => $sidebar,
-				'page'=>$page,'totalpage'=>$totalpage,
-				'username' => $username, 'nav' => Constant::$NAV_IDX,
-				'term4title' => null, 'date4title' => null,
-				'posts' => $posts));
-
+			$redis = LRedis::connection();
+			$post_model = new Post;
+			$posts = $post_model->get_posts_onepage_with_meta($page,Constant::$PAGESIZE,$redis);
+			$sidebar = PostController::get_sidebar($redis);
+			$username = User::get_name_from_session();
+			$totalpage = $post_model->get_size();
+			$resp = View::make('index',
+				array('title' => 'AsyncBlog','sidebar' => $sidebar,
+					'page'=>$page,'totalpage'=>$totalpage,
+					'username' => $username, 'nav' => Constant::$NAV_IDX,
+					'term4title' => null, 'date4title' => null,
+					'posts' => $posts));
+			$view_redis->SET('indexpage',$resp."");
+			$view_redis->EXPIRE('index',60);
+		}
 		$INFO_RUNTIME = round(1000*(microtime(1)-$INFO_ST),5);
 		$method = __METHOD__;
 		Log::info("{$method},Runtime:{$INFO_RUNTIME}");
-		echo $view;
-//		echo $view;
+		return $resp;
 	}
 
 	/**

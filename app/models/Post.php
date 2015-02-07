@@ -22,8 +22,8 @@ class Post extends BaseModel {
 
 
 	protected static $TS_COL = 'post_date';
-	protected static $TS_INIT_FILTER_COL = array(
-		"post_status"=> "='publish'"
+	protected static $CONDITION_COL = array(
+		0=> "post_status ='publish'"
 	);
 
 	// public static $MODELKEY = "post_id#%s";
@@ -494,7 +494,6 @@ order by posts.post_date desc;
 			->leftJoin('users', 'users.ID', '=', 'posts.post_author')
 			->leftJoin('postimages', 'postimages.iid', '=', 'posts.post_cover_img')
 			->leftJoin('comments', 'comments.comment_post_ID', '=', 'posts.ID')
-			//->where("DATE_FORMAT( posts.post_date,'%Y-%m')",'=',$date)
 			->whereRaw("DATE_FORMAT( posts.post_date,'%Y-%m')='" . $date . "'")
 			->groupBy('posts.ID')
 			->paginate($pagesize);
@@ -534,7 +533,6 @@ order by posts.post_date desc;
 		return $comm_stat;
 	}
 
-	//public static function getNextPost($post_id)
 
 	public static function get_pre_next_post($post_id) {
 		/*

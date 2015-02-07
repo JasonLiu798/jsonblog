@@ -2,24 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="24729eb6-c886-405e-82f4-ebd1e56dc3c7" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/models/BaseModel.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/models/SocketClient.php" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/models/TermRelationship.php" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/app/models/TermTaxonomy.php" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/controllers/BaseController.php" afterPath="$PROJECT_DIR$/app/controllers/BaseController.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/models/Category.php" afterPath="$PROJECT_DIR$/app/models/Category.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/models/Comment.php" afterPath="$PROJECT_DIR$/app/models/Comment.php" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/app/models/PageCache.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/models/BaseModel.php" afterPath="$PROJECT_DIR$/app/models/BaseModel.php" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/models/Constant.php" afterPath="$PROJECT_DIR$/app/models/Constant.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/models/HtmlFilter.php" afterPath="$PROJECT_DIR$/app/models/HtmlFilter.php" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/models/Post.php" afterPath="$PROJECT_DIR$/app/models/Post.php" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/controllers/PostController.php" afterPath="$PROJECT_DIR$/app/controllers/PostController.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/models/PostImage.php" afterPath="$PROJECT_DIR$/app/models/PostImage.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/models/Term.php" afterPath="$PROJECT_DIR$/app/models/Term.php" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/controllers/TestController.php" afterPath="$PROJECT_DIR$/app/controllers/TestController.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/models/User.php" afterPath="$PROJECT_DIR$/app/models/User.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/config/app.php" afterPath="$PROJECT_DIR$/app/config/app.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/config/cache.php" afterPath="$PROJECT_DIR$/app/config/cache.php" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/public/views/index.blade.php" afterPath="$PROJECT_DIR$/public/views/index.blade.php" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/config/database.php" afterPath="$PROJECT_DIR$/app/config/database.php" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="lblog.iws" />
@@ -45,24 +34,25 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="PostController.php" pinned="false" current-in-tab="true">
+      <file leaf-file-name="PostController.php" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/controllers/PostController.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.6439523" vertical-offset="378" max-vertical-offset="15435">
-              <caret line="36" column="19" selection-start-line="36" selection-start-column="19" selection-end-line="36" selection-end-column="19" />
+            <state vertical-scroll-proportion="-11.666667" vertical-offset="315" max-vertical-offset="15624">
+              <caret line="30" column="45" selection-start-line="30" selection-start-column="45" selection-end-line="30" selection-end-column="45" />
               <folding>
-                <marker date="1423131383000" expanded="true" signature="18290:18294" placeholder="..." />
-                <marker date="1423131383000" expanded="true" signature="18355:18386" placeholder="..." />
+                <marker date="1423290559000" expanded="true" signature="53:144" placeholder="//..." />
+                <marker date="1423290559000" expanded="true" signature="18591:18595" placeholder="..." />
+                <marker date="1423290559000" expanded="true" signature="18656:18687" placeholder="..." />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="cache.php" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/config/cache.php">
+      <file leaf-file-name="PageCache.php" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/models/PageCache.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-65.333336" vertical-offset="0" max-vertical-offset="1974">
-              <caret line="84" column="6" selection-start-line="84" selection-start-column="6" selection-end-line="84" selection-end-column="6" />
+            <state vertical-scroll-proportion="-2.6666667" vertical-offset="369" max-vertical-offset="1302">
+              <caret line="21" column="0" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -71,7 +61,7 @@
       <file leaf-file-name="Comment.php" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/models/Comment.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="44.333332" vertical-offset="1638" max-vertical-offset="4158">
+            <state vertical-scroll-proportion="0.0" vertical-offset="1302" max-vertical-offset="4158">
               <caret line="21" column="0" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
               <folding />
             </state>
@@ -81,8 +71,8 @@
       <file leaf-file-name="Post.php" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/models/Post.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-4.0833335" vertical-offset="210" max-vertical-offset="20958">
-              <caret line="24" column="4" selection-start-line="24" selection-start-column="4" selection-end-line="26" selection-end-column="6" />
+            <state vertical-scroll-proportion="-10.888889" vertical-offset="231" max-vertical-offset="20916">
+              <caret line="25" column="36" selection-start-line="25" selection-start-column="36" selection-end-line="25" selection-end-column="36" />
               <folding />
             </state>
           </provider>
@@ -91,28 +81,18 @@
       <file leaf-file-name="TestController.php" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/controllers/TestController.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-7.388889" vertical-offset="0" max-vertical-offset="4284">
-              <caret line="19" column="0" selection-start-line="19" selection-start-column="0" selection-end-line="19" selection-end-column="0" />
+            <state vertical-scroll-proportion="-14.0" vertical-offset="0" max-vertical-offset="4935">
+              <caret line="18" column="27" selection-start-line="18" selection-start-column="27" selection-end-line="18" selection-end-column="27" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="TermRelationship.php" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/models/TermRelationship.php">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-16.333334" vertical-offset="357" max-vertical-offset="4452">
-              <caret line="38" column="0" selection-start-line="38" selection-start-column="0" selection-end-line="38" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="BaseModel.php" pinned="false" current-in-tab="false">
+      <file leaf-file-name="BaseModel.php" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/models/BaseModel.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-6.0" vertical-offset="8889" max-vertical-offset="15939">
-              <caret line="431" column="17" selection-start-line="431" selection-start-column="8" selection-end-line="431" selection-end-column="17" />
+            <state vertical-scroll-proportion="0.5608696" vertical-offset="7695" max-vertical-offset="18270">
+              <caret line="391" column="113" selection-start-line="391" selection-start-column="113" selection-end-line="391" selection-end-column="113" />
               <folding />
             </state>
           </provider>
@@ -137,7 +117,6 @@
         <option value="$PROJECT_DIR$/public/views/templates/header.blade.php" />
         <option value="$PROJECT_DIR$/app/controllers/TermsController.php" />
         <option value="$PROJECT_DIR$/app/models/Tool.php" />
-        <option value="$PROJECT_DIR$/app/config/database.php" />
         <option value="$PROJECT_DIR$/public/views/posts/post_admin.blade.php" />
         <option value="$PROJECT_DIR$/public/views/posts/create_post.blade.php" />
         <option value="$PROJECT_DIR$/public/js/a.js" />
@@ -152,7 +131,6 @@
         <option value="$PROJECT_DIR$/app/models/TermTaxonomy.php" />
         <option value="$PROJECT_DIR$/app/models/MyModel.php" />
         <option value="$PROJECT_DIR$/app/controllers/BaseController.php" />
-        <option value="$PROJECT_DIR$/app/models/Constant.php" />
         <option value="$PROJECT_DIR$/app/config/app.php" />
         <option value="$PROJECT_DIR$/app/models/SocketClass.php" />
         <option value="$PROJECT_DIR$/app/models/SocketClient.php" />
@@ -164,12 +142,16 @@
         <option value="$PROJECT_DIR$/app/models/User.php" />
         <option value="$PROJECT_DIR$/app/models/TermRelationship.php" />
         <option value="$PROJECT_DIR$/app/models/Term.php" />
-        <option value="$PROJECT_DIR$/app/models/BaseModel.php" />
-        <option value="$PROJECT_DIR$/app/models/Post.php" />
-        <option value="$PROJECT_DIR$/app/controllers/TestController.php" />
         <option value="$PROJECT_DIR$/app/models/Comment.php" />
-        <option value="$PROJECT_DIR$/app/controllers/PostController.php" />
         <option value="$PROJECT_DIR$/app/config/cache.php" />
+        <option value="$PROJECT_DIR$/app/config/database.php" />
+        <option value="$PROJECT_DIR$/app/models/CacheAdmin.php" />
+        <option value="$PROJECT_DIR$/app/controllers/PostController.php" />
+        <option value="$PROJECT_DIR$/app/models/PageCache.php" />
+        <option value="$PROJECT_DIR$/app/models/Constant.php" />
+        <option value="$PROJECT_DIR$/app/controllers/TestController.php" />
+        <option value="$PROJECT_DIR$/app/models/Post.php" />
+        <option value="$PROJECT_DIR$/app/models/BaseModel.php" />
       </list>
     </option>
   </component>
@@ -178,10 +160,10 @@
   </component>
   <component name="PhpWorkspaceProjectConfiguration" backward_compatibility_performed="true" />
   <component name="ProjectFrameBounds">
-    <option name="x" value="2" />
+    <option name="x" value="1280" />
     <option name="y" value="23" />
-    <option name="width" value="1278" />
-    <option name="height" value="724" />
+    <option name="width" value="1156" />
+    <option name="height" value="1057" />
   </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
     <entry key="Project Default">
@@ -542,7 +524,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="2" y="23" width="1278" height="724" extended-state="6" />
+    <frame x="1280" y="23" width="1156" height="1057" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3287879" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -551,7 +533,7 @@
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.19953051" sideWeight="0.499336" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.22058824" sideWeight="0.499336" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.19921875" sideWeight="0.500664" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -587,20 +569,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/public/js/tools/image_upload.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.42459735" vertical-offset="5716" max-vertical-offset="7308">
-          <caret line="286" column="26" selection-start-line="286" selection-start-column="26" selection-end-line="286" selection-end-column="26" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/public/views/tool/image_upload.blade.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0121951215" vertical-offset="622" max-vertical-offset="1512">
-          <caret line="30" column="54" selection-start-line="30" selection-start-column="41" selection-end-line="30" selection-end-column="54" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/controllers/ImgController.php">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.29489052" vertical-offset="4460" max-vertical-offset="5985">
@@ -619,13 +587,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.057931036" vertical-offset="0" max-vertical-offset="725">
           <caret line="4" column="13" selection-start-line="4" selection-start-column="4" selection-end-line="4" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/config/database.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="2011" max-vertical-offset="2709">
-          <caret line="117" column="35" selection-start-line="117" selection-start-column="35" selection-end-line="117" selection-end-column="35" />
         </state>
       </provider>
     </entry>
@@ -724,7 +685,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.49927008" vertical-offset="708" max-vertical-offset="22995">
           <caret line="50" column="9" selection-start-line="50" selection-start-column="9" selection-end-line="50" selection-end-column="9" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -795,7 +755,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.6832117" vertical-offset="7029" max-vertical-offset="42609">
           <caret line="357" column="21" selection-start-line="357" selection-start-column="6" selection-end-line="357" selection-end-column="21" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -803,7 +762,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.5232558" vertical-offset="2268" max-vertical-offset="6552">
           <caret line="123" column="9" selection-start-line="123" selection-start-column="9" selection-end-line="123" selection-end-column="9" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -818,7 +776,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.069883525" vertical-offset="0" max-vertical-offset="601">
           <caret line="2" column="32" selection-start-line="2" selection-start-column="32" selection-end-line="2" selection-end-column="32" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -826,7 +783,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.035714287" vertical-offset="1071" max-vertical-offset="4158">
           <caret line="52" column="47" selection-start-line="52" selection-start-column="47" selection-end-line="52" selection-end-column="47" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -834,7 +790,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.17138103" vertical-offset="65" max-vertical-offset="693">
           <caret line="8" column="31" selection-start-line="8" selection-start-column="27" selection-end-line="8" selection-end-column="31" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -842,7 +797,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.064891845" vertical-offset="3" max-vertical-offset="2121">
           <caret line="2" column="16" selection-start-line="2" selection-start-column="16" selection-end-line="2" selection-end-column="16" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -850,7 +804,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1302">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -858,7 +811,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.4642857" vertical-offset="0" max-vertical-offset="1680">
           <caret line="16" column="18" selection-start-line="16" selection-start-column="18" selection-end-line="16" selection-end-column="18" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -866,7 +818,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="882">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -874,7 +825,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.10482529" vertical-offset="0" max-vertical-offset="3759">
           <caret line="3" column="25" selection-start-line="3" selection-start-column="25" selection-end-line="3" selection-end-column="25" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -886,35 +836,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/models/Constant.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-7.7777777" vertical-offset="462" max-vertical-offset="1722">
-          <caret line="32" column="0" selection-start-line="32" selection-start-column="0" selection-end-line="32" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/public/views/index.blade.php">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.5008518" vertical-offset="2163" max-vertical-offset="3003">
           <caret line="117" column="87" selection-start-line="117" selection-start-column="87" selection-end-line="117" selection-end-column="87" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/models/BaseModel.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-6.0" vertical-offset="8889" max-vertical-offset="15939">
-          <caret line="431" column="17" selection-start-line="431" selection-start-column="8" selection-end-line="431" selection-end-column="17" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/models/TermRelationship.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-16.333334" vertical-offset="357" max-vertical-offset="4452">
-          <caret line="38" column="0" selection-start-line="38" selection-start-column="0" selection-end-line="38" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -922,21 +847,77 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="9.122658" vertical-offset="0" max-vertical-offset="16863">
           <caret line="255" column="47" selection-start-line="255" selection-start-column="8" selection-end-line="255" selection-end-column="47" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/config/cache.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="2.94" vertical-offset="0" max-vertical-offset="1974">
+          <caret line="84" column="6" selection-start-line="84" selection-start-column="6" selection-end-line="84" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/config/database.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="2109" max-vertical-offset="2856">
+          <caret line="119" column="22" selection-start-line="119" selection-start-column="13" selection-end-line="119" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/models/TermRelationship.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-16.333334" vertical-offset="357" max-vertical-offset="4452">
+          <caret line="38" column="0" selection-start-line="38" selection-start-column="0" selection-end-line="38" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/models/Comment.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="1302" max-vertical-offset="4158">
+          <caret line="21" column="0" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/php/lib/php.jar!/com/jetbrains/php/lang/psi/stubs/data/_superglobals.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.3475298" vertical-offset="4143" max-vertical-offset="4872">
+          <caret line="207" column="0" selection-start-line="207" selection-start-column="0" selection-end-line="207" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/models/Constant.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-10.518518" vertical-offset="199" max-vertical-offset="1722">
+          <caret line="23" column="40" selection-start-line="23" selection-start-column="34" selection-end-line="23" selection-end-column="40" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/models/Post.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-4.0833335" vertical-offset="210" max-vertical-offset="20958">
-          <caret line="24" column="4" selection-start-line="24" selection-start-column="4" selection-end-line="26" selection-end-column="6" />
+        <state vertical-scroll-proportion="-10.888889" vertical-offset="231" max-vertical-offset="20916">
+          <caret line="25" column="36" selection-start-line="25" selection-start-column="36" selection-end-line="25" selection-end-column="36" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/models/Comment.php">
+    <entry file="file://$PROJECT_DIR$/app/controllers/PostController.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="44.333332" vertical-offset="1638" max-vertical-offset="4158">
+        <state vertical-scroll-proportion="-11.666667" vertical-offset="315" max-vertical-offset="15624">
+          <caret line="30" column="45" selection-start-line="30" selection-start-column="45" selection-end-line="30" selection-end-column="45" />
+          <folding>
+            <marker date="1423290559000" expanded="true" signature="53:144" placeholder="//..." />
+            <marker date="1423290559000" expanded="true" signature="18591:18595" placeholder="..." />
+            <marker date="1423290559000" expanded="true" signature="18656:18687" placeholder="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/models/PageCache.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-2.6666667" vertical-offset="369" max-vertical-offset="1302">
           <caret line="21" column="0" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
           <folding />
         </state>
@@ -944,28 +925,17 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app/controllers/TestController.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-7.388889" vertical-offset="0" max-vertical-offset="4284">
-          <caret line="19" column="0" selection-start-line="19" selection-start-column="0" selection-end-line="19" selection-end-column="0" />
+        <state vertical-scroll-proportion="-14.0" vertical-offset="0" max-vertical-offset="4935">
+          <caret line="18" column="27" selection-start-line="18" selection-start-column="27" selection-end-line="18" selection-end-column="27" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/config/cache.php">
+    <entry file="file://$PROJECT_DIR$/app/models/BaseModel.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-65.333336" vertical-offset="0" max-vertical-offset="1974">
-          <caret line="84" column="6" selection-start-line="84" selection-start-column="6" selection-end-line="84" selection-end-column="6" />
+        <state vertical-scroll-proportion="0.5608696" vertical-offset="7695" max-vertical-offset="18270">
+          <caret line="391" column="113" selection-start-line="391" selection-start-column="113" selection-end-line="391" selection-end-column="113" />
           <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/controllers/PostController.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.6439523" vertical-offset="378" max-vertical-offset="15435">
-          <caret line="36" column="19" selection-start-line="36" selection-start-column="19" selection-end-line="36" selection-end-column="19" />
-          <folding>
-            <marker date="1423131383000" expanded="true" signature="18290:18294" placeholder="..." />
-            <marker date="1423131383000" expanded="true" signature="18355:18386" placeholder="..." />
-          </folding>
         </state>
       </provider>
     </entry>

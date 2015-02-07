@@ -9,14 +9,46 @@ class TestController extends BaseController {
 		$post_model = new Post;
 		$comm_model = new Comment;
 
-
 		$start = microtime(1);
 
-//		$latest_posts = $post_model->get_latest_count_post(5,$redis);
-//		var_dump($latest_posts);
+		$res = $post_model->init_ts_pk_set(1);
 
-		$latest_comments = $comm_model->get_latest_comments(5,$redis);
-		var_dump($latest_comments);
+		if(!$res ){
+			echo "error:".$post_model->error;
+		}else{
+			echo "success";
+		}
+
+//		PageCache::admin_update();
+//		$b = 2;
+//		$a = 9;
+//		echo floor(log(16)/log(2))+1;
+//		echo is_int($a);
+
+//		while($a!=0 ){
+//			echo $a;
+//			$a = $a >> 1;
+//			$d = $a % $b;
+//			echo "/ $a,% $d\n";
+//		}
+
+
+
+		$time = 1000*(microtime(1) - $start);
+		echo "<br/>time:".$time;
+
+
+
+
+//
+//
+
+//
+////		$latest_posts = $post_model->get_latest_count_post(5,$redis);
+////		var_dump($latest_posts);
+//
+//		$latest_comments = $comm_model->get_latest_comments(5,$redis);
+//		var_dump($latest_comments);
 
 //		$pks = $comm_model->get_ts_pk_set(1,5,$redis);
 //		var_dump($pks);
@@ -43,8 +75,7 @@ class TestController extends BaseController {
 //		foreach($posts as $post){
 //			var_dump($post);
 //		}
-		$time = 1000*(microtime(1) - $start);
-		echo "<br/>time:".$time;
+
 
 
 

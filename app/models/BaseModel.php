@@ -10,7 +10,7 @@
  */
 class BaseModel extends Eloquent {
 
-    protected static $TS_PKSET_KEY = "TS_PK_%s#SET";
+    protected static $TS_PKSET_KEY = "TS_PK_%s_%s#SET";// TS_PK_[classname]_condition
     protected static $MODEL_KEY = "%s#%s";//primarykey#{primarykey}
     protected static $MODEL_CNT_KEY = "%s#COUNT";// classname#COUNT
     protected static $CNT_KEY = "%s-%s#%s#COUNT";// classname-relateclassname#{pk}#count
@@ -262,11 +262,12 @@ class BaseModel extends Eloquent {
      * @param null $redis
      * @return mixed
      */
-    public function get_ts_pk_set_size($redis = null){
+    public function get_ts_pk_set_size($condition=0,$redis = null){
         if(is_null($redis)){
             $redis = LRedis::connection();
         }
-        $key = sprintf( self::$TS_PKSET_KEY,$this->table );//format:TS_PK_{tablename}#SET
+        $key = strtoupper(sprintf( self::$TS_PKSET_KEY,$this->table ));
+        //format:TS_PK_{tablename}#SET
         return $redis->ZCARD($key);
     }
 
@@ -275,29 +276,161 @@ class BaseModel extends Eloquent {
      * 初始化时间排序主键set
      * @return bool
      */
-    public function init_ts_pk_set($redis=null){
+
+    /**
+     * @param int $condition[转换为位模式]
+     * 0=无过滤条件，
+     * 1=条件1
+     * 2=条件2
+     * 3=条件1&条件2
+     * 4=条件3
+     * ...
+     * @param null $redis
+     * @return bool|int
+     */
+    public function init_ts_pk_set($condition=0,$redis=null){
         if(is_null($redis)){
             $redis = LRedis::connection();
         }
-        try{
-            /**
-             * 判断子类是否定义了 $TS_INIT_FILTER_COL_NAME 和 $TS_COL_NAME
-             * $TS_COL_NAME 必须定义
-             */
-            $filter_col_res = false;
-            $ts_col_res = false;//
-            $filter_col_isset_eval = "\$filter_col_res = isset( ".get_class($this)."::\$"
-                .Constant::$TS_INIT_FILTER_COL_NAME .');';
-            $ts_col_isset_eval = "\$ts_col_res = isset( ".get_class($this)."::\$"
-                .Constant::$TS_COL_NAME .');';
-            eval($filter_col_isset_eval.$ts_col_isset_eval );
-            $filter_col = null;
-            $time_col = null;
+        $res = true;
+        //判断参数
+        if(!is_int($condition) || $condition<0){
+            $this->error = "参数错误，必须为正整数";
+            $res =  false;
+        }else{
+            try{
+                /**
+                 * 判断子类是否定义了 实际排序列$TS_COL 和 $CONDITION_COL过滤条件
+                 * $TS_COL 必须定义
+                 * conditon =0不判断$CONDITION_COL
+                 */
+                //判断$TS_COL是否定义
+                $ts_col_res = false;
+                $classname = get_class($this);
+                $ts_col_isset_eval = "\$ts_col_res = isset( $classname::\$"
+                    .Constant::$TS_COL_NAME .');';
+                eval($ts_col_isset_eval);
+                if( $ts_col_res ){//如果有才进行condition判断
+                    //$TS_PKSET_KEY = "TS_PK_%s_%s#SET";
+                    $key = strtoupper( sprintf( self::$TS_PKSET_KEY,$classname,$condition ));
+                    //获取time sort col name
+                    $time_col = null;
+                    $get_time_sort_col_eval = "\$time_col = ". get_class($this) ."::\$"
+                        .Constant::$TS_COL_NAME.";";
+                    eval( $get_time_sort_col_eval );
+
+                    $condition_arr = array();
+                    if($condition>0){
+                        $condition_col_res = false;
+                        $condition_col_isset_eval = "\$condition_col_res = isset( ".get_class($this)."::\$"
+                            .Constant::$CONDITION_COL_NAME .');';
+                        eval($condition_col_isset_eval);
+                        if($condition_col_res){//定义了过滤数组
+                            //获取条件数组
+                            $condition_col = null;
+                            $get_condition_col_eval = "\$condition_col = ". get_class($this) ."::\$"
+                                .Constant::$CONDITION_COL_NAME.";";
+                            eval( $get_condition_col_eval);
+//                            echo "CC\n";
+//                            print_r( $condition_col );
+
+                            //过滤数组存在，且成员数量大于0
+                            if( is_array($condition_col) && count($condition_col)>0){
+                                //判断条件数组大小
+                                if( count( $condition_col ) < floor(log($condition)/log(2))+1 ){
+                                    $res = false;
+                                    $this->error = "过滤条件数组count小于 log(condition)/log2+1";
+                                }else{
+                                    $i = 0;
+                                    //$selected_condition_arr = array();
+                                    while($condition !=0){
+                                        $is_set = $condition%2;
+                                        if( $is_set == 1){
+                                            array_push($condition_arr,$condition_col[$i]);
+                                        }
+                                        $i++;
+                                        $condition = $condition >>1;
+                                    }
+                                }
+                            }
+                        }else{
+                            //conditon >0 ,但condition arr未定义
+                            $res = false;
+                            $this->error = "conditon >0 ,但condition arr未定义";
+                        }
+                    }
+//                    echo "CA:\n";
+//        print_r($condition_arr);
+                    if( $res ){
+                        /**
+                         * 合成语句
+                         */
+                        if( ($size = count( $condition_arr ))>0 ){
+                            $i = 0;
+                            $where_raw = '';
+                            foreach($condition_arr as $item){
+                                if($i == $size-1){
+                                    $where_raw .= sprintf(" %s ",$item );
+                                }else{
+                                    $where_raw .= sprintf(" %s and ",$item );
+                                }
+                                $i++;
+                            }
+                            echo $where_raw;
+                            $pk_set_db = DB::table($this->table)->select( $this->primaryKey , $time_col )
+                                ->whereRaw($where_raw)
+                                ->get();
+//                    $queries = DB::getQueryLog();
+//                    $last_query = end($queries);
+//                    var_dump($pk_set_db);
+//                    echo $last_query['query'];
+                            // 			Log::info('post date:'.$last_query['query']);
+                        }else{
+                            /**
+                             * 不需要过滤
+                             */
+                            $pk_set_db = DB::table($this->table)->select( $this->primaryKey , $time_col )->get();
+                        }
+                        if( is_array($pk_set_db) && count($pk_set_db)>0 ){
+                            foreach( $pk_set_db as $pk ){
+                                $pk_arr = (array)$pk;
+                                // ZADD key score member [[score member] [score member] ...]
+                                $redis->ZAdd( $key  ,
+                                    strtotime( $pk_arr[ $time_col ]),//score 时间
+                                    $pk_arr[$this->primaryKey] );// member pk
+                            }
+                        }
+                        $res = count($pk_set_db);
+                    }
+                }else{
+                    //未定义time 列
+                    $method = __METHOD__;
+                    $sub_class = get_class($this);
+                    Log::error("{$method}|子类:{$sub_class}未定义排序键值");
+                    $res = false;
+                }
+            }catch(Exception $e){
+                $error_msg = $e->getMessage();
+                $method = __METHOD__;
+                Log::error("{$method}|MSG:{$error_msg}|初始化时间排序主键set异常");
+                $res = false;
+            }
+        }
+        return $res;
+    }
+
+
+
+/*
+
+
+
+//            eval($filter_col_isset_eval.$ts_col_isset_eval );
+//            $filter_col = null;
+//            $time_col = null;
 
             if( $ts_col_res ){
-                $time_sort_col_eval = "\$time_col = ". get_class($this) ."::\$"
-                    .Constant::$TS_COL_NAME.";";
-                eval( $time_sort_col_eval );
+
 //                echo 'time col:'.$time_col;
                 if( $filter_col_res ){
                     $filter_col_eval = "\$filter_col = ". get_class($this) ."::\$"
@@ -309,7 +442,7 @@ class BaseModel extends Eloquent {
                 $res = false;
                 /**
                  * 需要过滤
-                 */
+                 *
                 if( is_array( $filter_col )&& ($size = count( $filter_col ))>0 ){
                     $i = 0;
                     $where_raw = '';
@@ -334,40 +467,17 @@ class BaseModel extends Eloquent {
                 }else{
                     /**
                      * 不需要过滤
-                     */
+                     *
                     $pk_set_db = DB::table($this->table)->select( $this->primaryKey , $time_col )->get();
                 }
+*/
+
 
 //            gettype($pk_set_db);
-                if( is_array($pk_set_db) && count($pk_set_db)>0 ){
-                    $key = sprintf( self::$TS_PKSET_KEY,$this->table );
-                    foreach( $pk_set_db as $pk ){
-                        $pk_arr = (array)$pk;
-                        // ZADD key score member [[score member] [score member] ...]
-                        $redis->ZAdd( $key  ,
-                            strtotime( $pk_arr[ $time_col ]),//score 时间
-                            $pk_arr[$this->primaryKey] );// member pk
-                    }
-                }
-                $res = count($pk_set_db);
 
 
-            }else{
-                $method = __METHOD__;
-                $sub_class = get_class($this);
-                Log::error("{$method}|子类:{$sub_class}未定义排序键值和filter");
-                $res = false;
-            }
 
 
-        }catch(Exception $e){
-            $error_msg = $e->getMessage();
-            $method = __METHOD__;
-            Log::error("{$method}|MSG:{$error_msg}|初始化时间排序主键set异常");
-            $res = false;
-        }
-        return $res;
-    }
 
     protected function page2index($page,$pagesize){
         return array("start"=>($page-1)*$pagesize,"stop"=>$page*$pagesize - 1);
@@ -496,6 +606,7 @@ class BaseModel extends Eloquent {
         }
         return $res;
     }
+
 
     /**
      * 获取 model size

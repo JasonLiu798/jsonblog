@@ -2,6 +2,12 @@
 
 class BaseController extends Controller {
 
+	protected $pagecache;
+
+	function __construct(){
+		$this->pagecache = new PageCache;
+	}
+
 	/**
 	 * Setup the layout used by the controller.
 	 *

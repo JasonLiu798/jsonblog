@@ -16,11 +16,10 @@ class CommentController extends BaseController {
 	}
 
 	public function admin() {
-		$sess_user = Session::get('user');
-		$username = User::get_name_from_session($sess_user);
-		$user_id = User::get_userid_from_session($sess_user);
 
-		$comments = Comment::get_comments(Constant::$ADMIN_PAGESIZE);
+		$username = User::get_name_from_session();
+		$comm_model = new Comment;
+		$comments = $comm_model->get_comments(Constant::$ADMIN_PAGESIZE);
 
 		$view = View::make('comments/comment_admin',
 			array('title' => '评论管理',
@@ -32,17 +31,30 @@ class CommentController extends BaseController {
 		return $view;
 	}
 
+
+	/**
+	 * 删除评论
+	 * @param $cid
+	 * @return mixed
+	 */
 	public function delete($cid) {
 		$err = '';
+		$page = Input::get('page');
 		try {
+			Log::info('Comment delete page:'.$page);
 			Comment::delete_recursive($cid);
+			if($page!=null){
+				$resp =  Redirect::route('comment_admin',array('page'=>$page));
+			}else{
+				$resp = Redirect::route('comment_admin');
+			}
 		} catch (Exception $e) {
 			$err = $e->getMessage();
 		}
 		if (strlen($err) > 0) {
 			return Redirect::action('ErrorController@show', array($err));
 		} else {
-			return Redirect::route('comment_admin');
+			return $resp;
 		}
 	}
 
@@ -80,22 +92,52 @@ class CommentController extends BaseController {
 
 	//public function
 
+
+	/**
+	 * 增加评论/留言
+	 * @return mixed
+	 */
 	public function create() {
+//		Input::all();
+//		var_dump();
+
 		$post_id = (int) Input::get('post_id');
-
-		Comment::create_in_post();
 		$post_author_id = Input::get('post_author_id');
-		$comm_cnt = Comment::getNewCommentCountByPostAuthorID($post_author_id);
-		$url = 'http://localhost:3000/newcomm?uid=' . $post_author_id . '&commcnt=' . $comm_cnt;
-		Log::info('NEW COMM URL:' . $url);
 
-		$res = file_get_contents($url);
-		if ($post_id == Constant::$MESSAGE_POST_ID) {
-			$resp = Redirect::route('messages');
-		} else {
-			$resp = Redirect::action('PostController@single', array($post_id));
+		$comment_replay = Input::get('comment_replay');
+		$child_comment_replay = Input::get('child_comment_replay');
+		//登录用户
+		$author_id = Input::get('comment_author_id');
+		//未登录用户
+		$author = Input::get('comment_author');
+		$email = Input::get('comment_author_email');
+		//评论内容
+		$content = Input::get('comment_content');
+		Log::info("pid: $post_id ,a $post_author_id ,r $comment_replay ,child_r
+		$child_comment_replay ,$author_id ,$author");
+		$comm_model = new Comment;
+		$res = $comm_model->create_comment($post_id,$post_author_id,
+			$comment_replay,$child_comment_replay,
+			$content,
+			$author_id,$author,$email,$redis=null);
+
+		if( !$res->status ){
+			//验证或创建失败
+			//$resp = //Redirect::action('PostController@single', array($post_id));
+			$resp = Response::json(array('status' => false , 'msg' => json_encode($res->data)) );
+		}else{
+			if( $comment_replay ==='0'){
+				$comment_id = $res->comment_id;
+			}else{
+				$comment_id = $comment_replay;
+			}
+//			$resp =  Redirect::to("post/single/{$post_id}#comment-{$comment_id}");
+			$resp = Response::json(array(
+				'status' => true,'post_id'=>$post_id,'comment_id'=>$comment_id
+			));
 		}
 		return $resp;
+
 	}
 
 	/**
@@ -134,4 +176,22 @@ class CommentController extends BaseController {
 		return json_encode($response);
 	}
 
+
+	// comment/get?page=1&post_id=72
+	public function postcomments(){
+		$post_id = Input::get('post_id');
+		$post_exist = Post::chk_pid_exist($post_id);
+		if($post_exist){
+			$comm_model = new Comment;
+			$comments = $comm_model->get_post_comments($post_id,Constant::$PAGESIZE);
+//			var_dump($comments);
+			$resp = Response::json(array('status' => true , 'msg' => json_encode
+			($comments->getItems()) ));
+		}else{
+			$comments = null;
+			$resp = Response::json(array('status' => false , 'msg' => '所属文章不存在' ));
+		}
+		return $resp;
+
+	}
 }

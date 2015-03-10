@@ -8,13 +8,16 @@
 <!-- BLOGS -->
 <div class="col-md-6 col-md-offset-1 posts_wrap">
 
-@if(!is_null($term4title))
+@if(isset($term4title) && !is_null($term4title))
 	<div class = "archive_title">
-		<h3>‘<a href="{{url()}}/post/term/{{$term4title[0]->term_id}}">{{ $term4title[0]->name }}</a>’ {{ $term4title[0]->taxonomy==='category'?'分类':'标签' }}归档 </h3>
+		<h3>‘<a href="{{url()}}/post/term/{{$term4title->term_id}}">{{ $term4title->name }}</a>’
+			{{ $term4title->taxonomy==='category'?'分类':'标签' }}归档
+		</h3>
 	</div>
-@elseif(!is_null($date4title))
+@elseif(isset($date4title) && !is_null($date4title))
 	<div class = "archive_title">
-		<h3>‘<a href="{{url()}}/date/{{$date4title['link'] }}">{{ $date4title['title'] }}</a>’归档 </h3>
+		<h3>‘<a href="{{url()}}/date/{{$date4title->link }}">{{ $date4title->title }}</a>’归档
+		</h3>
 	</div>
 @endif
 
@@ -105,20 +108,21 @@
 
 @endforeach
 
-@if( $totalpage >1)
+@if( isset($totalpage) && $totalpage >1)
 	<div class="pages">
 		<nav>
 			<ul class="pagination">
 				@if( $page >1 && $page<= $totalpage )
-					<li><a href="{{url()}}/{{$page-1}}">&laquo;</a></li>
+					<li><a href="{{url()}}/page/{{$page-1}}">&laquo;</a></li>
 				@else
 					<li class="disable"><span>&laquo;</span></li>
 				@endif
 				@for ($i = 1; $i <=$totalpage; $i++)
-					<li @if($i == $page) class="active" @endif><a href="{{url()}}/{{$i}}">{{$i}}</a></li>
+					<li @if($i == $page) class="active" @endif><a href="{{url()
+					}}/page/{{$i}}">{{$i}}</a></li>
 				@endfor
 				@if( $page<$totalpage && $page>=1 )
-					<li><a href="{{url()}}/{{$page+1}}">&raquo;</a></li>
+					<li><a href="{{url()}}/page/{{$page+1}}">&raquo;</a></li>
 				@else
 					<li class="disable"><span>&raquo;</span></li>
 				@endif
@@ -126,10 +130,15 @@
 		</nav>
 	</div>
 @endif
+
+	@if( !isset($totalpage) )
+		{{ $posts->links() }}
+	@endif
     {{--{{ $posts->links() }}--}}
 </div><!-- container  posts_wrap col-9 -->
 
-@include('templates/sidebar')
+{{--@include('templates/sidebar')--}}
+{{ $sidebar }}
 
 </div><!-- row -->
 </div><!-- container  -->

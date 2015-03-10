@@ -13,9 +13,7 @@
             <button class="btn btn-primary" name="new_post" id="new_post" onclick="javascript:window.location.href='{{url()}}/admin/post/create';">写博文</button>
             <form method="post" action="{{url()}}/admin/post/batchdelete" accept-charset="utf-8" role="form" id="batch_delete_form">
                 <input type="hidden" name="delete_ids" id="delete_ids" value=""/>
-
                 <button class="btn btn-default" name="batchdelete" id="batchdelete">批量删除</button>
-
             </form>
         </div>
 
@@ -51,13 +49,13 @@
        				@endforeach
        			@endif
         		</td>
-        		<td>{{ $post->post_comment_count }}</td>
+        		<td>{{ $post->comment_count }}</td>
 
                 <td>{{ date("Y年m月d日",strtotime($post->post_date)) }}</td>
                 <td>
-                    @if($post->post_status===Constant::$POST_PUBLISH)
+                    @if($post->post_status === Constant::$POST_PUBLISH)
                         已发布
-                    @elseif($post->post_status===Constant::$POST_DRAFT)
+                    @elseif($post->post_status === Constant::$POST_DRAFT)
                         草稿
                     @endif
                 </td>

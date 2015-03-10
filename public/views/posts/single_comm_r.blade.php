@@ -2,33 +2,15 @@
 
 {{ HTML::script('js/validate/formValidator-4.0.1.min.js') }}
 {{ HTML::script('js/validate/formValidatorRegex.js') }}
-{{ HTML::script('js/validate/comment_chk.js') }}
+
 {{ HTML::style('css/single_post.css') }}
 
-<script type="text/javascript">
-$().ready(function(){
-	$("#cancleReplay").hide();
-});
 
-function moveCommentForm(thisID,isBack){
-	if(isBack){
-		moveDiv( "commentNew","replay_comment");
-		$("#cancleReplay").hide();
-		$("#comment_parent").attr("value","0");
-	}else{
-		var desID = thisID+"Comment";
-		moveDiv( desID,"replay_comment");
-		$("#cancleReplay").show();
-// 		var num = new RegExp("[0-9]+");
-// 		var res = num.exec(thisID);
- 		//console.log();
-		$("#comment_parent").attr("value",new RegExp("[0-9]+").exec(thisID)[0] );
-	}
-	$("#comment_content").focus().select();
-	// var pos = $("#comment_content").offset().top - $("#replay_comment").height() - 44;
-	var pos = $("#comment_content").offset().top - $("#replay_comment").height() -44;
-	$('html,body').animate({scrollTop:pos },ANI_SPEED_FAST);
-}
+{{ HTML::script('js/comment/create_comment.js') }}
+{{ HTML::script('js/validate/comment_chk.js') }}
+
+<script type="text/javascript">
+
 </script>
 
 <div class="container">
@@ -54,7 +36,7 @@ function moveCommentForm(thisID,isBack){
     		@endif
 			</p><!-- end of p blog-post-meta -->
 			<div class="post_content">
-			<p>{{$post->post_content }}</p>
+			<p>{{html_entity_decode( $post->post_content , ENT_QUOTES); }}</p>
 			</div>
 			<div class = "post_tag">
 			@if(!empty($post->post_tag))
@@ -128,13 +110,12 @@ $root->comment_ID = 0;
 		</div><!-- comments -->
 
 
-
-
 		<div id="commentNew">
 			<div id="replay_comment" class="replay_comment">
 				<span id="errorlist"></span>
 				{{ Form::open(array('url' => 'comment/create', 'method' => 'post','id'=> 'comment_add_form')) }}
 					<a href="#" id="cancleReplay" onclick="moveCommentForm(this.id,true)">取消回复</a>
+					@include('templates/validate_res')
 					<input type="hidden" name="post_id" id="post_id" value="{{ $post->post_id}}" />
 					<input type="hidden" name="post_author_id" id="post_author_id" value="{{ $post->post_author_id }}" />
 					<input type="hidden" name="comment_parent" id="comment_parent" value="0" />
@@ -154,15 +135,18 @@ $root->comment_ID = 0;
 					    {{Form::textarea('comment_content','', array('class' => 'form-control','rows'=>3,'id'=>'comment_content') ) }}
 					    <span id="comment_contentTip" class="help-block"></span>
 				  	</div>
-				  	{{Form::submit('发表评论',array('class' => 'btn btn-default'))}}
+					<button type="button" class="btn btn-default"
+							id="create_comment_submit">发表评论</button>
 				  	{{Form::reset('重置',array('class' => 'btn btn-default'))}}
 				{{ Form::close() }}
+
 			</div><!-- end of replay_comment -->
 		</div><!-- end of commentNew -->
 
 
 	</div><!-- col-sm-8 blog-main -->
-	@include('templates/sidebar')
+	{{--@include('templates/sidebar')--}}
+	{{$sidebar}}
 </div><!-- end of row -->
 </div><!-- end of container -->
 @include('templates/footer')

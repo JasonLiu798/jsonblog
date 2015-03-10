@@ -27,23 +27,26 @@
             </tr>
         		@foreach($comments as $comment)
         	<tr>
-                <td><input type="checkbox" name="id" value="{{ $comment->comment_ID }}"/> </td>
+                <td><input type="checkbox" name="id" value="{{ $comment->comment_id }}"/> </td>
 
-                <td>{{ is_null($comment->comment_author_reg)?$comment->comment_author:$comment->comment_author_reg }}</td>
+                <td>{{ $comment->comment_author }}</td>
         		<td>提交于<a href="">{{ date("Y年m月d日 h:m",strtotime( $comment->comment_date ))  }}</a></br>
                     {{ $comment->comment_content }}</td>
 
         		<td>
-                    @if( $comment->comment_post_ID ==0)
+                    @if( $comment->post_id ==0)
                         来自留言板
                     @else
-                        <a href="{{url()}}/post/single/{{$comment->comment_post_ID}}#comment-{{$comment->comment_ID}}">{{ $comment->post_title }}</a>
+                        {{ $comment->post_title }}
+                        {{--<a href="{{url()}}/post/single/{{$comment->comment_post_id}}#comment-{{$comment->comment_id}}">--}}
+                        {{--</a>--}}
                     @endif
                 </td>
                 <td>
-                    <a href="{{url()}}/admin/comment/delete/{{$comment->comment_ID}}">删除</a>
+                    <a href="{{url()
+                    }}/admin/comment/delete/{{$comment->comment_id}}?page={{$comments->getCurrentPage()}}">删除</a>
                 </td>
-        		<!-- <td><a href="{{url()}}/comment/delete/{{$comment->comment_ID}}">删除</a></td> -->
+        		<!-- <td><a href="{{url()}}/comment/delete/{{$comment->comment_id}}">删除</a></td> -->
         	</tr>
         		@endforeach
 

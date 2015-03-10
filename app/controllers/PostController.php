@@ -1,60 +1,70 @@
 <?php
 class PostController extends BaseController {
 
-	private static $pagecache;
-	function __construct(){
-		self::$pagecache = new PageCache;
-	}
+//	private static $pagecache;
+//	function __construct(){
+//		self::$pagecache = new PageCache;
+//	}
 
 	/**
 	 * Post Index
 	 * @return mixed
 	 */
-	public function index( $page =1) {
+	public function index($page=1) {
 		$INFO_ST = microtime(1);
 		$resp = null;
 
-		if( $page == 1){
-			$view_cache = self::$pagecache->get_index();
+		/*
+		 * 首页缓存，后续页数读库
+		if( $page == 1 ){
+			$view_cache = $this->pagecache->get_index();
 			if(!is_null($view_cache)){
 				$resp = $view_cache;
 			}
-		}//首页缓存，后续页数读库
+		}
+		*/
+
 		$error = '';
-		if(is_null($resp)){
-//			$page = is_null($parm_page)?1:$parm_page;//至少为1，小于 $total/Pagesize
-			$redis = LRedis::connection();
-			$post_model = new Post;
-			$res = $post_model->get_posts_onepage_with_meta($page,Constant::$PAGESIZE,$redis);
-			if($res->status){
-				$total_cnt = $res->total;
-				$posts = $res->posts;
-				if($total_cnt>0){
-					$totalpage = ceil($total_cnt / Constant::$PAGESIZE);
-					Log::info("total count $total_cnt ,total page $totalpage");
-				}else{
-					$totalpage = 1;
-				}
-				$sidebar = self::get_sidebar($redis);
-				$username = User::get_name_from_session();
-				$resp = View::make('index',
-					array('title' => 'AsyncBlog','sidebar' => $sidebar,
-						'page'=>$page,'totalpage'=>$totalpage,
-						'username' => $username, 'nav' => Constant::$NAV_IDX,
-						'term4title' => null, 'date4title' => null,
-						'posts' => $posts));
-				if($page==1){
-					self::$pagecache->update_index($resp);
-				}
+		if(is_null($resp)) {
+			$page = intval($page);
+			if (!is_int($page) || $page < 0) {
+				$error = "页数参数错误";
 			}else{
-				Log::error( $post_model->error );
-				$posts = null;
-				$total_cnt = -1;
-				$error = $post_model->error;
+				$redis = LRedis::connection();
+				$post_model = new Post;
+				$res = $post_model->get_posts_onepage_with_meta($page, Constant::$PAGESIZE, $redis);
+				if ($res->status) {
+					$total_cnt = $res->total;
+					$posts = $res->posts;
+					if ($total_cnt > 0) {
+						$totalpage = ceil($total_cnt / Constant::$PAGESIZE);
+						Log::info("total count $total_cnt ,total page $totalpage");
+					} else {
+						$totalpage = 1;
+					}
+
+					$sidebar = $this->get_sidebar($redis);
+					$username = User::get_name_from_session();
+					Log::info("username: $username");
+					$resp = View::make('index',
+						array('title' => 'AsyncBlog', 'sidebar' => $sidebar,
+							'page' => $page, 'totalpage' => $totalpage,
+							'username' => $username, 'nav' => Constant::$NAV_IDX,
+							'posts' => $posts));
+					if ($page == 1) {
+						$this->pagecache->update_index($resp);
+					}
+				} else {
+					Log::error($post_model->error);
+					$posts = null;
+					$total_cnt = -1;
+					$error = $post_model->error;
+				}
 			}
 		}
+
 		if(strlen($error)>0){
-			return Redirect::route('error', array($error));
+			$resp = Redirect::route('error', array($error));
 		}
 
 		$INFO_RUNTIME = round(1000*(microtime(1)-$INFO_ST),5);
@@ -69,34 +79,35 @@ class PostController extends BaseController {
 	 * @return unknown
 	 */
 	public function term_achive($term_id) {
-		$msg = '';
+		$INFO_ST = microtime(1);
+		$error = '';
+		$resp = null;
 		if (!preg_match(Constant::$DIGIT, $term_id)) {
 			$msg = '分类编号格式错误';
 		} else {
-			$posts = Post::get_posts_by_term($term_id, Constant::$PAGESIZE);
-			Post::add_meta($posts);
-// 			$queries = DB::getQueryLog();
-			// 			$last_query = end($queries);
-			// 			Log::info('post date:'.$last_query['query']);
-			$term4title = Term::get_name_taxonomy($term_id);
-			if (is_null($term4title[0]->name)) {
-				$msg = '分类/标签不存在';
+			$term = Term::find($term_id);
+			if (is_null($term)) {
+				$error = '分类/标签不存在';
+			}else{
+				$post_model = new Post;
+				$posts = $post_model->get_posts_by_term($term_id, Constant::$PAGESIZE);
 			}
 		}
-		if (strlen($msg) > 0) {
-			Redirect::action('ErrorController@show', array($msg));
-			//App::abort(404);
+		if (strlen($error) > 0) {
+			$resp = Redirect::action('ErrorController@show', array($error));
 		} else {
 			$username = User::get_name_from_session();
-			$sidebar = PostController::get_sidebar();
-			$view = View::make('index',
-				array('title' => $term4title[0]->name . '|Async Blog', 'username' => $username,
-					'date4title' => null,
-					'term4title' => $term4title, //'user4title'=>null,
+			$sidebar = $this->get_sidebar();
+			$resp = View::make('index',
+				array('title' => $term->name.'|Async Blog', 'username' => $username,
+					'term' => $term, //'user4title'=>null,
 					'posts' => $posts,
 					'sidebar' => $sidebar));
-			return $view;
 		}
+		$INFO_RUNTIME = round(1000*(microtime(1)-$INFO_ST),5);
+		$method = __METHOD__;
+		Log::info("{$method},Runtime:{$INFO_RUNTIME}");
+		return $resp;
 	}
 
 	/**
@@ -105,28 +116,25 @@ class PostController extends BaseController {
 	 * @return unknown
 	 */
 	public function date_achive($date) {
-		$msg = '';
+		$error = '';
 		if (!preg_match(Constant::$REG_YEAR_MONTH, $date, $m)) {
-			$msg = '日期格式错误';
+			$error = '日期格式错误';
 		} else {
 			$date_arr = explode("-", $date);
-			$date4title['title'] = $date_arr[0] . '年' . $date_arr[1] . '月';
-			$date4title['link'] = $date;
-			$posts = Post::get_post_by_date($date, Constant::$PAGESIZE);
-			Post::add_meta($posts);
-// 			$queries = DB::getQueryLog();
-			// 			$last_query = end($queries);
-			// 			Log::info('post date:'.$last_query['query']);
+			$date4title = new stdClass;
+			$date4title->title = $date_arr[0] . '年' . $date_arr[1] . '月';
+			$date4title->link = $date;
+			$post_model = new Post;
+			$posts = $post_model->get_post_by_date($date, Constant::$PAGESIZE);
 		}
-		if (strlen($msg) > 0) {
-			return Redirect::route('error', array($msg));
+		if (strlen($error) > 0) {
+			return Redirect::route('error', array($error));
 		} else {
 			$username = User::get_name_from_session(Session::get('user'));
-			$sidebar = PostController::get_sidebar();
+			$sidebar = $this->get_sidebar();
 			$view = View::make('index',
 				array('title' => $date . '|Async Blog', 'username' => $username,
 					'date4title' => $date4title,
-					'term4title' => null, //'user4title'=>null,
 					'posts' => $posts,
 					'sidebar' => $sidebar));
 			return $view;
@@ -137,29 +145,35 @@ class PostController extends BaseController {
 	 * get sidebar infos
 	 * @return stdClass
 	 */
-	public static function get_sidebar($redis = null) {
-		if(is_null($redis)){
-			$redis = LRedis::connection();
+	public function get_sidebar($redis = null) {
+		$sidebar_cache = $this->pagecache->get_sidebar();
+		if(  !is_null($sidebar_cache)){
+			$res = $sidebar_cache;
+		}else{
+			if(is_null($redis)){
+				$redis = LRedis::connection();
+			}
+			$sidebar = new stdClass;
+			//get terms
+			$term_model = new Term;
+			$term_stats = $term_model->get_terms_and_stat($redis);
+			$sidebar->cat_stats = Term::get_category($term_stats);
+			$sidebar->tag_stats = Term::get_tag($term_stats);
+			//get post archive
+			$post_stats = Post::getPostsStat();
+			$sidebar->post_stats = $post_stats;
+			//get latest posts
+			$post_model = new Post;
+			$latest_posts = $post_model->get_latest_count_post(5,$redis);
+			$sidebar->latest_posts = $latest_posts;
+			//get latest comments
+			$comm_model = new Comment;
+			$latest_comments = $comm_model->get_latest_comments(5,$redis);
+			$sidebar->latest_comments = $latest_comments;
+			$view = View::make('templates/sidebar',array('sidebar'=>$sidebar));
+			$res = $view.' ';
+			$this->pagecache->update_sidebar($res);
 		}
-
-		$res = new stdClass;
-		//get terms
-		$term_model = new Term;
-		$term_stats = $term_model->get_terms_and_stat($redis);
-
-		$res->cat_stats = Term::get_category($term_stats);
-		$res->tag_stats = Term::get_tag($term_stats);
-		//get post archive
-		$post_stats = Post::getPostsStat();
-		$res->post_stats = $post_stats;
-		//get latest posts
-		$post_model = new Post;
-		$latest_posts = $post_model->get_latest_count_post(5,$redis);
-		$res->latest_posts = $latest_posts;
-		//get latest comments
-		$comm_model = new Comment;
-		$latest_comments = $comm_model->get_latest_comments(5,$redis);
-		$res->latest_comments = $latest_comments;
 		return $res;
 	}
 
@@ -173,35 +187,35 @@ class PostController extends BaseController {
 	 * @return void|unknown
 	 */
 	public function single($post_id) {
-//Log::info("Single,post_id:".$post_id);
-		$posts = Post::get_post_by_id($post_id);
-		$err = '';
-		if (is_null($posts)) {
-			$err = '博文不存在';
+		$error = '';
+		$post_model = new Post;
+		$post = $post_model->get_post($post_id);
+		Log::info('single'.$post->post_id);
+		if (is_null($post)) {
+			$error = '博文不存在';
 		} else {
-			Post::add_meta($posts);
-			$post = end($posts);
-			if ($post->post_cover_img > 0) {
-				$post->cover_img_url = PostImage::get_img_url_by_name($post->post_img_name);
-			} else {
-				$post->cover_img_url = null;
-			}
-
-			$comments = Comment::getCommentsByPostID($post_id);
+			$comm_model = new Comment;
+			$comments = $comm_model->get_post_comments($post_id,Constant::$PAGESIZE);
 			$pre_next_post = Post::get_pre_next_post($post_id);
 
-			$username = User::get_name_from_session(Session::get('user'));
-			$sidebar = PostController::get_sidebar();
-			$resp = View::make('posts/single_comm_r',
+			$user = User::get_user_from_session();
+
+			$username = is_null($user)?null:$user->user_login;
+			$sidebar = $this->get_sidebar();
+			$comments->fragment('comments_anchor');
+//			$resp = View::make('posts/single',
+			$resp = View::make('posts/single_v2',
 				array('post' => $post,
 					'comments' => $comments,
 					'username' => $username,
+					'user'=>$user,
+//					'total'=>$comments->getTotal(),
 					'title' => $post->post_title,
 					'pre_next_post' => $pre_next_post,
 					'sidebar' => $sidebar));
 		}
-		if (strlen($err) > 0) {
-			return Redirect::route('error', array($err));
+		if (strlen($error) > 0) {
+			return Redirect::route('error', array($error));
 		} else {
 			return $resp;
 		}
@@ -464,6 +478,8 @@ class PostController extends BaseController {
 	// 	}
 	// }
 
+
+
 	/**
 	 * delete post relate comments,terms,post_image
 	 * @param unknown $post_id
@@ -514,29 +530,33 @@ class PostController extends BaseController {
 	 * @return unknown
 	 */
 	public function admin() {
-		$sess_user = Session::get('user');
-		if (is_null($sess_user)) {
-			return Redirect::action('PostController@index');
+		$user = User::get_user_from_session();
+		$error = '';
+		if(is_null($user)){
+			$error = '未登录';
+		}else{
+			$username = $user->user_login;
+			$post_model = new Post;
+			$posts = $post_model->get_user_posts($user->user_id, Constant::$ADMIN_PAGESIZE);
+			$resp = View::make('posts/post_admin',
+				array('title' => '博文管理',
+					'username' => $username,
+					'posts' => $posts,
+					'menu' => 'post',
+					'nav' => Constant::$NAV_ADMIN)
+			);
 		}
-		$username = User::get_name_from_session($sess_user);
-		$user_id = User::get_userid_from_session($sess_user);
-
-		$posts = Post::get_posts_by_userid($user_id, Constant::$ADMIN_PAGESIZE);
-		if (count($posts) <= 0) {
-			$posts = null;
+		if (strlen($error) > 0) {
+			return Redirect::route('error', array($error)); //,array($post_id));
 		} else {
-			Post::add_meta($posts);
+			return $resp;
 		}
-		$view = View::make('posts/post_admin',
-			array('title' => '博文管理',
-				'username' => $username,
-				'posts' => $posts,
-				'menu' => 'post',
-				'nav' => Constant::$NAV_ADMIN)
-		);
-		return $view;
 	}
 
+	/**
+	 * 搜索
+	 * @return mixed
+	 */
 	public function search() {
 		$INFO_ST = microtime(1);
 		$page = Input::get('page');
@@ -576,179 +596,5 @@ class PostController extends BaseController {
 		return $resp;
 	}
 
-	public function test() {
-//		$post_model = new Post;
-//		echo $post_model->chk_pk(243);
-
-//		print_r(   Term::find(1)->ttttermrelationships  );
-
-//		print_r( TermRelationship::find(1)->post);
-
-
-//		$p  = new Post;
-//		print_r($p->get_pk_set());
-
-//		$pk_set_db = DB::table('posts')->select('ID')->get();
-//		echo gettype($pk_set_db);
-//		$redis = null;
-		$str = "key%s";
-		$start = microtime(1);
-
-
-		$post_model = new Post;
-		$total = $post_model->init_ts_pk_set();
-		echo $total;
-//		var_dump( $p->get_ts_pk_set(1,10) );
-
-
-//		$comments = Comment::all();
-//		$comments->sortBy(function($comments)
-//		{
-//			return $comments->comment_date;
-//		})->skip(0)->take(2);
-
-
-
-//		echo sprintf($str,"a");
-
-//		echo "keya";
-//		$p = new Post;
-//		$p->get_ts_pk_set(2,2);
-//		$p->get_ts
-
-//		$redis = LRedis::connection();
-//		$redis->ZADD('POST_TS_PKSET',
-
-//		$p = Post::find(42);
-//		$redis->ZADD('POST_TS_PKSET',5,$p->post_id);
-////		$redis->ZREM( 'POST_TS_PKSET',strtotime($p->post_date) );
-////
-//		$p = Post::find(43);
-//		$redis->ZADD('POST_TS_PKSET',4,$p->post_id);
-////		$redis->ZADD('POST_TS_PKSET',strtotime($p->post_date),$p->post_id);
-////		$redis->ZREM( 'POST_TS_PKSET',strtotime($p->post_date) );
-////
-//		$p = Post::find(44);
-//		$redis->ZADD('POST_TS_PKSET',3,$p->post_id);
-//		$redis->ZADD('POST_TS_PKSET',strtotime($p->post_date),$p->post_id);
-//		$redis->ZREM( 'POST_TS_PKSET',strtotime($p->post_date) );
-
-//		$redis
-
-//		var_dump();
-//		$ps = Post::all();
-//
-//		foreach($ps as $p){
-//
-//		}
-
-
-//		$p = new Post;
-//		var_dump($p->get_pk_set());
-
-//		var_dump(Post::find(42)->user);
-
-
-
-
-
-//
-//		$tr = new TermRelationship();
-//		$res = $tr->get_post_term(36);
-////		$res = $tr->get_post_term_key(36);
-////		$res = $tr->get_post_term_id_from_db(36);
-////		echo "B\n";
-//		var_dump($res);
-//		print_r( $tr->get_post_term(36) );
-
-//		$p = Post::find(42);
-//		$t = new stdClass;
-//		$t->str = 'ID';
-////		$str = 'ID';
-//		echo $p[$t->str];
-
-//
-//		$redis = LRedis::connection();
-//		$res = $redis->SMEMBERS('testset');
-//		echo gettype($res);
-//		var_dump($res);
-
-//		if(is_null($redis)){
-//			echo 'null';
-//		}
-		$time = 1000*(microtime(1) - $start);
-		echo "<br/>time:".$time;
-
-		/*
-		$start = microtime(1);
-		print_r( Term::get_term(1) );
-		$time = 1000*(microtime(1) - $start);
-		echo "time:".$time;
-		*/
-
-
-//		$t = new Term;
-//		print_r(Term::find(1)->posts->count());
-//		print_r( Term::find(1)->posts );
-
-//		$t = new Term;
-//		echo $t->get_new_pk();
-
-
-//
-//		$p = Post::find(36);
-//		print_r($p->terms);
-
-//		$redis = $redis = LRedis::connection();
-//		$cache_res = $redis->sMembers( "myset" );
-//		print_r($cache_res);
-
-		/*
-		$htmlcode = <<<EOF
-		<p>
-			<div REL="add-2012-xs">ssssssssssssssssssss</DIV>
-			<script>
-				skdflkjdjklsf
-			</script>
-			<img href="http://www.lblog.com/img/a.jpg" width=100 height=233 />
-			<a href="http://ww.baidu.com">sdjk</a>
-			sdfsdfjkl
-        </p>
-EOF;
-		//$htmlFilter->addLabel('a', array('href' => array('values' => array('#'))));
-
-		$start = microtime(1);
-		$htmlFilter = new HtmlFilter;
-		echo $htmlFilter->filter($htmlcode);
-//		var_dump($htmlFilter->filter($htmlcode));
-		echo "\n".(1000*(microtime(1) - $start));
-		*/
-
-//		$id_arr = Term::process_idstr('108,100,110');
-//		echo "BF:\n";
-//		print_r($id_arr);
-//		Term::delete_exist_post_term_relation(36,$id_arr);
-//		echo "\nAF:\n";
-//		print_r($id_arr);
-
-//		echo Term::find(97)->termtaxonomy->taxonomy;
-//		echo Term::where('name','=', 'aa')->firstOrFail()->termtaxonomy->taxonomy;
-//		$a = explode(',', 'aaa' );
-//		echo count ($a);
-//		echo current($a);
-//		echo Term::get_tag_id_by_name('aa');
-		// $total = 6;
-//		// echo ceil($total / Constant::$PAGESIZE);
-
-//		$c = Comment::find(1);
-//		echo gettype($c);
-
-
-
-		// $comments = Post::find(37)->comments;
-		// print_r($comments);
-		// return;
-
-	}
 
 }

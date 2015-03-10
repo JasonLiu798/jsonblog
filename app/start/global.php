@@ -79,3 +79,29 @@ App::down(function()
 */
 
 require app_path().'/filters.php';
+
+/**
+ * 新增评论，通知用户
+ */
+Event::listen('comment.create', function($post_author_id) {
+//	$user_model = new User;
+	//$post_author_id,
+	$unread_comm_cnt = Comment::get_user_unread_comment_cnt($post_author_id);
+	$url = 'http://localhost:3000/newcomm?uid=' . $post_author_id . '&unreadcnt=' .
+		$unread_comm_cnt;
+	Log::info('NEW COMM URL:' . $url);
+	$res = file_get_contents($url);
+	Log::info('informed new comments');
+
+//	http://localhost:3000/newcomm?uid=1&commcnt=5
+
+
+//	$user_model->
+//	$user->last_login = new DateTime;
+//	$user->save();
+});
+//
+//
+//
+
+

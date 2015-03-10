@@ -196,20 +196,21 @@ class TermsController extends BaseController {
 	}
 
 	public function cat_admin() {
-		$sess_user = Session::get('user');
-		$username = User::get_name_from_session($sess_user);
-		$user_id = User::get_userid_from_session($sess_user);
+//		$sess_user = Session::get('user');
+		//		$user_id = User::get_userid_from_session($sess_user);
 
-		$cats = Term::get_admin_category(); //Constant::$ADMIN_PAGESIZE);
-
+		$username = User::get_name_from_session();
+		$term_model = new Term;
+		$cats = $term_model->get_admin_category_db( Constant::$ADMIN_PAGESIZE );
+//
 		//$category = Term::get_all_categories();
-		$term = new Term();
-		$categories = $term->format_category2tree($cats, '——');
+//		$term = new Term();
+//		$categories = $term->format_category2tree($cats, '——');
 
 		$view = View::make('term/category_admin',
 			array('title' => '分类管理',
 				'username' => $username,
-				'categories' => $categories,
+				'categories' => $cats,
 				'nav' => Constant::$NAV_ADMIN,
 				'menu' => 'category'));
 		return $view;

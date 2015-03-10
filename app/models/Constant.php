@@ -23,6 +23,11 @@ class Constant {
 	public static $CONDITION_COL_NAME = 'CONDITION_COL';
 	public static $TS_COL_NAME = 'TS_COL';
 
+	/**
+	 * comment type
+	 */
+//	public static $COMM_NORMAL = 0;
+//	public static $COMM_REPLY =
 
 	public static $COMM_UNREAD = 0;
 	public static $COMM_READ = 1;

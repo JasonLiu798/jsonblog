@@ -5,7 +5,7 @@
 		<ol class="list-unstyled">
 		@foreach($sidebar->latest_posts  as $latest_post)
 			<li>
-				<a href="{{ url()}}/post/single/{{ $latest_post->ID }}">{{$latest_post->post_title}}</a>
+				<a href="{{ url()}}/post/single/{{ $latest_post->post_id }}">{{$latest_post->post_title}}</a>
 			</li>
 		@endforeach
 		</ol>
@@ -19,7 +19,8 @@
 		@foreach($sidebar->latest_comments as $latest_comment)
 			<li>
 			{{ $latest_comment->comment_author }}评论了
-				<a href="{{ url()}}/post/single/{{ $latest_comment->post_id }}#comment-{{ $latest_comment->comment_id }}">{{$latest_comment->post_title}}</a>
+				<a href="{{ url()}}/post/single/{{ $latest_comment->post_id }}?page={{$latest_comment->page}}#comment-{{
+				$latest_comment->comment_id }}">{{$latest_comment->post_title}}</a>
 			</li>
 		@endforeach
 		</ol>
@@ -31,7 +32,7 @@
 	@if( is_array($sidebar->cat_stats ) && count($sidebar->cat_stats )>0 )
 	<ol class="list-unstyled">
 		@foreach($sidebar->cat_stats as $cat_stat)
-			<li><a href="{{url()}}/post/term/{{ is_null($cat_stat->term_id)?0:$cat_stat->term_id }}">{{ is_null($cat_stat->term_name)?'未分类':$cat_stat->term_name }}</a>({{ $cat_stat->term_count }})</li>
+			<li><a href="{{url()}}/post/term/{{ is_null($cat_stat->term_id)?0:$cat_stat->term_id }}">{{ is_null($cat_stat->name)?'未分类':$cat_stat->name }}</a>({{ $cat_stat->term_count }})</li>
 		@endforeach
 	</ol>
 	@endif
@@ -43,7 +44,7 @@
 	<ol class="list-unstyled">
 		@foreach($sidebar->tag_stats as $tag_stat)
 			<li><a href="{{url()}}/post/term/{{ is_null($tag_stat->term_id)?0:$tag_stat->term_id }}">
-			{{ is_null($tag_stat->term_name)?'未分类':$tag_stat->term_name }}</a>
+			{{ is_null($tag_stat->name)?'未命名标签':$tag_stat->name }}</a>
 			({{ $tag_stat->term_count }})
 			</li>
 		@endforeach

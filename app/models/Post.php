@@ -47,7 +47,7 @@ class Post extends BaseModel {
 	 */
 	public function user(){
 //		$this->('Post');
-		return $this->belongsTo('User','post_author','ID');
+		return $this->belongsTo('User','post_author','user_id');
 	}
 
 	/**
@@ -304,6 +304,74 @@ class Post extends BaseModel {
 	}
 	 */
 
+
+
+
+
+	public static function add_meta_one(&$post,$redis=null) {
+		if(is_null($redis)){
+			$redis = LRedis::connection();
+		}
+		try{
+			$tr = new TermRelationship();
+			$terms = $tr->get_post_term( $post->post_id );//Term::get_terms_by_post
+//			echo "post: ".$post->post_id;
+//			print_r($terms);
+			//($post->post_id);
+			if (!is_null($terms)) {
+				$cat = Term::get_category($terms);
+				$tag = Term::get_tag($terms);
+				$post->category = is_array($cat) && count($cat) > 0 ? end($cat) : null;
+				$post->post_tag = is_array($tag) && count($tag) > 0 ? $tag : null;
+			} else {
+				$post->category = null;
+				$post->post_tag = null;
+			}
+			//图片相关
+			$img = new PostImage;
+			$got =false;
+			if($post->post_cover_img !=0){
+				$image = $img->get_model($post->post_cover_img);
+				if(!is_null($image)){
+					$post->post_img_name = $image->name;
+					$post->cover_img_url = PostImage::get_img_url_by_name( $image->name );
+					$got = true;
+				}
+			}
+			if(!$got){
+				$post->post_img_name = null;
+				$post->cover_img_url = null;
+			}
+			//作者相关
+			$author = new User;
+			$author = $author->get_model($post->post_author,$redis );
+			if(!is_null($author)){
+				$post->post_author = $author->user_login;
+				$post->post_author_id = $author->user_id;
+			}else{
+				$post->post_author = null;
+				$post->post_author_id = null;
+			}
+			//评论数量
+			$post_model = new Post;
+			$cnt = $post_model->get_relate_count("comment",$post->post_id,$redis);
+			if($cnt<0){
+				$post->comment_count = 0;
+			}else{
+				$post->comment_count = $cnt;
+			}
+		}catch(Exception $e){
+			//出现异常，全部置空
+			$post->category = null;
+			$post->post_tag = null;
+			$post->post_img_name = null;
+			$post->post_author = null;
+			$post->post_author_id = null;
+			$post->comment_count = 0;
+			$method = __METHOD__;
+			Log::error("$method|{$e->getMessage()}");
+		}
+	}
 	/**
 	 * 附加post category和tag
 	 * @param $posts
@@ -313,52 +381,38 @@ class Post extends BaseModel {
 			$redis = LRedis::connection();
 		}
 		foreach ($posts as $post):
-			try{
-//				$terms = Term::get_terms_by_post($post->post_id);
-				$tr = new TermRelationship();
-				$terms = $tr->get_post_term( $post->post_id );//Term::get_terms_by_post
-				//($post->post_id);
-				if (!is_null($terms)) {
-					$cat = Term::get_category($terms);
-					$tag = Term::get_tag($terms);
-					$post->category = is_array($cat) && count($cat) > 0 ? reset($cat) : null;
-					$post->post_tag = is_array($tag) && count($tag) > 0 ? $tag : null;
-				} else {
-					$post->category = null;
-					$post->post_tag = null;
-				}
-//				$img_pk = ;
-				$img = new PostImage;
-				$img = $img->get_model($post->post_cover_img);
-//				$img = $post->postimage;
-				$author = new User;
-				$author = $author->get_model($post->post_author,$redis );
-				if(!is_null($img)){
-					$post->post_img_name = $img->name;
-				}else{
-					$post->post_img_name = null;
-				}
-				if(!is_null($author)){
-					$post->post_author = $author->user_login;
-				}else{
-					$post->post_author = null;
-				}
-				$post_model = new Post;
-				$cnt = $post_model->get_relate_count("comment",$post->post_id,$redis);
-				if($cnt<0){
-					$post->comment_count = 0;
-				}else{
-					$post->comment_count = $cnt;
-				}
-			}catch(Exception $e){
-				//出现异常，全部置空
-				foreach ($posts as $post):
-					$post->category = null;
-					$post->post_tag = null;
-				endforeach;
-				Log::error("Post Add Meta|Get term error| {$e->getMessage()}");
-			}
+			self::add_meta_one($post,$redis);
+//			}catch(Exception $e){
+//				//出现异常，全部置空
+//				foreach ($posts as $post):
+//					$post->category = null;
+//					$post->post_tag = null;
+//				endforeach;
+//				Log::error("Post Add Meta|Get term error| {$e->getMessage()}");
+//			}
 		endforeach;
+	}
+
+
+	/**
+	 * 博文管理用
+	 * @param $user_id
+	 * @param $pagesize
+	 * @return mixed
+	 */
+	public function get_user_posts($user_id,$pagesize){
+		$posts = $this->get_user_posts_db($user_id,$pagesize);
+		if(!is_null($posts) && count($posts)>0){
+			$this->add_meta($posts);
+		}
+		return $posts;
+	}
+
+	public function get_user_posts_db($user_id, $pagesize) {
+		$posts = Post::where('post_author',$user_id)
+			->orderBy('post_date', 'desc')
+			->paginate($pagesize);
+		return $posts;
 	}
 
 
@@ -486,6 +540,17 @@ order by posts.post_date desc;
 	}
 
 
+	/**
+	 * 获取term分类
+	 * @param $term_id
+	 * @param $pagesize
+	 * @return NULL
+	 */
+	public function get_posts_by_term($term_id,$pagesize){
+		$posts = $this->get_posts_by_term_db($term_id, $pagesize);
+		self::add_meta($posts);
+		return $posts;
+	}
 
 	/**
 	 * get posts by term_id
@@ -493,7 +558,8 @@ order by posts.post_date desc;
 	 * @param unknown $pagesize
 	 * @return NULL
 	 */
-	public static function get_posts_by_term($term_id, $pagesize) {
+	public function get_posts_by_term_db($term_id, $pagesize) {
+//		$posts = Post::where('term_relationships.term_taxonomy_id',$term_id)->paginate($pagesize);
 		/*
 		select posts.ID post_id,users.user_login post_author,post_date,post_content,users.ID as post_author_id,
 		post_title,count(comments.comment_ID) comment_count
@@ -506,26 +572,31 @@ order by posts.post_date desc;
 		$posts = null;
 		if ($pagesize > 0) {
 			$posts = DB::table('posts')
-				->select('posts.ID as post_id', 'post_title', 'post_content', 'post_date', 'users.user_login as post_author', 'postimages.filename as post_img_name', 'post_summary'
-					, DB::raw('count(comments.comment_ID) as comment_count'))
-				->leftJoin('users', 'users.ID', '=', 'posts.post_author')
-				->leftJoin('term_relationships', 'posts.ID', '=', 'term_relationships.object_id')
-				->leftJoin('postimages', 'postimages.iid', '=', 'posts.post_cover_img')
-				->leftJoin('comments', 'comments.comment_post_ID', '=', 'posts.ID')
-				->where('term_relationships.term_taxonomy_id', '=', $term_id)
-				->groupBy('posts.ID')
-				->paginate($pagesize);
+				->select('post_id', 'post_title', 'post_date','post_author','post_summary',
+					'post_cover_img')
+//				->leftJoin('users', 'users.user_id', '=', 'posts.post_author')
+				->leftJoin('term_relationships', 'post_id', '=', 'term_relationships.object_id')
+				->leftJoin('comments', 'comments.comment_post_ID', '=', 'post_id')
+				->where('term_relationships.term_id', '=', $term_id)
+				->groupBy('post_id')
+				->orderBy('post_date','desc')
+				->paginate( $pagesize );
 		}
 		return $posts;
 	}
 
+	public function get_post_by_date($date, $pagesize) {
+		$posts = $this->get_post_by_date_db($date,$pagesize);
+		self::add_meta($posts);
+		return $posts;
+	}
 	/**
 	 * get posts by year & month
 	 * @param unknown $year
 	 * @param unknown $month
 	 * @param unknown $pagesize
 	 */
-	public static function get_post_by_date($date, $pagesize) {
+	public function get_post_by_date_db($date, $pagesize) {
 		/*
 		select posts.ID post_id,users.user_login post_author,users.ID as post_author_id,DATE_FORMAT(posts.post_date,'%Y-%m'),
 		post_content,post_title,count(comments.comment_ID) comment_count
@@ -536,13 +607,15 @@ order by posts.post_date desc;
 		 */
 		//$search_date = $year.'-'.$month;
 		$posts = DB::table('posts')
-			->select('posts.ID as post_id', 'users.user_login as post_author', 'users.ID as post_author_id', 'post_date', 'postimages.filename as post_img_name', 'post_summary',
-				'post_content', 'post_title', DB::raw('count(comments.comment_ID) as comment_count'))
-			->leftJoin('users', 'users.ID', '=', 'posts.post_author')
-			->leftJoin('postimages', 'postimages.iid', '=', 'posts.post_cover_img')
-			->leftJoin('comments', 'comments.comment_post_ID', '=', 'posts.ID')
+			->select('post_id', 'post_title', 'post_date','post_author','post_summary',
+				'post_cover_img')
+		//'post_content', 'post_title', DB::raw('count(comments.comment_ID) as comment_count'))
+//			->leftJoin('users', 'users.ID', '=', 'posts.post_author')
+//			->leftJoin('postimages', 'postimages.iid', '=', 'posts.post_cover_img')
+//			->leftJoin('comments', 'comments.comment_post_ID', '=', 'posts.ID')
 			->whereRaw("DATE_FORMAT( posts.post_date,'%Y-%m')='" . $date . "'")
-			->groupBy('posts.ID')
+			->orderBy('post_date','desc')
+//			->groupBy('posts.ID')
 			->paginate($pagesize);
 		return $posts;
 	}
@@ -614,9 +687,9 @@ $query->select('post_date')
 ->take(1)->get();
  */
 		$pre_post = DB::table('posts')
-			->select('ID as post_id', 'post_title')
-			->where('ID', '<', $post_id)
-			->orderBy('ID', 'desc')
+			->select('post_id', 'post_title')
+			->where('post_id', '<', $post_id)
+			->orderBy('post_id', 'desc')
 			->take(1)->get();
 		$res['pre_post'] = $pre_post;
 
@@ -637,9 +710,9 @@ $query->select('post_date')
 ->take(1)->get();
  */
 		$next_post = DB::table('posts')
-			->select('ID as post_id', 'post_title')
-			->where('ID', '>', $post_id)
-			->orderBy('ID')
+			->select('post_id', 'post_title')
+			->where('post_id', '>', $post_id)
+			->orderBy('post_id')
 			->take(1)->get();
 		$res['next_post'] = $next_post;
 		$queries = DB::getQueryLog();
@@ -703,7 +776,18 @@ $query->select('post_date')
 	 * @param unknown $post_id
 	 * @return NULL|unknown
 	 */
-	public static function get_post_by_id($post_id) {
+	public function get_post($post_id,$redis=null) {
+		if(is_null($redis)){
+			$redis = LRedis::connection();
+		}
+		$post = $this->get_model($post_id,$redis);
+		if (!is_null($post) ){//} && count($post) > 0) {
+			self::add_meta_one( $post );
+			return $post;
+		} else {
+			return null;
+		}
+//		$post = Post::find($post_id);
 		/*
 		select posts.ID as post_id,post_title,post_content,post_date,users.user_login as post_author,
 		posts.post_author as post_author_id
@@ -712,23 +796,19 @@ $query->select('post_date')
 		left join postimages on postimages.iid = posts.post_cover_img
 		where posts.ID=31;
 		 */
-		$post = DB::table('posts')
-			->select('posts.ID as post_id', 'post_title', 'post_content', 'post_date', 'users.user_login as post_author', 'posts.post_author as post_author_id', 'post_cover_img', 'postimages.filename as post_img_name', 'post_summary', DB::raw('count(comments.comment_ID) as comment_count'))
-			->leftJoin('comments', 'comments.comment_post_ID', '=', 'posts.ID')
-			->leftJoin('users', 'users.ID', '=', 'posts.post_author')
-			->leftJoin('postimages', 'postimages.iid', '=', 'posts.post_cover_img')
-			->where('posts.ID', '=', $post_id)
-			->get();
+//		$post = DB::table('posts')
+//			->select('posts.ID as post_id', 'post_title', 'post_content', 'post_date', 'users.user_login as post_author', 'posts.post_author as post_author_id', 'post_cover_img', 'postimages.filename as post_img_name', 'post_summary', DB::raw('count(comments.comment_ID) as comment_count'))
+//			->leftJoin('comments', 'comments.comment_post_ID', '=', 'posts.ID')
+//			->leftJoin('users', 'users.ID', '=', 'posts.post_author')
+//			->leftJoin('postimages', 'postimages.iid', '=', 'posts.post_cover_img')
+//			->where('posts.ID', '=', $post_id)
+//			->get();
 
 		// $queries = DB::getQueryLog();
 		// $last_query = end($queries);
 		// Log::info('SINGLE POST:' . $last_query['query']);
 
-		if (!is_null($post) && count($post) > 0) {
-			return $post;
-		} else {
-			return null;
-		}
+
 	}
 
 

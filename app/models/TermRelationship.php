@@ -64,7 +64,7 @@ class TermRelationship extends BaseModel
             $res = false;
         }
 
-        if( array($post_term_db) && count($post_term_db)>0 ){
+        if( is_array($post_term_db) && count($post_term_db)>0 ){
             try{
                 foreach($post_term_db as $post_term){
                     $key = sprintf( self::$POST_TERM_KEY, $post_term->object_id );
@@ -93,31 +93,40 @@ class TermRelationship extends BaseModel
         if(is_null($redis)){
             $redis = LRedis::connection();
         }
-        $key = sprintf( self::$POST_TERM_KEY, $post_id );
+        $key = strtoupper( sprintf( self::$POST_TERM_KEY, $post_id ));
 //        echo $key;
         $post_term_ids = $redis->SMEMBERS($key);
 //        var_dump($post_term_ids);
+        $term_model = new Term;
         if( is_null($post_term_ids)|| count($post_term_ids)==0 ){
             //无缓存或Post无标签，查库确认，并添加缓存
+
             $term_ids = $this->get_post_term_id_from_db($post_id);
 //            echo "A\n";
 //            var_dump($term_ids);
             $res = array();
-            if( is_array($term_ids)&& count($term_ids)>0){
-                /**
-                 * 缓存无，从DB取，同时初始化缓存
-                 */
-                foreach($term_ids as $term_id){
+            if(is_null($term_ids) && strlen($this->error)>0 ){
+                //从库中获取时报错
+                $res = null;
+            }else{
+                if( is_array($term_ids)&& count($term_ids)>0){
+                    /**
+                     * 缓存无，从DB取，同时初始化缓存
+                     */
+                    foreach($term_ids as $term_id){
 //                    $term_id_arr = (array)$term_id;
-                    array_push($res, sprintf( Term::$TERMKEY, $term_id->term_id ) );
-                    $redis->SADD($key,$term_id->term_id );
+                        array_push($res,$term_id->term_id );
+//                        strtoupper( sprintf( BaseModel::$MODEL_KEY ,$term_model->primaryKey,
+
+                        $redis->SADD($key,$term_id->term_id );
+                    }
                 }
             }
         }else{
             $res = array();
             if( is_array($post_term_ids) && count($post_term_ids)>0){
                 foreach($post_term_ids as $term_id){
-                    array_push($res, sprintf( Term::$TERMKEY, $term_id) );
+                    array_push($res,$term_id);
                 }
             }
         }
@@ -135,6 +144,7 @@ class TermRelationship extends BaseModel
                 $post_id)->get();
         }catch(Exception $e){
             $error_msg = $e->getMessage();
+            $this->error = $error_msg;
             $method = __METHOD__;
             Log::error("{$method}|MSG:{$error_msg}|获取post's term id失败");
             $res = null;
@@ -149,33 +159,23 @@ class TermRelationship extends BaseModel
         if(is_null($redis)){
             $redis = LRedis::connection();
         }
-        $term_keys = $this->get_post_term_key($post_id,$redis );
+        $term_keys = $this->get_post_term_key( $post_id,$redis );
         $res = array();
-        if( count($term_keys)>0){
-            $terms_cache = $redis->MGET( $term_keys );
-            if( count($terms_cache)!= count($term_keys)){
-                //需要初始化 term缓存 [TERMKEY -> json term]
-                $terms_db = $this->get_post_terms_db($post_id);
-                if( is_array($terms_db) && count($terms_db)>0 ){
-                    $res = $terms_db;
-                    foreach ($terms_db as $term){
-                        $key = sprintf(Term::$TERMKEY,$term->term_id);
-                        $redis->SET($key, json_encode($term));
-                    }
+        if(is_null($term_keys) && strlen($this->error)>0 ){
+            //库中也无法获取，直接
+            $res = $this->get_post_terms_db($post_id);
+        }else{
+            if( count($term_keys)>0) {
+//            $terms_cache = $redis->MGET( $term_keys );
+                $term_model = new Term;
+                $res = $term_model->get_modles_from_pkset($term_keys);
+                if( is_null($res)){
+                    $method = __METHOD__;
+                    $errmsg = "{$method}|MSG:".$term_model->error;
+                    $this->error = $errmsg;
                 }
             }
-            if( is_array($terms_cache) && count($terms_cache)>0 ){
-                foreach($terms_cache as $term_json){
-                    $term = json_decode($term_json);
-                    if(!is_null($term)){
-                        array_push($res,$term);
-                    }else{
-                        $this->err = "json解码错误";
-                    }
-
-                }
-            }
-        }//else post无term
+        }
         return $res;
     }
 

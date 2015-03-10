@@ -4,17 +4,81 @@ class TestController extends BaseController {
 	
 	public function test(){
 		$redis = LRedis::connection();
-		$post_model = new Post;
-		$comm_model = new Comment;
+		$post = new Post;
+		$comm = new Comment;
+		$user = new User;
+		$term = new Term;
+		$tr = new TermRelationship();
 
 		$start = microtime(1);
 
-		$res = $post_model->get_posts_onepage_with_meta(5,Constant::$PAGESIZE,$redis);
+//		$hello = "Hello";
+//		echo "BF fire<br/>";
+//		$res = Event::fire('test.test', array($hello));
+//		echo "Returned:";
+		$res = $term->get_terms_and_stat();
+		var_dump( $res);
+
+//		$res = $tr->get_post_term( 72 );
+
+
+
+//		foreach($res as $re){
+//			var_dump($re);
+//		}
+//
+//		$tks = $tr->get_post_term_key( 72,$redis );
+//		$res = $term->get_modles_from_pkset($tks);
+		//Term::get_terms_by_post
+//		$res = $tr->get_post_term_id_from_db(72);
+//
+//		var_dump($res);
+
+
+//		$res = $post_model->get_user_posts(1, Constant::$ADMIN_PAGESIZE);
+//		foreach($res as $re){
+//			var_dump($re);
+//		}
+
+//		$cm = Comment::find(26);
+//		$res = $comm->in_which_page($cm);
+
+//		$res = $comm->get_post_comments(72,5);
+
+//		foreach($res as $re){
+//			echo "comm:".$re->comment_id."\n";
+////			var_dump($re);
+//			echo "type:".gettype ($re->child_comments);
+//			if(!is_null($re->child_comments)){
+//				foreach($re->child_comments as $ree) {
+//					echo 'child:'.$ree->comment_id."\n";
+////					var_dump($ree);
+//				}
+//			}
+//		}
+
+//		create_comment($post_id,$post_author_id,
+//			$comment_replay,$content,
+//			$author_id,$author,$email,$redis=null)
+
+//		$res = $comm->create_comment('72','1',
+//			'13','asdfdsfads',
+//			'2','','' );
+
+//		$res = $post->get_post_by_date('2015-01',5);
+
+//		var_dump($res);
+//
+//		$a = array("dsfdsf","sdfsd");
+//		echo json_encode($a);
+//		$res = $user->login('sdfsdafsdf@第sdfsdf','asfsdafds');
+
+//		$res = $post_model->get_posts_onepage_with_meta(5,Constant::$PAGESIZE,$redis);
 //		$res1 = $post_model->get_size_with_condition(1);
 //		echo $res1;
 //		$res = $comm_model->get_ts_pk_set(1,5,Comment::$TS_CONDITION,$redis);
 //		$res = $post_model->get_size_with_condition(1);
-		var_dump($res);
+
 
 //		$res = $post_model->init_ts_pk_set(1);
 //

@@ -10,17 +10,19 @@ class PageCache{
 
     private static $redis;
     private static $INDEX = 'INDEX';
+    private static $SIDEBAR = 'SIDEBAR';
     private static $LONG_TIME = 3600;//1hour
     private static $MID_TIME = 1800;//half hour
     private static $SHORT_TIME = 300;//
     private static $TWO_MIN = 120;
     private static $ONE_MIN = 60;
     private static $HALF_MIN = 30;
+    private static $Q_SEC = 30;
+
+    private static $TEST_5SEC = 5;
 
     private static $COMM_CHANGE_CNT;
     private static $POST_CHANGE_CNT;
-
-
 
 
     function __construct(){
@@ -32,17 +34,26 @@ class PageCache{
         return self::$redis->get( self::$INDEX );
     }
 
-//    public function set_index($view){
-//        self::$redis->SET( self::$INDEX , (string)$view );
-//        self::$redis->EXPIRE( self::$INDEX , self::$ONE_MIN );
-//    }
-
     public function update_index($view=null){
         if(is_null($view)){
             self::$redis->PERSIST( self::$INDEX );
         }else{
             self::$redis->set(self::$INDEX, $view);
-            self::$redis->EXPIRE( self::$INDEX , self::$ONE_MIN );
+            self::$redis->EXPIRE( self::$INDEX , self::$HALF_MIN );
+        }
+    }
+
+    public function get_sidebar(){
+        return self::$redis->get( self::$SIDEBAR );
+    }
+
+    public function update_sidebar($view=null){
+        if(is_null($view)){
+            self::$redis->PERSIST( self::$SIDEBAR );
+        }else{
+            self::$redis->set(self::$SIDEBAR, $view.'');
+//            self::$redis->EXPIRE( self::$SIDEBAR , self::$HALF_MIN );
+            self::$redis->EXPIRE( self::$SIDEBAR , self::$Q_SEC );
         }
     }
 

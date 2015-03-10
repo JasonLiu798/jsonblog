@@ -53,6 +53,8 @@ class Term extends BaseModel {
 	// 	DB::table('term_relationships')->where('object_id', '=', $post_id )->delete();
 	// }
 
+
+	
 	/**
 	 *
 	 */
@@ -61,11 +63,16 @@ class Term extends BaseModel {
 		SELECT name,terms.term_id term_id,taxonomy
 		FROM terms join term_taxonomy on terms.term_id=term_taxonomy.term_id
 		 */
-		$term = DB::table('terms')
-			->select('terms.name as name', 'terms.term_id as term_id', 'taxonomy')
-			->join('term_taxonomy', 'term_taxonomy.term_id', '=', 'terms.term_id')
-			->where('terms.term_id', '=', $term_id)->get();
-		return $term;
+//		$term = DB::table('terms')
+//			->select('terms.name as name', 'term_id', 'taxonomy')
+//			->where('terms.term_id', '=', $term_id)->get();
+		$term = Term::find($term_id);
+		if( !is_null($term )){
+			$name = $term->name;
+		}else{
+			$name = null;
+		}
+		return $name;
 	}
 
 	// public static function delete_cat_tid($tid) {
@@ -121,6 +128,9 @@ class Term extends BaseModel {
 		return $terms;
 	}
 
+
+
+	/*
 	public static function get_admin_category() {
 //$pagesize){
 		/*
@@ -130,7 +140,7 @@ class Term extends BaseModel {
 		left join term_relationships on term_relationships.term_taxonomy_id=term_taxonomy.term_id
 		where term_taxonomy.taxonomy='category'
 		group by term_relationships.term_taxonomy_id;
-		 */
+		 *
 		$terms = DB::table('term_taxonomy')
 			->select('terms.name', 'terms.term_id', 'term_taxonomy.parent', DB::raw('count(term_relationships.object_id) post_cnt'))
 			->join('terms', 'terms.term_id', '=', 'term_taxonomy.term_id')
@@ -140,6 +150,7 @@ class Term extends BaseModel {
 			->get(); //paginate($pagesize);
 		return $terms;
 	}
+*/
 
 	public static function get_admin_tag() {
 		$terms = DB::table('term_taxonomy')
@@ -171,13 +182,13 @@ class Term extends BaseModel {
 			$redis = LRedis::connection();
 		}
 		$res = $this->get_models($redis);
-		if(is_array($res) && count($res)>0 ){
+		if(!is_null($res) && count($res)>0 ){
 			$term_model = new Term;
-
-			$cnt = $term_model->get_relate_count('post',2);
+//			$cnt = $term_model->get_relate_count('post',2);
 			foreach($res as $term){
 				$cnt = $term_model->get_relate_count('post',$term->term_id);
 				$term->term_count = $cnt;
+//				echo 'Term:'.$term->term_id.','.$cnt.','.$term->taxonomy."\n";
 			}
 		}
 		return $res;
@@ -475,6 +486,43 @@ class Term extends BaseModel {
 		return $category;
 	}
 
+	public function add_meta(&$terms){
+		if( !is_null($terms) && count($terms)>0){
+			foreach($terms as $term){
+				$this->get_relate_count('post',$term->term_id);
+			}
+		}
+	}
+
+	/**
+	 * 获取所有
+	 * @param $pagesize
+	 */
+	public function get_admin_category_db($pagesize) {
+		$terms = Term::where('taxonomy','category')->paginate($pagesize);
+		if( !is_null($terms) && count($terms)>0){
+			foreach($terms as $term){
+				$term->childs = array();
+				$this->recursive_get_child($term, $term->childs , 0,'--');
+			}
+		}
+		return $terms;
+	}
+
+	public function recursive_get_child(&$term,&$child_arr,$level,$padding_char){
+		$childs = Term::where('parent',$term->term_id )->get();
+		if(is_array($childs) && count($childs)>0){
+			$level = $level+1;
+			foreach($childs as $child){
+				$this->category_add_padding_char($child, $level, $padding_char);
+				array_push($child_arr,$child);
+				self::recursive_get_child($child,$child_arr,$level,$padding_char);
+			}
+
+		}
+	}
+
+
 	/**
 	 * sort category to tree format and add space in the front
 	 * @param unknown $category,at least hava term_id,parent
@@ -517,14 +565,14 @@ class Term extends BaseModel {
 	 * @param unknown $term
 	 * @param unknown $level
 	 */
-	function category_add_padding_char($category, $level, $padding_char) {
+	function category_add_padding_char(&$category, $level, $padding_char) {
 		$space = '';
 		for ($i = 1; $i <= $level; $i++) {
 			$space .= $padding_char;
 		}
 		$category->name = $space . $category->name;
-		array_push($this->category2show, $category);
-		return;
+//		array_push($this->category2show, $category);
+//		return;
 	}
 
 	/**

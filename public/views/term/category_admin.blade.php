@@ -40,6 +40,24 @@
                     @endif
                 </td>
             </tr>
+                @if( is_array($term->childs)&& count($term->childs)>0)
+                    @foreach($term->childs as $child)
+                        <tr>
+                        <td>@if( $child->term_id!=1 )<input type="checkbox" name="id" value="{{ $child->term_id }}"/>@endif </td>
+
+                        <td>{{ $child->name }}</td>
+                        <td>{{ $child->post_cnt }}</td>
+                        <td>
+                            @if( $child->term_id!=1 )
+                                <a href="{{url()}}/admin/category/delete/{{$child->term_id}}">删除</a>|
+
+                                <a href="{{url()}}/admin/category/update/{{$child->term_id}}">修改</a>
+                            @endif
+                        </td>
+                        </tr>
+                    @endforeach
+                @endif
+
                 @endforeach
 
             </tbody>

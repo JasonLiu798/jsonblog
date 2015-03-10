@@ -58,14 +58,26 @@ class BaseModel extends Eloquent {
         if(is_null($redis)){
             $redis = LRedis::connection();
         }
+        $res = true;
         $max_pid = DB::table( $this->table )->max( $this->primaryKey ) ;
-        if($max_pid){
-            $res_set = $redis->set($this->primaryKey ,$max_pid);//如无acid,get max acid 设置
-            if(!$res_set){
-                return false;
+        $pk = 0;
+        if( $max_pid ){
+            $pk = $max_pid;
+        }else{
+            $cnt = DB::table( $this->table )->count();
+            if($cnt ==0){//库内无数据
+                $pk = 1;
             }
         }
-        return true;
+        if($pk>0){
+            $res_set = $redis->set($this->primaryKey ,$pk );//如无acid,get max acid 设置
+            if(!$res_set){
+                $res =  false;
+            }
+        }else{
+            $res = false;
+        }
+        return $res;
     }
 
     /**
@@ -206,7 +218,7 @@ class BaseModel extends Eloquent {
         $start = $page_idx['start'];
         $stop = $page_idx['stop'];
 
-        Log::info( "page:{$page},size:{$pagesize},st:{$start},ed:{$stop}");
+//        Log::info( "page:{$page},size:{$pagesize},st:{$start},ed:{$stop}");
         //ZRANGE KEY START STOP [WITHSCORES]
         $ts_pk_set_cache = $redis->ZREVRANGE( $key,$start,$stop );
         if( is_null($ts_pk_set_cache)|| (is_array($ts_pk_set_cache)&& count($ts_pk_set_cache)
@@ -255,6 +267,10 @@ class BaseModel extends Eloquent {
                     $method = __METHOD__;
                     Log::error("{$method}|MSG:{$errmsg}");
                 }
+            }
+            if(count($res)!=count($pks)){
+                //获取的model数量和pk数量不相等
+                $res = null;
             }
         }
         return $res;
@@ -372,7 +388,7 @@ class BaseModel extends Eloquent {
                         }
                     }
 
-                    echo "where $where_raw ";
+//                    echo "where $where_raw ";
 
                     if( $res ){
                         /**
@@ -526,6 +542,7 @@ class BaseModel extends Eloquent {
             }
         }
         $size = $this->get_size_db();
+//        echo 'size:'.$size.',actual size :'.count($res);
         if( count($res)!= $size){
             $res = $this->get_models_db();
         }
@@ -543,18 +560,26 @@ class BaseModel extends Eloquent {
             $redis = LRedis::connection();
         }
         $key  = strtoupper(sprintf( self::$MODEL_KEY ,  $this->primaryKey,$pk));
-        $res_json = $redis->get($key);
-        if(is_null($res_json)){
+        $res_serial = $redis->get($key);
+        if(is_null($res_serial)){
             $res = null;
             $classname = get_class($this);
             $get_modle_eval = "\$res = $classname::find($pk);";
-            eval($get_modle_eval);
-//            echo $get_modle_eval."\n";
-            if(!is_null($res)){
-                $redis->set($key, serialize($res) );
+            Log::info( __METHOD__ .' eval:'.$get_modle_eval );
+            try {
+                eval($get_modle_eval);
+                if(!is_null($res)){
+                    $redis->set($key, serialize($res) );
+                }
+            }catch(Exception $e){
+                $error_msg = $e->getMessage();
+                $this->error = $error_msg;
+                $method = __METHOD__;
+                Log::error("{$method}|MSG:{$error_msg}|从库获取modles失败");
+                $res = null;
             }
         }else{
-            $res = unserialize($res_json);
+            $res = unserialize($res_serial);
         }
         return $res;
     }
@@ -566,9 +591,21 @@ class BaseModel extends Eloquent {
         $classname = get_class($this);
         $modles = null;
         $get_models_eval = "\$modles = $classname::all();";
+//        echo "get_models_eval $get_models_eval";
         try{
             eval($get_models_eval);
-            $res = $modles;
+//            $res = $modles.toArray();
+//            echo 'cnt:'.count($modles);
+            if(count($modles)>0){
+                $res = $modles->all();
+            }else if(count($modles)==1){
+                $res = array($modles);
+            }else{
+                $res = null;
+            }
+//            echo 'models db:';
+//            var_dump($res);
+//            echo "type:".gettype($res);
         }catch(Exception $e){
             $error_msg = $e->getMessage();
             $method = __METHOD__;
